@@ -15,6 +15,9 @@ model Store {
   whatsapp    String     // El número donde llegarán los pedidos
   logoUrl     String?    
   createdAt   DateTime   @default(now())
+
+  backgroundColor String     @default("#ffffff") 
+  themeColor      String     @default("#ef4444")
   
   // Relación: Un local tiene muchas categorías
   categories  Category[] 
@@ -23,28 +26,47 @@ model Store {
 // 2. La tabla de Categorías (Para ordenar el menú)
 model Category {
   id          String    @id @default(uuid())
-  name        String    // Ej: "Hamburguesas", "Bebidas", "Postres"
-  
-  // Relación: Esta categoría pertenece a un local específico
+  name        String    
   storeId     String
   store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  
-  // Relación: Una categoría tiene muchos productos
   products    Product[]
   createdAt   DateTime  @default(now())
 }
 
-// 3. La tabla de Productos
 model Product {
   id          String    @id @default(uuid())
-  name        String    // Ej: "Hamburguesa Clásica"
+  name        String    
   description String?   // Ej: "Carne 150g, queso fundido y papitas"
-  price       Float     // Ej: 5.50
+  price       Float     
   isAvailable Boolean   @default(true) // ¡La magia para apagar productos agotados!
-  imageUrl    String?   
+  imageUrl    String?   // URL de la imagen en Supabase Storage
   
-  // Relación: Este producto pertenece a una categoría
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
+  
+  // NUEVO: Relación para conectar los extras y remociones
+  modifierGroups ModifierGroup[]
+}
+
+// 4. Grupos de Opciones (Ej: "Elige tus extras", "Quitar ingredientes")
+model ModifierGroup {
+  id          String    @id @default(uuid())
+  name        String    
+  isRequired  Boolean   @default(false) // Útil si obligatoriamente deben elegir un término de cocción, por ejemplo
+  
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  options     ModifierOption[]
+}
+
+// 5. Opciones individuales (Ej: "Tocineta", "Sin cebolla")
+model ModifierOption {
+  id              String        @id @default(uuid())
+  name            String        
+  extraPrice      Float         @default(0) // 0 si es para quitar o si es gratis, > 0 para extras
+  
+  modifierGroupId String
+  group           ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
 }
