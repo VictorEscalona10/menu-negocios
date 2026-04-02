@@ -114,16 +114,26 @@ export default async function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="flex justify-center border-t border-zinc-100 pt-8">
+                <div className="flex flex-col sm:flex-row justify-center gap-4 border-t border-zinc-100 pt-8">
+                    <a 
+                        href="/dashboard/products"
+                        className="group flex justify-center items-center gap-3 bg-white border border-zinc-200 text-zinc-800 px-8 py-4 rounded-xl font-medium hover:bg-zinc-50 hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-200"
+                    >
+                        <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        Categorías y Productos
+                    </a>
+
                     <a 
                         href="/dashboard/settings"
-                        className="group flex items-center gap-3 bg-black text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                        className="group flex justify-center items-center gap-3 bg-black text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
                     >
                         <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:rotate-45 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        Ir a Configuración de la Tienda
+                        Configuración de la Tienda
                     </a>
                 </div>
             </div>

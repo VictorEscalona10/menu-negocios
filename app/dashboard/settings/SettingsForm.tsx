@@ -5,16 +5,15 @@ import { useState } from "react"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
-    
+
     return (
         <button
             type="submit"
             disabled={pending}
-            className={`w-full text-white font-medium py-3 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 mt-6 ${
-                pending 
-                ? 'bg-zinc-400 cursor-not-allowed' 
-                : 'bg-black hover:bg-zinc-800 hover:shadow-md'
-            }`}
+            className={`w-full text-white font-medium py-3 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 mt-6 ${pending
+                    ? 'bg-zinc-400 cursor-not-allowed'
+                    : 'bg-black hover:bg-zinc-800 hover:shadow-md'
+                }`}
         >
             {pending ? (
                 <>
@@ -34,15 +33,16 @@ interface Store {
     whatsapp: string;
     backgroundColor: string;
     themeColor: string;
+    logoUrl?: string;
 }
 
 // COMPONENTE DE VISTA PREVIA (Miniatura de la UI del Menú)
-function MenuPreview({ name, backgroundColor, themeColor }: { name: string, backgroundColor: string, themeColor: string }) {
+function MenuPreview({ name, backgroundColor, themeColor, logoUrl }: { name: string, backgroundColor: string, themeColor: string, logoUrl?: string }) {
     return (
         <div className="relative mx-auto w-[320px] h-[640px] bg-black rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
             {/* Notch del Teléfono simulado */}
             <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50"></div>
-            
+
             {/* Contenido Renderizado de la App */}
             <div
                 className="w-full h-full overflow-y-auto no-scrollbar font-sans text-[#e5e2e1] pb-24 relative"
@@ -50,17 +50,24 @@ function MenuPreview({ name, backgroundColor, themeColor }: { name: string, back
             >
                 {/* Cabecera Clónica */}
                 <header className="pt-16 pb-8 px-5 relative overflow-hidden">
-                    <div 
-                        className="absolute top-0 right-0 opacity-10 blur-[50px] rounded-full w-48 h-48 -translate-y-1/2 translate-x-1/4 pointer-events-none" 
+                    <div
+                        className="absolute top-0 right-0 opacity-10 blur-[50px] rounded-full w-48 h-48 -translate-y-1/2 translate-x-1/4 pointer-events-none"
                         style={{ backgroundColor: themeColor || '#FF5630' }}
                     ></div>
-                    
+
                     <div className="flex items-end justify-between mb-6 relative z-10">
-                        <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-xl">
-                            <span className="text-2xl">🏪</span>
-                        </div>
+                        {logoUrl ? (
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-xl border-4 border-white shadow-xl overflow-hidden bg-white/10">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={logoUrl} alt="Logo preview" className="w-full h-full object-cover" />
+                            </div>
+                        ) : (
+                            <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-xl">
+                                <span className="text-2xl">🏪</span>
+                            </div>
+                        )}
                     </div>
-                    
+
                     <div className="relative z-10 w-full pr-4">
                         <h1 className="text-3xl font-serif tracking-tighter font-extrabold mb-2 leading-none text-white truncate">
                             {name || 'Tu Negocio'}
@@ -128,14 +135,22 @@ function MenuPreview({ name, backgroundColor, themeColor }: { name: string, back
 
 export function SettingsForm({ store, updateAction }: { store: Store, updateAction: (formData: FormData) => Promise<{ success: boolean; message: string } | any> }) {
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
-    
+
     // ESTADO CONTROLADO LOCALMENTE (Para la Vista Previa)
     const [localStore, setLocalStore] = useState({
         name: store.name || "",
         whatsapp: store.whatsapp || "",
         backgroundColor: store.backgroundColor || "#131313",
-        themeColor: store.themeColor || "#FF5630"
+        themeColor: store.themeColor || "#FF5630",
+        logoUrl: store.logoUrl || ""
     })
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setLocalStore({ ...localStore, logoUrl: URL.createObjectURL(file) });
+        }
+    };
 
     const handleAction = async (formData: FormData) => {
         try {
@@ -151,11 +166,11 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 xl:gap-16 items-start">
-            
+
             {/* Formulario (Columna 1) */}
             <div className="order-2 lg:order-1 flex flex-col pt-2 w-full">
                 <form action={handleAction} className="space-y-6">
-                    
+
                     {status === "success" && (
                         <div className="bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                             <div className="bg-green-100 p-1.5 rounded-full shrink-0">
@@ -181,6 +196,26 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                                 className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none transition-shadow"
                                 required
                             />
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-100">
+                            <label className="block text-sm font-medium text-zinc-700 mb-1">Logo del Local</label>
+                            <input
+                                type="file"
+                                name="logo"
+                                accept="image/*" // Solo permite seleccionar imágenes
+                                onChange={handleFileChange}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50"
+                            />
+                            {localStore.logoUrl && (
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium text-zinc-500 mb-2">Logo actual (o vista previa):</p>
+                                    <div className="w-20 h-20 rounded-xl border border-zinc-200 overflow-hidden shadow-sm bg-zinc-50">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={localStore.logoUrl} alt="Logo actual" className="w-full h-full object-cover" />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -239,10 +274,11 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
             {/* Vista Previa Móvil (Columna 2) */}
             <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10">
                 <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-6 text-center shrink-0">Vista Previa en Vivo</h3>
-                <MenuPreview 
-                    name={localStore.name} 
-                    backgroundColor={localStore.backgroundColor} 
-                    themeColor={localStore.themeColor} 
+                <MenuPreview
+                    name={localStore.name}
+                    backgroundColor={localStore.backgroundColor}
+                    themeColor={localStore.themeColor}
+                    logoUrl={localStore.logoUrl}
                 />
             </div>
 

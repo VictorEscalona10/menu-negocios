@@ -1,8 +1,11 @@
-// app/dashboard/products/page.tsx
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import { createCategory, createProduct } from '@/src/actions/menu'
+import Link from 'next/link'
+import { createCategory, createProduct, deleteCategory, deleteProduct } from '@/src/actions/menu'
+import { CategoryForm } from './CategoryForm'
+import { ProductForm } from './ProductForm'
+import { DeleteButton } from './DeleteButton'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -33,106 +36,101 @@ export default async function ProductsPage() {
     const createCategoryAction = createCategory.bind(null, store.id)
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <h1 className="text-3xl font-bold text-zinc-900">Gestión del Menú</h1>
+        <div className="max-w-7xl mx-auto space-y-8 p-6 lg:p-10 relative">
+            {/* Botón Volver al dashboard */}
+            <Link 
+                href="/dashboard"
+                className="inline-flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300 mb-2"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Volver al Resumen</span>
+            </Link>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Formulario de Categorías */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200 h-fit">
-                    <h2 className="text-xl font-semibold text-zinc-800 mb-4">Nueva Categoría</h2>
-                    <form action={createCategoryAction} className="flex gap-2">
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Ej: Hamburguesas, Bebidas..."
-                            className="flex-1 border border-zinc-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black"
-                            required
-                        />
-                        <button type="submit" className="bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-zinc-800">
-                            Crear
-                        </button>
-                    </form>
-                </div>
-
-                {/* Formulario de Productos */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200">
-                    <h2 className="text-xl font-semibold text-zinc-800 mb-4">Nuevo Producto</h2>
-
-                    {store.categories.length === 0 ? (
-                        <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                            Debes crear al menos una categoría primero para poder agregar productos.
-                        </p>
-                    ) : (
-                        <form action={createProduct} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Categoría</label>
-                                <select name="categoryId" className="w-full border border-zinc-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-black" required>
-                                    {store.categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre del producto</label>
-                                <input type="text" name="name" placeholder="Ej: Hamburguesa Clásica" className="w-full border border-zinc-300 rounded-lg px-4 py-2 outline-none" required />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Descripción</label>
-                                <textarea name="description" placeholder="Ingredientes o detalles..." className="w-full border border-zinc-300 rounded-lg px-4 py-2 outline-none resize-none" rows={2}></textarea>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Precio ($)</label>
-                                <input type="number" step="0.01" name="price" placeholder="5.50" className="w-full border border-zinc-300 rounded-lg px-4 py-2 outline-none" required />
-                            </div>
-
-                            <button type="submit" className="w-full bg-black text-white px-4 py-3 rounded-xl font-medium hover:bg-zinc-800">
-                                Agregar Producto
-                            </button>
-                        </form>
-                    )}
-                </div>
+            <div>
+                <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Gestión del Menú</h1>
+                <p className="text-zinc-500 font-medium mt-1">Añade y organiza los items de tu tienda</p>
             </div>
 
-            {/* Vista Previa del Menú Actual */}
-            <div className="mt-12">
-                <h2 className="text-2xl font-bold text-zinc-900 mb-6 border-b pb-2">Tu Menú Actual</h2>
-
-                {store.categories.length === 0 ? (
-                    <p className="text-zinc-500">Tu menú está vacío.</p>
-                ) : (
-                    <div className="space-y-8">
-                        {store.categories.map((category) => (
-                            <div key={category.id}>
-                                <h3 className="text-xl font-semibold text-zinc-800 mb-4 bg-zinc-100 p-2 rounded-lg inline-block px-4">
-                                    {category.name}
-                                </h3>
-
-                                {category.products.length === 0 ? (
-                                    <p className="text-sm text-zinc-500 italic ml-4">No hay productos en esta categoría.</p>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ml-4">
-                                        {category.products.map((product) => (
-                                            <div key={product.id} className="bg-white border border-zinc-200 p-4 rounded-xl shadow-sm flex flex-col justify-between">
-                                                <div>
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <h4 className="font-bold text-zinc-900">{product.name}</h4>
-                                                        <span className="font-medium text-green-600">${product.price.toFixed(2)}</span>
-                                                    </div>
-                                                    <p className="text-sm text-zinc-500 line-clamp-2">{product.description}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+            {/* Inicia la Cuadrícula Responsiva */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start mt-8">
+                
+                {/* Panel Izquierdo: Formularios de Creación (Sticky en Desktop) */}
+                <div className="lg:col-span-5 flex flex-col gap-10 lg:sticky lg:top-8">
+                    {/* Formulario de Categorías - Inline Simple */}
+                    <div className="bg-white rounded-3xl h-fit">
+                        <CategoryForm createAction={createCategoryAction} />
                     </div>
-                )}
+
+                    {/* Formulario de Productos - Highlighted */}
+                    <div className="bg-white px-6 py-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
+                        <h2 className="text-2xl font-black text-zinc-900 mb-8 tracking-tight">Agregar Producto Nuevo</h2>
+                        <ProductForm categories={store.categories} createProductAction={createProduct} />
+                    </div>
+                </div>
+
+                {/* Panel Derecho: Lista del Menú Actual */}
+                <div className="lg:col-span-7">
+                    <h2 className="text-2xl font-black text-zinc-900 mb-8 pb-4 border-b border-zinc-100">Menú Actual</h2>
+
+                    {store.categories.length === 0 ? (
+                        <p className="text-zinc-500 bg-zinc-50 p-6 rounded-2xl text-center border border-zinc-100">Tu menú está limpio. Comienza agregando categorías en el panel.</p>
+                    ) : (
+                        <div className="space-y-10">
+                            {store.categories.map((category) => {
+                                const boundDeleteCategory = deleteCategory.bind(null, category.id);
+                                
+                                return (
+                                    <div key={category.id}>
+                                        <div className="flex items-center gap-3 mb-6 bg-zinc-50/50 p-2 pl-4 rounded-xl inline-flex group border border-transparent hover:border-zinc-100 transition-colors">
+                                            <h3 className="text-xl font-bold text-zinc-900 tracking-tight">
+                                                {category.name}
+                                            </h3>
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <DeleteButton 
+                                                    deleteAction={boundDeleteCategory} 
+                                                    itemName={category.name} 
+                                                    isCategory={true} 
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {category.products.length === 0 ? (
+                                            <p className="text-sm text-zinc-400 italic ml-4">Categoría vacía.</p>
+                                        ) : (
+                                            <div className="grid grid-cols-1 gap-4 ml-2">
+                                                {category.products.map((product) => {
+                                                    const boundDeleteProduct = deleteProduct.bind(null, product.id);
+
+                                                    return (
+                                                        <div key={product.id} className="group bg-white border border-zinc-100 p-5 rounded-2xl flex flex-col justify-between hover:border-zinc-200 transition-colors shadow-sm">
+                                                            <div>
+                                                                <div className="flex justify-between items-start mb-2 gap-4">
+                                                                    <h4 className="font-bold text-lg text-zinc-900 leading-tight">{product.name}</h4>
+                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                        <span className="font-black text-zinc-900 bg-zinc-50 px-3 py-1 rounded-lg">${product.price.toFixed(2)}</span>
+                                                                        <DeleteButton 
+                                                                            deleteAction={boundDeleteProduct} 
+                                                                            itemName={product.name} 
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {product.description && (
+                                                                    <p className="text-sm text-zinc-500 line-clamp-2 mt-1">{product.description}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )

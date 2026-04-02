@@ -34,3 +34,22 @@ export async function createProduct(formData: FormData) {
 
     revalidatePath('/dashboard/products')
 }
+
+export async function deleteCategory(categoryId: string) {
+    // Prisma on cascade eliminará también sus productos
+    await prisma.category.delete({
+        where: {
+            id: categoryId
+        }
+    })
+    revalidatePath('/dashboard/products')
+}
+
+export async function deleteProduct(productId: string) {
+    await prisma.product.delete({
+        where: {
+            id: productId
+        }
+    })
+    revalidatePath('/dashboard/products')
+}

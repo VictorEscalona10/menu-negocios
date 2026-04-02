@@ -37,25 +37,25 @@ export default async function MenuPage({
             style={{ backgroundColor: store.backgroundColor || '#131313' }} // Fallback oscuro
         >
             {/* Cabecera Asimétrica y Elegante */}
-            <header className="pt-24 pb-16 px-6 md:px-8 max-w-3xl mx-auto relative overflow-hidden">
-                <div 
-                    className="absolute top-0 right-0 opacity-10 blur-[100px] rounded-full w-96 h-96 -translate-y-1/2 translate-x-1/4 pointer-events-none" 
-                    style={{ backgroundColor: store.themeColor || '#FF5630' }}
-                ></div>
-                
-                <div className="flex items-end justify-between mb-8 relative z-10">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-2xl">
-                        <span className="text-4xl">🏪</span>
-                    </div>
-                </div>
-                
-                <div className="relative z-10 max-w-sm">
-                    <h1 className="text-5xl md:text-6xl font-serif tracking-tighter font-extrabold mb-4 leading-none text-white">
-                        {store.name}
-                    </h1>
-                    <p className="opacity-60 font-medium text-sm tracking-widest uppercase">
-                        Selección Premium • Retira en local
-                    </p>
+            <header
+                className="pt-12 pb-8 px-6 shadow-md rounded-b-[2.5rem] mb-8"
+                style={{ backgroundColor: store.themeColor, color: '#fff' }}
+            >
+                <div className="max-w-2xl mx-auto text-center">
+                    {/* Aquí la magia: Si hay logo lo muestra, si no, deja el emoji */}
+                    {store.logoUrl ? (
+                        <div className="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={store.logoUrl} alt={`Logo de ${store.name}`} className="w-full h-full object-cover" />
+                        </div>
+                    ) : (
+                        <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center backdrop-blur-sm shadow-lg border-4 border-white">
+                            <span className="text-4xl">🏪</span>
+                        </div>
+                    )}
+
+                    <h1 className="text-3xl font-bold mb-2">{store.name}</h1>
+                    <p className="opacity-90 font-medium text-sm">Haz tu pedido y retira en local</p>
                 </div>
             </header>
 

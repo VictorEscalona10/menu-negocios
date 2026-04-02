@@ -1,32 +1,63 @@
 // src/actions/store.ts
 'use server'
 
-import { prisma } from "@/lib/prisma"; // Importamos tu instancia de Prisma
-import { revalidatePath } from "next/cache";
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
 
 export async function updateStoreSettings(storeId: string, formData: FormData) {
-    const name = formData.get('name') as string;
-    const whatsapp = formData.get('whatsapp') as string;
-    const backgroundColor = formData.get('backgroundColor') as string;
-    const themeColor = formData.get('themeColor') as string;
+    const name = formData.get('name') as string
+    const whatsapp = formData.get('whatsapp') as string
+    const backgroundColor = formData.get('backgroundColor') as string
+    const themeColor = formData.get('themeColor') as string
 
-    try {
-        await prisma.store.update({
-            where: { id: storeId },
-            data: {
-                name,
-                whatsapp,
-                backgroundColor,
-                themeColor,
-            },
-        });
+    // 1. Extraemos el archivo de la imagen (si el usuario subió uno)
+    const logo = formData.get('logo') as File | null;
+    let logoUrl = undefined;
 
-        // Esto le dice a Next.js que limpie la caché y actualice la vista de este local
-        revalidatePath('/dashboard/settings');
+    // 2. Si hay un logo y no está vacío, lo subimos a Supabase
+    if (logo && logo.size > 0) {
+        const supabase = await createClient();
 
-        return { success: true, message: "Configuración actualizada correctamente" };
-    } catch (error) {
-        console.error("Error actualizando la tienda:", error);
-        return { success: false, message: "Error al actualizar la configuración" };
+        // Generamos un nombre único para evitar que las imágenes se sobreescriban
+        const fileExt = logo.name.split('.').pop();
+        const fileName = `${storeId}-${Date.now()}.${fileExt}`;
+
+        // Subimos el archivo al bucket "logos"
+        const { data, error } = await supabase.storage
+            .from('logos')
+            .upload(fileName, logo, { upsert: true });
+
+        if (error) {
+            console.error("Error subiendo imagen:", error);
+        } else if (data) {
+            // Si se subió bien, obtenemos la URL pública para guardarla en la base de datos
+            const { data: { publicUrl } } = supabase.storage
+                .from('logos')
+                .getPublicUrl(fileName);
+
+            logoUrl = publicUrl;
+        }
     }
+
+    // 3. Preparamos los datos para actualizar en Prisma
+    const updateData: any = {
+        name,
+        whatsapp,
+        backgroundColor,
+        themeColor,
+    };
+
+    // Solo actualizamos el logoUrl si realmente subieron una imagen nueva
+    if (logoUrl) {
+        updateData.logoUrl = logoUrl;
+    }
+
+    await prisma.store.update({
+        where: { id: storeId },
+        data: updateData,
+    })
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath(`/menu`) // Revalidamos la ruta pública para que los clientes vean el cambio
 }
