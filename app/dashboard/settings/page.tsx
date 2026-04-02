@@ -1,95 +1,62 @@
 // app/dashboard/settings/page.tsx
-import { prisma } from "@/lib/prisma"; //
-import { updateStoreSettings } from "@/src/actions/store";
+import { createClient } from '@/utils/supabase/server'
+import { prisma } from "@/lib/prisma"
+import { updateStoreSettings } from "@/src/actions/store"
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { SettingsForm } from './SettingsForm'
 
 export default async function SettingsPage() {
-    // SIMULACIÓN: Obtenemos el primer local de la base de datos. 
-    // En el futuro, esto se filtrará por el ID del usuario autenticado.
-    const store = await prisma.store.findFirst();
+    // 1. Validamos al usuario actual
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!store) {
-        return <div>No hay ningún local configurado aún. Debes crear uno en la base de datos.</div>;
+    if (!user) {
+        return redirect('/login')
     }
 
-    // Preparamos la Server Action inyectando el ID del local actual
+    // 2. Buscamos el local asociado a este usuario exacto
+    const store = await prisma.store.findUnique({
+        where: { userId: user.id }
+    })
+
+    if (!store) {
+        return redirect('/dashboard') // Si de casualidad entró aquí sin local, lo regresamos al form inicial
+    }
+
+    // 3. Preparamos la Server Action (que ya tienes creada) inyectando el ID del local
     const updateStoreWithId = updateStoreSettings.bind(null, store.id);
 
     return (
-        <div className="max-w-2xl bg-white p-8 rounded-2xl shadow-sm border border-zinc-200">
-            <h1 className="text-2xl font-bold text-zinc-900 mb-6">Personalización del Menú</h1>
+        <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 lg:p-10 bg-zinc-50/50">
+            <div className="w-full max-w-5xl bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
+                
+                {/* Botón Volver */}
+                <Link 
+                    href="/dashboard"
+                    className="absolute top-6 left-6 md:top-8 md:left-8 flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span className="hidden md:inline">Volver</span>
+                </Link>
 
-            <form action={updateStoreWithId} className="space-y-6">
-                {/* Datos Básicos */}
-                <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-zinc-800 border-b pb-2">Datos Básicos</h2>
-
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre del Local</label>
-                        <input
-                            type="text"
-                            name="name"
-                            defaultValue={store.name}
-                            className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1">Número de WhatsApp (con código de país)</label>
-                        <input
-                            type="text"
-                            name="whatsapp"
-                            defaultValue={store.whatsapp}
-                            placeholder="Ej: 584141234567"
-                            className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none"
-                            required
-                        />
-                    </div>
+                <div className="text-center mb-8 pt-10 md:pt-4">
+                    <h1 className="text-3xl font-extrabold text-zinc-900 mb-2 tracking-tight">Personalización del Menú</h1>
+                    <p className="text-zinc-500 font-medium">Ajusta los detalles de tu tienda</p>
                 </div>
 
-                {/* Colores */}
-                <div className="space-y-4 pt-4">
-                    <h2 className="text-lg font-semibold text-zinc-800 border-b pb-2">Colores de la Marca</h2>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-700 mb-1">Color de Fondo</label>
-                            <div className="flex gap-2 items-center">
-                                <input
-                                    type="color"
-                                    name="backgroundColor"
-                                    defaultValue={store.backgroundColor}
-                                    className="h-10 w-10 rounded cursor-pointer"
-                                />
-                                <span className="text-sm text-zinc-500 font-mono">{store.backgroundColor}</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-700 mb-1">Color Principal (Botones)</label>
-                            <div className="flex gap-2 items-center">
-                                <input
-                                    type="color"
-                                    name="themeColor"
-                                    defaultValue={store.themeColor}
-                                    className="h-10 w-10 rounded cursor-pointer"
-                                />
-                                <span className="text-sm text-zinc-500 font-mono">{store.themeColor}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Botón de Guardado */}
-                <div className="pt-6">
-                    <button
-                        type="submit"
-                        className="w-full bg-black text-white font-medium py-3 rounded-xl hover:bg-zinc-800 transition-colors"
-                    >
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
+                <SettingsForm 
+                    store={{
+                        name: store.name,
+                        whatsapp: store.whatsapp,
+                        backgroundColor: store.backgroundColor || '#ffffff',
+                        themeColor: store.themeColor || '#000000'
+                    }} 
+                    updateAction={updateStoreWithId} 
+                />
+            </div>
         </div>
     );
 }

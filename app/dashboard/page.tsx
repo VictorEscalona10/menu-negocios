@@ -4,41 +4,44 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
+// 1. Movemos el Server Action FUERA del componente para evitar el bug de Turbopack
+async function createStoreAction(userId: string, formData: FormData) {
+    'use server'
+    const name = formData.get('name') as string
+    const whatsapp = formData.get('whatsapp') as string
+
+    // Generamos un slug automático para su URL (Ej: "Burgers Carlos" -> "burgers-carlos")
+    const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+
+    await prisma.store.create({
+        data: {
+            name,
+            whatsapp,
+            slug,
+            userId, // Usamos el parámetro que recibimos por el bind
+        }
+    })
+
+    // Recargamos la página para que ahora muestre el panel
+    revalidatePath('/dashboard')
+}
+
 export default async function DashboardPage() {
-    // 1. Obtenemos el usuario autenticado
+    // Obtenemos el usuario autenticado
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        redirect('/login')
+        return redirect('/login') // Agregamos 'return' por buenas prácticas
     }
 
-    // 2. Buscamos si este usuario ya tiene un local creado en Prisma
+    // Buscamos si este usuario ya tiene un local creado en Prisma
     const store = await prisma.store.findUnique({
         where: { userId: user.id }
     })
 
-    // 3. Server Action para crear el local si no existe
-    const createStore = async (formData: FormData) => {
-        'use server'
-        const name = formData.get('name') as string
-        const whatsapp = formData.get('whatsapp') as string
-
-        // Generamos un slug automático para su URL (Ej: "Burgers Carlos" -> "burgers-carlos")
-        const slug = name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
-
-        await prisma.store.create({
-            data: {
-                name,
-                whatsapp,
-                slug,
-                userId: user.id, // Vinculamos este negocio al usuario que inició sesión
-            }
-        })
-
-        // Recargamos la página para que ahora muestre el panel
-        revalidatePath('/dashboard')
-    }
+    // 2. Preparamos el Server Action inyectándole el ID del usuario actual
+    const createStoreWithUser = createStoreAction.bind(null, user.id)
 
     // INTERFAZ A: Si NO tiene local, le pedimos que lo cree
     if (!store) {
@@ -47,7 +50,8 @@ export default async function DashboardPage() {
                 <h1 className="text-2xl font-bold text-zinc-900 mb-2">¡Bienvenido a tu Menú!</h1>
                 <p className="text-zinc-600 mb-6">Para empezar, necesitamos los datos básicos de tu negocio.</p>
 
-                <form action={createStore} className="space-y-4">
+                {/* Pasamos el action ya vinculado con el ID */}
+                <form action={createStoreWithUser} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1">Nombre del Local</label>
                         <input
@@ -81,24 +85,46 @@ export default async function DashboardPage() {
 
     // INTERFAZ B: Si YA tiene local, le mostramos sus estadísticas
     return (
-        <div className="max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold text-zinc-900 mb-8">Resumen de {store.name}</h1>
-
-            {/* Tarjetas de Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-                    <h3 className="text-sm font-medium text-zinc-500 mb-2">Enlace de tu menú</h3>
-                    <p className="text-lg font-bold text-zinc-900 truncate">
-                        /menu/{store.slug}
+        <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
+            <div className="w-full max-w-4xl bg-white p-10 rounded-3xl shadow-sm border border-zinc-200">
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl font-extrabold text-zinc-900 mb-3 tracking-tight">Resumen de {store.name}</h1>
+                    <p className="text-zinc-500 font-medium tracking-wide border-b border-zinc-100 pb-8 inline-block px-12">
+                        Panel de Administración
                     </p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-                    <h3 className="text-sm font-medium text-zinc-500 mb-2">WhatsApp Vinculado</h3>
-                    <p className="text-xl font-bold text-zinc-900">+{store.whatsapp}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
+                        <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">Enlace del menú</h3>
+                        <p className="text-lg font-bold text-zinc-900 truncate w-full">
+                            /menu/{store.slug}
+                        </p>
+                    </div>
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
+                        <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">WhatsApp</h3>
+                        <p className="text-xl font-bold text-zinc-900">{store.whatsapp}</p>
+                    </div>
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center relative overflow-hidden">
+                        <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">Estado</h3>
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                            <p className="text-xl font-bold text-green-600">Activo</p>
+                        </div>
+                    </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
-                    <h3 className="text-sm font-medium text-zinc-500 mb-2">Estado</h3>
-                    <p className="text-xl font-bold text-green-600">Activo</p>
+
+                <div className="flex justify-center border-t border-zinc-100 pt-8">
+                    <a 
+                        href="/dashboard/settings"
+                        className="group flex items-center gap-3 bg-black text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                    >
+                        <svg className="w-5 h-5 opacity-70 group-hover:opacity-100 group-hover:rotate-45 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Ir a Configuración de la Tienda
+                    </a>
                 </div>
             </div>
         </div>
