@@ -4,69 +4,70 @@ generator client {
 
 // Aquí le decimos que usaremos PostgreSQL (el motor de Supabase)
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // 1. La tabla del Negocio
 model Store {
-  id          String     @id @default(uuid())
-  name        String     // Ej: "Burgers Carlos"
-  slug        String     @unique // Ej: "burgers-carlos" (Esto es para la URL única)
-  whatsapp    String     // El número donde llegarán los pedidos
-  logoUrl     String?    
-  createdAt   DateTime   @default(now())
+  id        String   @id @default(uuid())
+  userId    String   @unique // NUEVO: ID del usuario dueño en Supabase Auth
+  name      String // Ej: "Burgers Carlos"
+  slug      String   @unique // Ej: "burgers-carlos" (Esto es para la URL única)
+  whatsapp  String // El número donde llegarán los pedidos
+  logoUrl   String?
+  createdAt DateTime @default(now())
 
-  backgroundColor String     @default("#ffffff") 
-  themeColor      String     @default("#ef4444")
-  
+  backgroundColor String @default("#ffffff")
+  themeColor      String @default("#ef4444")
+
   // Relación: Un local tiene muchas categorías
-  categories  Category[] 
+  categories Category[]
 }
 
 // 2. La tabla de Categorías (Para ordenar el menú)
 model Category {
-  id          String    @id @default(uuid())
-  name        String    
-  storeId     String
-  store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  products    Product[]
-  createdAt   DateTime  @default(now())
+  id        String    @id @default(uuid())
+  name      String
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
 }
 
 model Product {
-  id          String    @id @default(uuid())
-  name        String    
-  description String?   // Ej: "Carne 150g, queso fundido y papitas"
-  price       Float     
-  isAvailable Boolean   @default(true) // ¡La magia para apagar productos agotados!
-  imageUrl    String?   // URL de la imagen en Supabase Storage
-  
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  
+  id          String  @id @default(uuid())
+  name        String
+  description String? // Ej: "Carne 150g, queso fundido y papitas"
+  price       Float
+  isAvailable Boolean @default(true) // ¡La magia para apagar productos agotados!
+  imageUrl    String? // URL de la imagen en Supabase Storage
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
   // NUEVO: Relación para conectar los extras y remociones
   modifierGroups ModifierGroup[]
 }
 
 // 4. Grupos de Opciones (Ej: "Elige tus extras", "Quitar ingredientes")
 model ModifierGroup {
-  id          String    @id @default(uuid())
-  name        String    
-  isRequired  Boolean   @default(false) // Útil si obligatoriamente deben elegir un término de cocción, por ejemplo
-  
-  productId   String
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  options     ModifierOption[]
+  id         String  @id @default(uuid())
+  name       String
+  isRequired Boolean @default(false) // Útil si obligatoriamente deben elegir un término de cocción, por ejemplo
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  options ModifierOption[]
 }
 
 // 5. Opciones individuales (Ej: "Tocineta", "Sin cebolla")
 model ModifierOption {
-  id              String        @id @default(uuid())
-  name            String        
-  extraPrice      Float         @default(0) // 0 si es para quitar o si es gratis, > 0 para extras
-  
+  id         String @id @default(uuid())
+  name       String
+  extraPrice Float  @default(0) // 0 si es para quitar o si es gratis, > 0 para extras
+
   modifierGroupId String
   group           ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
 }

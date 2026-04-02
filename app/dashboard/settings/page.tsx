@@ -1,5 +1,5 @@
 // app/dashboard/settings/page.tsx
-import { prisma } from "@/src/prisma"; //
+import { prisma } from "@/lib/prisma"; //
 import { updateStoreSettings } from "@/src/actions/store";
 
 export default async function SettingsPage() {
