@@ -18,6 +18,17 @@ interface SharedMenuUIProps {
                 description: string | null;
                 price: number;
                 imageUrl: string | null;
+                modifierGroups?: Array<{
+                    id: string;
+                    name: string;
+                    isRequired: boolean;
+                    maxSelect: number | null;
+                    options: Array<{
+                        id: string;
+                        name: string;
+                        price: number;
+                    }>;
+                }>;
             }>;
         }>;
     };
@@ -133,7 +144,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                     </div>
                                                 ) : (
                                                     <AddToCartButton
-                                                        product={{ id: product.id, name: product.name, price: product.price }}
+                                                        product={product}
                                                         themeColor={store.themeColor}
                                                     />
                                                 )}

@@ -30,7 +30,17 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, isPrevie
         let mensaje = `🍔 *NUEVO PEDIDO - ${storeName}* 🍔\n\n`;
 
         items.forEach((item) => {
-            mensaje += `*${item.quantity}x ${item.name}* - $${(item.price * item.quantity).toFixed(2)}\n`;
+            const extraPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
+            const itemTotal = (item.price + extraPrice) * item.quantity;
+            
+            mensaje += `*${item.quantity}x ${item.name}* - $${itemTotal.toFixed(2)}\n`;
+            
+            if (item.selectedOptions && item.selectedOptions.length > 0) {
+                item.selectedOptions.forEach(opt => {
+                    const priceText = opt.price > 0 ? ` (+$${opt.price.toFixed(2)})` : '';
+                    mensaje += `  └ ${opt.name}${priceText}\n`;
+                });
+            }
         });
 
         mensaje += `\n💰 *TOTAL A PAGAR:* $${totalPrice.toFixed(2)}\n\n`;

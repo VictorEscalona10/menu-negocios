@@ -18,7 +18,17 @@ export default async function MenuPage({
             categories: {
                 include: {
                     products: {
-                        where: { isAvailable: true }
+                        where: { isAvailable: true },
+                        include: {
+                            modifierGroups: {
+                                include: {
+                                    options: true
+                                },
+                                orderBy: {
+                                    name: 'asc'
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -52,22 +52,20 @@ model Product {
 
 // 4. Grupos de Opciones (Ej: "Elige tus extras", "Quitar ingredientes")
 model ModifierGroup {
-  id         String  @id @default(uuid())
+  id         String           @id @default(cuid())
   name       String
-  isRequired Boolean @default(false) // Útil si obligatoriamente deben elegir un término de cocción, por ejemplo
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  options ModifierOption[]
+  isRequired Boolean          @default(false) // Si es true, el cliente está obligado a elegir (Ej: Término de la carne)
+  maxSelect  Int? // Límite de opciones a elegir (Ej: "Elige hasta 2 salsas")
+  productId  String
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options    ModifierOption[]
 }
 
-// 5. Opciones individuales (Ej: "Tocineta", "Sin cebolla")
+// Las opciones individuales (Ej: "Tocineta", "Sin cebolla")
 model ModifierOption {
-  id         String @id @default(uuid())
-  name       String
-  extraPrice Float  @default(0) // 0 si es para quitar o si es gratis, > 0 para extras
-
+  id              String        @id @default(cuid())
+  name            String
+  price           Float         @default(0) // 0 si es "Sin cebolla", o 1.50 si es "Extra Tocineta"
   modifierGroupId String
-  group           ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  modifierGroup   ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
 }

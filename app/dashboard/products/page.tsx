@@ -6,6 +6,7 @@ import { createCategory, createProduct, deleteCategory, deleteProduct } from '@/
 import { CategoryForm } from './CategoryForm'
 import { ProductForm } from './ProductForm'
 import { DeleteButton } from './DeleteButton'
+import { ModifiersManager } from './ModifiersManager'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -22,7 +23,21 @@ export default async function ProductsPage() {
         include: {
             categories: {
                 include: {
-                    products: true
+                    products: {
+                        include: {
+                            modifierGroups: {
+                                include: {
+                                    options: true
+                                },
+                                orderBy: {
+                                    name: 'asc'
+                                }
+                            }
+                        },
+                        orderBy: {
+                            name: 'asc'
+                        }
+                    }
                 }
             }
         }
@@ -107,13 +122,23 @@ export default async function ProductsPage() {
                                                         <div key={product.id} className="group bg-white border border-zinc-100 p-5 rounded-2xl flex flex-col justify-between hover:border-zinc-200 transition-colors shadow-sm">
                                                             <div>
                                                                 <div className="flex justify-between items-start mb-2 gap-4">
-                                                                    <h4 className="font-bold text-lg text-zinc-900 leading-tight">{product.name}</h4>
-                                                                    <div className="flex items-center gap-2 shrink-0">
-                                                                        <span className="font-black text-zinc-900 bg-zinc-50 px-3 py-1 rounded-lg">${product.price.toFixed(2)}</span>
-                                                                        <DeleteButton 
-                                                                            deleteAction={boundDeleteProduct} 
-                                                                            itemName={product.name} 
-                                                                        />
+                                                                    <h4 className="font-bold text-lg text-zinc-900 leading-tight">
+                                                                        {product.name}
+                                                                        {product.modifierGroups.length > 0 && (
+                                                                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-black bg-amber-100 text-amber-800 align-middle">
+                                                                                + Extras
+                                                                            </span>
+                                                                        )}
+                                                                    </h4>
+                                                                    <div className="flex flex-col items-end gap-2 shrink-0">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-black text-zinc-900 bg-zinc-50 px-3 py-1 rounded-lg">${product.price.toFixed(2)}</span>
+                                                                            <DeleteButton 
+                                                                                deleteAction={boundDeleteProduct} 
+                                                                                itemName={product.name} 
+                                                                            />
+                                                                        </div>
+                                                                        <ModifiersManager product={product} />
                                                                     </div>
                                                                 </div>
                                                                 {product.description && (
