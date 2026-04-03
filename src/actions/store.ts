@@ -10,7 +10,8 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const whatsapp = formData.get('whatsapp') as string
     const backgroundColor = formData.get('backgroundColor') as string
     const themeColor = formData.get('themeColor') as string
-    const whatsappMessage = formData.get('whatsappMessage') as string
+    const whatsappHeader = formData.get('whatsappHeader') as string
+    const whatsappFooter = formData.get('whatsappFooter') as string
 
     // 1. Extraemos el archivo de la imagen (si el usuario subió uno)
     const logo = formData.get('logo') as File | null;
@@ -46,7 +47,8 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         name,
         whatsapp,
         backgroundColor,
-        whatsappMessage,
+        whatsappHeader,
+        whatsappFooter,
         themeColor,
     };
 

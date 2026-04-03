@@ -9,14 +9,15 @@ datasource db {
 
 // 1. La tabla del Negocio
 model Store {
-  id              String   @id @default(uuid())
-  userId          String   @unique // NUEVO: ID del usuario dueño en Supabase Auth
-  name            String // Ej: "Burgers Carlos"
-  slug            String   @unique // Ej: "burgers-carlos" (Esto es para la URL única)
-  whatsapp        String // El número donde llegarán los pedidos
-  logoUrl         String?
-  createdAt       DateTime @default(now())
-  whatsappMessage String   @default("¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.")
+  id             String   @id @default(uuid())
+  userId         String   @unique // NUEVO: ID del usuario dueño en Supabase Auth
+  name           String // Ej: "Burgers Carlos"
+  slug           String   @unique // Ej: "burgers-carlos" (Esto es para la URL única)
+  whatsapp       String // El número donde llegarán los pedidos
+  logoUrl        String?
+  createdAt      DateTime @default(now())
+  whatsappHeader String   @default("🍔 *NUEVO PEDIDO* 🍔")
+  whatsappFooter String   @default("¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.")
 
   backgroundColor String @default("#ffffff")
   themeColor      String @default("#ef4444")

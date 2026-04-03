@@ -176,21 +176,29 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1">
-                            Mensaje por defecto en WhatsApp
-                        </label>
-                        <p className="text-xs text-zinc-500 mb-2">
-                            La lista de productos y el total a pagar se generarán automáticamente. Este es solo el mensaje que acompañará la orden.
-                        </p>
-                        <textarea
-                            name="whatsappMessage"
-                            defaultValue={store.whatsappMessage || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación."}
-                            placeholder="Ej: ¡Hola! Quiero hacer este pedido para comer en el local."
-                            rows={3}
-                            className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
-                            required
-                        />
+                    {/* Configuración de WhatsApp */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <h2 className="text-lg font-semibold text-zinc-800">Mensajes de WhatsApp</h2>
+
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-700 mb-1">Encabezado (Antes de los productos)</label>
+                            <textarea
+                                name="whatsappHeader"
+                                defaultValue={store.whatsappHeader}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
+                                rows={2}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-zinc-700 mb-1">Pie de mensaje (Después del total)</label>
+                            <textarea
+                                name="whatsappFooter"
+                                defaultValue={store.whatsappFooter}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
+                                rows={3}
+                            />
+                        </div>
                     </div>
 
                     {/* Colores */}

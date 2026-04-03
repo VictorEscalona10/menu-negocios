@@ -162,7 +162,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                 storeName={store.name}
                 whatsapp={store.whatsapp}
                 themeColor={store.themeColor}
-                whatsappMessage={store.whatsappMessage} // NUEVO
+                whatsappHeader={store.whatsappHeader}
+                whatsappFooter={store.whatsappFooter}
             />
         </div>
     )

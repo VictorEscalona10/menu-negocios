@@ -6,11 +6,12 @@ interface FloatingCartProps {
     storeName: string;
     whatsapp: string;
     themeColor: string;
-    whatsappMessage?: string; // NUEVO
+    whatsappHeader?: string; // NUEVO
+    whatsappFooter?: string; // NUEVO
     isPreview?: boolean;
 }
 
-export default function FloatingCart({ storeName, whatsapp, themeColor, whatsappMessage, isPreview = false }: FloatingCartProps) {
+export default function FloatingCart({ storeName, whatsapp, themeColor, whatsappHeader, whatsappFooter, isPreview = false }: FloatingCartProps) {
     const items = useCartStore((state) => state.items);
     const getTotal = useCartStore((state) => state.getTotal);
     const getTotalItems = useCartStore((state) => state.getTotalItems);
@@ -26,7 +27,9 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
             return;
         }
 
-        let mensaje = `🍔 *NUEVO PEDIDO - ${storeName}* 🍔\n\n`;
+        // 1. Encabezado Personalizado (o por defecto si no hay uno)
+        const header = whatsappHeader || `🍔 *NUEVO PEDIDO - ${storeName}* 🍔`;
+        let mensaje = `${header}\n\n`;
 
         items.forEach((item) => {
             // Aseguramos matemáticamente que todo sea número
@@ -45,11 +48,12 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
             }
         });
 
+        // 2. Total con formato
         mensaje += `\n💰 *TOTAL A PAGAR:* $${Number(totalPrice).toFixed(2)}\n\n`;
 
-        // Agregamos el mensaje personalizado del administrador sin romper la estructura
-        const mensajeFinal = whatsappMessage || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
-        mensaje += mensajeFinal;
+        // 3. Pie de Mensaje Personalizado (o por defecto)
+        const footer = whatsappFooter || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
+        mensaje += `${footer}`;
 
         const textoCodificado = encodeURIComponent(mensaje);
         window.open(`https://wa.me/${whatsapp}?text=${textoCodificado}`, '_blank');
