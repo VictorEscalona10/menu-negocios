@@ -159,10 +159,10 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
             </main>
 
             <FloatingCart
-                storeName={store.name || 'Local'}
+                storeName={store.name}
                 whatsapp={store.whatsapp}
                 themeColor={store.themeColor}
-                isPreview={isPreview}
+                whatsappMessage={store.whatsappMessage} // NUEVO
             />
         </div>
     )

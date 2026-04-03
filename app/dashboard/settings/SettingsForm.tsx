@@ -11,8 +11,8 @@ function SubmitButton() {
             type="submit"
             disabled={pending}
             className={`w-full text-white font-medium py-3 rounded-xl transition-all shadow-sm flex justify-center items-center gap-2 mt-6 ${pending
-                    ? 'bg-zinc-400 cursor-not-allowed'
-                    : 'bg-black hover:bg-zinc-800 hover:shadow-md'
+                ? 'bg-zinc-400 cursor-not-allowed'
+                : 'bg-black hover:bg-zinc-800 hover:shadow-md'
                 }`}
         >
             {pending ? (
@@ -174,6 +174,23 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                                 required
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-700 mb-1">
+                            Mensaje por defecto en WhatsApp
+                        </label>
+                        <p className="text-xs text-zinc-500 mb-2">
+                            La lista de productos y el total a pagar se generarán automáticamente. Este es solo el mensaje que acompañará la orden.
+                        </p>
+                        <textarea
+                            name="whatsappMessage"
+                            defaultValue={store.whatsappMessage || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación."}
+                            placeholder="Ej: ¡Hola! Quiero hacer este pedido para comer en el local."
+                            rows={3}
+                            className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
+                            required
+                        />
                     </div>
 
                     {/* Colores */}

@@ -1,4 +1,3 @@
-// app/menu/[slug]/components/FloatingCart.tsx
 'use client'
 
 import { useCartStore } from '@/src/store/cartStore'
@@ -7,10 +6,11 @@ interface FloatingCartProps {
     storeName: string;
     whatsapp: string;
     themeColor: string;
+    whatsappMessage?: string; // NUEVO
     isPreview?: boolean;
 }
 
-export default function FloatingCart({ storeName, whatsapp, themeColor, isPreview = false }: FloatingCartProps) {
+export default function FloatingCart({ storeName, whatsapp, themeColor, whatsappMessage, isPreview = false }: FloatingCartProps) {
     const items = useCartStore((state) => state.items);
     const getTotal = useCartStore((state) => state.getTotal);
     const getTotalItems = useCartStore((state) => state.getTotalItems);
@@ -18,7 +18,6 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, isPrevie
     const totalItems = getTotalItems();
     const totalPrice = getTotal();
 
-    // Si no hay productos en el carrito, no mostramos la barra
     if (totalItems === 0) return null;
 
     const handleWhatsAppOrder = () => {
@@ -30,26 +29,29 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, isPrevie
         let mensaje = `🍔 *NUEVO PEDIDO - ${storeName}* 🍔\n\n`;
 
         items.forEach((item) => {
-            const extraPrice = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;
-            const itemTotal = (item.price + extraPrice) * item.quantity;
-            
+            // Aseguramos matemáticamente que todo sea número
+            const basePrice = Number(item.price);
+            const extraPrice = item.selectedOptions?.reduce((sum, opt) => sum + Number(opt.price), 0) || 0;
+            const itemTotal = (basePrice + extraPrice) * Number(item.quantity);
+
             mensaje += `*${item.quantity}x ${item.name}* - $${itemTotal.toFixed(2)}\n`;
-            
+
             if (item.selectedOptions && item.selectedOptions.length > 0) {
                 item.selectedOptions.forEach(opt => {
-                    const priceText = opt.price > 0 ? ` (+$${opt.price.toFixed(2)})` : '';
+                    const optPrice = Number(opt.price);
+                    const priceText = optPrice > 0 ? ` (+$${optPrice.toFixed(2)})` : '';
                     mensaje += `  └ ${opt.name}${priceText}\n`;
                 });
             }
         });
 
-        mensaje += `\n💰 *TOTAL A PAGAR:* $${totalPrice.toFixed(2)}\n\n`;
-        mensaje += `¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.`;
+        mensaje += `\n💰 *TOTAL A PAGAR:* $${Number(totalPrice).toFixed(2)}\n\n`;
 
-        // Codificamos el texto para la URL
+        // Agregamos el mensaje personalizado del administrador sin romper la estructura
+        const mensajeFinal = whatsappMessage || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
+        mensaje += mensajeFinal;
+
         const textoCodificado = encodeURIComponent(mensaje);
-
-        // Redirigimos al usuario a WhatsApp
         window.open(`https://wa.me/${whatsapp}?text=${textoCodificado}`, '_blank');
     };
 
@@ -65,12 +67,11 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, isPrevie
                         <span className="text-[10px] uppercase tracking-widest opacity-80 font-bold">
                             Tu Orden ({totalItems} {totalItems === 1 ? 'item' : 'items'})
                         </span>
-                        <div className="font-serif text-3xl tracking-tight font-black">${totalPrice.toFixed(2)}</div>
+                        <div className="font-serif text-3xl tracking-tight font-black">${Number(totalPrice).toFixed(2)}</div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 bg-black/40 group-hover:bg-black/50 transition-colors px-5 py-3 rounded-[1.5rem] backdrop-blur-sm border border-white/10">
                         <span className="text-sm font-medium">Pedir</span>
-                        {/* Ícono de enviar o WhatsApp estilizado */}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
