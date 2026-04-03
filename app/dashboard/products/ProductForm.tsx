@@ -11,7 +11,7 @@ interface Category {
 export function ProductForm({ categories, createProductAction }: { categories: Category[], createProductAction: (formData: FormData) => Promise<any> }) {
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
     const [isPending, setIsPending] = useState(false)
-    
+
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [pendingFormData, setPendingFormData] = useState<FormData | null>(null)
@@ -21,9 +21,9 @@ export function ProductForm({ categories, createProductAction }: { categories: C
     const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        
+
         if (!formData.get("name") || !formData.get("price") || !formData.get("categoryId")) return
-        
+
         setPendingFormData(formData)
         setProductName(formData.get("name") as string)
         setIsModalOpen(true)
@@ -39,7 +39,7 @@ export function ProductForm({ categories, createProductAction }: { categories: C
             await createProductAction(pendingFormData)
             setStatus("success")
             setTimeout(() => setStatus("idle"), 4000)
-            
+
             // Reseteamos el formulario
             const formElement = document.getElementById("product-form") as HTMLFormElement
             if (formElement) formElement.reset()
@@ -63,7 +63,7 @@ export function ProductForm({ categories, createProductAction }: { categories: C
 
     return (
         <div className="relative">
-            <ConfirmationModal 
+            <ConfirmationModal
                 isOpen={isModalOpen}
                 title="Añadir Producto"
                 description={`¿Deseas guardar el producto "${productName}" en tu menú?`}
@@ -105,6 +105,16 @@ export function ProductForm({ categories, createProductAction }: { categories: C
                     <input type="text" name="name" placeholder="Ej: Hamburguesa Clásica" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium placeholder-zinc-400" required />
                 </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1">Imagen del Producto</label>
+                    <input
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        className="w-full border border-zinc-300 rounded-lg px-4 py-2 outline-none bg-zinc-50"
+                    />
+                </div>
+
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Descripción</label>
                     <textarea name="description" placeholder="Ingredientes o detalles..." className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium resize-none placeholder-zinc-400" rows={3}></textarea>
@@ -120,12 +130,11 @@ export function ProductForm({ categories, createProductAction }: { categories: C
                     </div>
                 </div>
 
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     disabled={isPending}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${
-                        isPending ? "bg-zinc-400 text-white cursor-not-allowed" : "bg-black text-white hover:bg-zinc-800 hover:-translate-y-0.5 active:scale-95"
-                    }`}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${isPending ? "bg-zinc-400 text-white cursor-not-allowed" : "bg-black text-white hover:bg-zinc-800 hover:-translate-y-0.5 active:scale-95"
+                        }`}
                 >
                     {isPending && (
                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

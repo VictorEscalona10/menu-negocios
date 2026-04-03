@@ -7,9 +7,10 @@ interface FloatingCartProps {
     storeName: string;
     whatsapp: string;
     themeColor: string;
+    isPreview?: boolean;
 }
 
-export default function FloatingCart({ storeName, whatsapp, themeColor }: FloatingCartProps) {
+export default function FloatingCart({ storeName, whatsapp, themeColor, isPreview = false }: FloatingCartProps) {
     const items = useCartStore((state) => state.items);
     const getTotal = useCartStore((state) => state.getTotal);
     const getTotalItems = useCartStore((state) => state.getTotalItems);
@@ -21,6 +22,11 @@ export default function FloatingCart({ storeName, whatsapp, themeColor }: Floati
     if (totalItems === 0) return null;
 
     const handleWhatsAppOrder = () => {
+        if (isPreview) {
+            alert("🔒 Modo Previsualización: Las órdenes a WhatsApp están desactivadas para no molestar a tus clientes.");
+            return;
+        }
+
         let mensaje = `🍔 *NUEVO PEDIDO - ${storeName}* 🍔\n\n`;
 
         items.forEach((item) => {
@@ -38,7 +44,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor }: Floati
     };
 
     return (
-        <div className="fixed bottom-6 left-4 right-4 md:left-auto md:right-auto md:bottom-8 md:w-[420px] md:translate-x-[-50%] md:ml-[50%] z-50">
+        <div className={`${isPreview ? 'absolute' : 'fixed'} bottom-6 left-4 right-4 md:left-auto md:right-auto md:bottom-8 md:w-[420px] md:translate-x-[-50%] md:ml-[50%] z-50`}>
             <div className="bg-[#201f1f]/80 backdrop-blur-2xl rounded-[2.5rem] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.6)] border border-white/5">
                 <button
                     onClick={handleWhatsAppOrder}

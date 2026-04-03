@@ -36,98 +36,42 @@ interface Store {
     logoUrl?: string;
 }
 
-// COMPONENTE DE VISTA PREVIA (Miniatura de la UI del Menú)
-function MenuPreview({ name, backgroundColor, themeColor, logoUrl }: { name: string, backgroundColor: string, themeColor: string, logoUrl?: string }) {
+import SharedMenuUI from '../../components/SharedMenuUI';
+
+// COMPONENTE WRAPPER DEL TELÉFONO (Inyecta la UI única con datos de demostración)
+function MenuPreviewWrapper({ localStore }: { localStore: any }) {
+    // Creamos un dataset de demostración fusionado con los colores vivos del administrador
+    const mockStore = {
+        name: localStore.name,
+        backgroundColor: localStore.backgroundColor,
+        themeColor: localStore.themeColor,
+        logoUrl: localStore.logoUrl,
+        whatsapp: localStore.whatsapp || "",
+        categories: [
+            {
+                id: "demo-cat",
+                name: "Platos Estrella",
+                products: [
+                    {
+                        id: "demo-prod-1",
+                        name: "Hamburguesa Trufada",
+                        description: "Carne Angus 200g, mayonesa de trufa negra...",
+                        price: 14.50,
+                        imageUrl: null
+                    }
+                ]
+            }
+        ]
+    };
+
     return (
         <div className="relative mx-auto w-[320px] h-[640px] bg-black rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
             {/* Notch del Teléfono simulado */}
-            <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50"></div>
+            <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50 pointer-events-none"></div>
 
-            {/* Contenido Renderizado de la App */}
-            <div
-                className="w-full h-full overflow-y-auto no-scrollbar font-sans text-[#e5e2e1] pb-24 relative"
-                style={{ backgroundColor: backgroundColor || '#131313' }}
-            >
-                {/* Cabecera Clónica */}
-                <header className="pt-16 pb-8 px-5 relative overflow-hidden">
-                    <div
-                        className="absolute top-0 right-0 opacity-10 blur-[50px] rounded-full w-48 h-48 -translate-y-1/2 translate-x-1/4 pointer-events-none"
-                        style={{ backgroundColor: themeColor || '#FF5630' }}
-                    ></div>
-
-                    <div className="flex items-end justify-between mb-6 relative z-10">
-                        {logoUrl ? (
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-xl border-4 border-white shadow-xl overflow-hidden bg-white/10">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={logoUrl} alt="Logo preview" className="w-full h-full object-cover" />
-                            </div>
-                        ) : (
-                            <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center backdrop-blur-xl border border-white/10 shadow-xl">
-                                <span className="text-2xl">🏪</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relative z-10 w-full pr-4">
-                        <h1 className="text-3xl font-serif tracking-tighter font-extrabold mb-2 leading-none text-white truncate">
-                            {name || 'Tu Negocio'}
-                        </h1>
-                        <p className="opacity-60 font-medium text-[10px] tracking-widest uppercase">
-                            Selección Premium • Retira en local
-                        </p>
-                    </div>
-                </header>
-
-                {/* Lista de Demo */}
-                <main className="px-5 space-y-6 relative z-10">
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-4 mb-2">
-                            <h2 className="text-xl font-serif tracking-tight text-white font-bold">
-                                Platos Estrella
-                            </h2>
-                            <div className="h-[1px] flex-1 bg-white/10"></div>
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                            {/* Producto de Prueba */}
-                            <article className="group relative bg-transparent rounded-2xl flex gap-3 items-center p-1">
-                                <div className="flex-1 pr-2">
-                                    <h3 className="font-bold text-white text-base mb-1 tracking-tight">Hamburguesa Trufada</h3>
-                                    <p className="text-zinc-500 text-xs leading-relaxed mb-2 line-clamp-2">Carne Angus 200g, mayonesa de trufa negra, champiñones y queso suizo brillante.</p>
-                                    <p className="font-serif font-black text-lg tracking-tighter" style={{ color: themeColor }}>
-                                        $14.50
-                                    </p>
-                                </div>
-                                <div className="shrink-0 bg-[#201f1f] p-1.5 rounded-full border border-white/5 flex items-center justify-center w-8 h-8 pointer-events-none" style={{ backgroundColor: themeColor || '#FF5630' }}>
-                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                                </div>
-                            </article>
-                        </div>
-                    </section>
-                </main>
-
-                {/* Floating Cart Clónico */}
-                <div className="absolute bottom-4 inset-x-4 z-50">
-                    <div className="bg-[#201f1f]/80 backdrop-blur-md rounded-[1.5rem] p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.6)] border border-white/5">
-                        <div
-                            className="w-full text-white font-bold py-3 px-4 rounded-[1.2rem] flex items-center justify-between"
-                            style={{ background: `linear-gradient(135deg, ${themeColor || '#FF5630'}, #131313)` }}
-                        >
-                            <div className="flex flex-col items-start gap-px">
-                                <span className="text-[8px] uppercase tracking-widest opacity-80 font-bold">
-                                    Tu Orden (1 item)
-                                </span>
-                                <div className="font-serif text-lg tracking-tight font-black">$14.50</div>
-                            </div>
-                            <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10">
-                                <span className="text-[10px] font-medium">Pedir</span>
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {/* Invocación del Single Source of Truth */}
+            <div className="w-full h-full relative">
+                <SharedMenuUI store={mockStore} isPreview={true} />
             </div>
         </div>
     )
@@ -274,12 +218,7 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
             {/* Vista Previa Móvil (Columna 2) */}
             <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10">
                 <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-6 text-center shrink-0">Vista Previa en Vivo</h3>
-                <MenuPreview
-                    name={localStore.name}
-                    backgroundColor={localStore.backgroundColor}
-                    themeColor={localStore.themeColor}
-                    logoUrl={localStore.logoUrl}
-                />
+                <MenuPreviewWrapper localStore={localStore} />
             </div>
 
         </div>

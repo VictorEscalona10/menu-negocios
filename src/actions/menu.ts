@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
 
 export async function createCategory(storeId: string, formData: FormData) {
     const name = formData.get('name') as string
@@ -23,12 +24,38 @@ export async function createProduct(formData: FormData) {
     const price = parseFloat(formData.get('price') as string)
     const categoryId = formData.get('categoryId') as string
 
+    // 1. Obtener el archivo de imagen
+    const imageFile = formData.get('image') as File | null
+    let imageUrl = null
+
+    // 2. Subir imagen a Supabase si existe
+    if (imageFile && imageFile.size > 0) {
+        const supabase = await createClient()
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+        const { data, error } = await supabase.storage
+            .from('products')
+            .upload(fileName, imageFile)
+
+        if (error) {
+            console.error("Error subiendo imagen de producto:", error)
+        } else {
+            const { data: { publicUrl } } = supabase.storage
+                .from('products')
+                .getPublicUrl(fileName)
+            imageUrl = publicUrl
+        }
+    }
+
+    // 3. Crear el producto en la base de datos
     await prisma.product.create({
         data: {
             name,
             description,
             price,
             categoryId,
+            imageUrl, // Se guarda la URL de la imagen aquí
         }
     })
 
@@ -36,7 +63,7 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function deleteCategory(categoryId: string) {
-    // Prisma on cascade eliminará también sus productos
+    // Prisma con cascade eliminará también sus productos
     await prisma.category.delete({
         where: {
             id: categoryId
