@@ -93,7 +93,7 @@ export default async function ProductsPage() {
                         <p className="text-zinc-500 bg-zinc-50 p-6 rounded-2xl text-center border border-zinc-100">Tu menú está limpio. Comienza agregando categorías en el panel.</p>
                     ) : (
                         <div className="space-y-10">
-                            {store.categories.map((category) => {
+                            {store.categories.map((category: any) => {
                                 const boundDeleteCategory = deleteCategory.bind(null, category.id);
                                 
                                 return (
@@ -115,7 +115,7 @@ export default async function ProductsPage() {
                                             <p className="text-sm text-zinc-400 italic ml-4">Categoría vacía.</p>
                                         ) : (
                                             <div className="grid grid-cols-1 gap-4 ml-2">
-                                                {category.products.map((product) => {
+                                                {category.products.map((product: any) => {
                                                     const boundDeleteProduct = deleteProduct.bind(null, product.id);
 
                                                     return (
