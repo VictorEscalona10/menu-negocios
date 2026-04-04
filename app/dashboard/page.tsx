@@ -1,4 +1,5 @@
 // app/dashboard/page.tsx
+export const dynamic = 'force-dynamic';
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
@@ -39,6 +40,27 @@ export default async function DashboardPage() {
     const store = await prisma.store.findUnique({
         where: { userId: user.id }
     })
+
+    // NUEVO: BLOQUEO DEL DASHBOARD SI NO ESTÁ ACTIVO (El escudo anti-morosos)
+    if (store && !store.isActive) {
+        return (
+            <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
+                <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-red-100 text-center space-y-4">
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full mx-auto flex items-center justify-center mb-4">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
+                    <h1 className="text-2xl font-bold text-zinc-900">Servicio Pausado</h1>
+                    <p className="text-zinc-600">
+                        El acceso a tu menú público y a tu panel de administración ha sido suspendido. Por favor, regulariza tu pago para reactivar el servicio.
+                    </p>
+                    {/* IMPORTANTE: Cambia este enlace por tu número real de WhatsApp para que te contacten a ti */}
+                    <a href="https://wa.me/584243016454" target="_blank" className="block w-full bg-black text-white font-medium py-3 rounded-xl hover:bg-zinc-800 transition-colors mt-4">
+                        Contactar Soporte
+                    </a>
+                </div>
+            </div>
+        )
+    }
 
     // 2. Preparamos el Server Action inyectándole el ID del usuario actual
     const createStoreWithUser = createStoreAction.bind(null, user.id)
@@ -115,7 +137,7 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 border-t border-zinc-100 pt-8">
-                    <a 
+                    <a
                         href="/dashboard/products"
                         className="group flex justify-center items-center gap-3 bg-white border border-zinc-200 text-zinc-800 px-8 py-4 rounded-xl font-medium hover:bg-zinc-50 hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-200"
                     >
@@ -125,7 +147,7 @@ export default async function DashboardPage() {
                         Categorías y Productos
                     </a>
 
-                    <a 
+                    <a
                         href="/dashboard/settings"
                         className="group flex justify-center items-center gap-3 bg-black text-white px-8 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
                     >

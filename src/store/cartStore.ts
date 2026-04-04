@@ -32,14 +32,14 @@ export const useCartStore = create<CartState>((set, get) => ({
     addItem: (newItem) => set((state) => {
         // Create a unique ID if not provided, based on product ID and selected options
         let uniqueId = newItem.id || newItem.productId;
-        
+
         if (newItem.selectedOptions && newItem.selectedOptions.length > 0) {
             const optionsHash = newItem.selectedOptions.map(o => o.id).sort().join('-');
             uniqueId = `${newItem.productId}-${optionsHash}`;
         }
 
         const existingItem = state.items.find(i => i.id === uniqueId);
-        
+
         if (existingItem) {
             return {
                 items: state.items.map(i =>
@@ -47,7 +47,7 @@ export const useCartStore = create<CartState>((set, get) => ({
                 )
             };
         }
-        
+
         return { items: [...state.items, { ...newItem, id: uniqueId, quantity: 1 }] };
     }),
 

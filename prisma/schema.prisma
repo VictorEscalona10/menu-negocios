@@ -19,8 +19,9 @@ model Store {
   whatsappHeader String   @default("🍔 *NUEVO PEDIDO* 🍔")
   whatsappFooter String   @default("¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.")
 
-  backgroundColor String @default("#ffffff")
-  themeColor      String @default("#ef4444")
+  backgroundColor String  @default("#ffffff")
+  themeColor      String  @default("#ef4444")
+  isActive        Boolean @default(true)
 
   // Relación: Un local tiene muchas categorías
   categories Category[]

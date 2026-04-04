@@ -53,7 +53,9 @@ export default async function SettingsPage() {
                         whatsapp: store.whatsapp,
                         backgroundColor: store.backgroundColor || '#ffffff',
                         themeColor: store.themeColor || '#000000',
-                        logoUrl: store.logoUrl || ''
+                        logoUrl: store.logoUrl || '',
+                        whatsappHeader: store.whatsappHeader || '',
+                        whatsappFooter: store.whatsappFooter || ''
                     }} 
                     updateAction={updateStoreWithId} 
                 />

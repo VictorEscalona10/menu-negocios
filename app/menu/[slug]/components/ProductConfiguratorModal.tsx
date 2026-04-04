@@ -35,7 +35,7 @@ interface ProductConfiguratorModalProps {
 
 export default function ProductConfiguratorModal({ product, themeColor, isOpen, onClose }: ProductConfiguratorModalProps) {
     const addItem = useCartStore((state) => state.addItem)
-    
+
     // El estado guarda un map de groupId -> array de option IDs seleccionados
     const [selections, setSelections] = useState<Record<string, string[]>>({})
 
@@ -44,7 +44,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
     const handleOptionToggle = (groupId: string, optionId: string, isRadio: boolean) => {
         setSelections(prev => {
             const currentSelected = prev[groupId] || [];
-            
+
             if (isRadio) {
                 // Si es radio (o limit=1)
                 return { ...prev, [groupId]: [optionId] };
@@ -52,10 +52,10 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
             // Si es checkbox (multiple)
             const isCurrentlySelected = currentSelected.includes(optionId)
-            
+
             // Check limits si aplica
             const groupInfo = product.modifierGroups.find(g => g.id === groupId);
-            
+
             if (isCurrentlySelected) {
                 return {
                     ...prev,
@@ -108,7 +108,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
         // Construir el array de options para el store
         const selectedOptionsFormatted: any[] = [];
-        
+
         Object.entries(selections).forEach(([groupId, optionIds]) => {
             const group = product.modifierGroups.find(g => g.id === groupId);
             if (group) {
@@ -140,7 +140,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4">
-            <div 
+            <div
                 className="bg-[#1c1b1b] w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl overflow-hidden flex flex-col max-h-[90vh] shadow-2xl relative border border-white/10"
                 style={{ animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
             >
@@ -156,7 +156,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                         <div className="w-full h-24 bg-gradient-to-b from-[#131313] to-[#1c1b1b]" />
                     )}
 
-                    <button 
+                    <button
                         onClick={onClose}
                         className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/80 backdrop-blur-md rounded-full text-white transition-colors"
                     >
@@ -197,14 +197,14 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                     {group.options.map((option) => {
                                         const isSelected = selectedInGroup.includes(option.id);
                                         const isDisabled = !isSelected && !isRadio && group.maxSelect && selectedInGroup.length >= group.maxSelect;
-                                        
+
                                         return (
-                                            <label 
-                                                key={option.id} 
+                                            <label
+                                                key={option.id}
                                                 className={`flex items-center justify-between p-3 rounded-2xl border transition-colors cursor-pointer ${isSelected ? 'bg-white/10 border-white/20' : 'bg-[#131313] border-transparent hover:border-white/10'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div 
+                                                    <div
                                                         className={`w-5 h-5 flex items-center justify-center flex-shrink-0 transition-colors ${isRadio ? 'rounded-full' : 'rounded'} border ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-[#4a4a4a]'}`}
                                                         style={isSelected ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
                                                     >
@@ -221,9 +221,9 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                                     {option.price > 0 ? `+$${option.price.toFixed(2)}` : ''}
                                                 </span>
                                                 {/* Hidden input to make it accessible */}
-                                                <input 
-                                                    type={isRadio ? "radio" : "checkbox"} 
-                                                    className="hidden" 
+                                                <input
+                                                    type={isRadio ? "radio" : "checkbox"}
+                                                    className="hidden"
                                                     checked={isSelected}
                                                     onChange={() => {
                                                         if (!isDisabled) handleOptionToggle(group.id, option.id, isRadio)
@@ -249,7 +249,8 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                         <span>Añadir Orden</span>
                         <span className="font-black text-xl">${calculateTotal().toFixed(2)}</span>
                     </button>
-                    <style dangerouslySetInnerHTML={{__html: `
+                    <style dangerouslySetInnerHTML={{
+                        __html: `
                         @keyframes slideUp {
                             from { transform: translateY(100%); opacity: 0; }
                             to { transform: translateY(0); opacity: 1; }

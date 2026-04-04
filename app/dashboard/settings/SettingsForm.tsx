@@ -34,9 +34,81 @@ interface Store {
     backgroundColor: string;
     themeColor: string;
     logoUrl?: string;
+    whatsappHeader?: string;
+    whatsappFooter?: string;
 }
 
 import SharedMenuUI from '../../components/SharedMenuUI';
+
+// COMPONENTE WHATSAPP PREVIEW (Simula un chat de WhatsApp)
+function WhatsAppPreview({ localStore }: { localStore: any }) {
+    const header = localStore.whatsappHeader || `🍔 *NUEVO PEDIDO - ${localStore.name}* 🍔`;
+    const footer = localStore.whatsappFooter || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
+    
+    // Función simple para formatear *negrita* de WhatsApp en HTML
+    const formatWhatsAppText = (text: string) => {
+        return text.split('\n').map((line, i) => {
+            // Reemplazar *texto* con <strong>texto</strong>
+            const formatted = line.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+            return <div key={i}>{formatted ? <span dangerouslySetInnerHTML={{ __html: formatted }} /> : <br />}</div>;
+        });
+    };
+
+    return (
+        <div className="relative mx-auto w-[320px] h-[640px] bg-[#efe7de] rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
+            {/* Cabecera de WhatsApp */}
+            <div className="bg-[#075e54] pt-8 pb-3 px-4 flex items-center gap-3 text-white">
+                <div className="w-8 h-8 rounded-full bg-zinc-200/20 flex items-center justify-center overflow-hidden">
+                    {localStore.logoUrl ? (
+                        <img src={localStore.logoUrl} alt="Store" className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-xs">🏪</span>
+                    )}
+                </div>
+                <div>
+                    <p className="text-sm font-bold leading-none">{localStore.name || 'Tu Negocio'}</p>
+                    <p className="text-[10px] opacity-80">en línea</p>
+                </div>
+            </div>
+
+            {/* Cuerpo del Chat */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-4" style={{ backgroundImage: "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')", backgroundSize: 'contain' }}>
+                <div className="bg-white rounded-lg rounded-tr-none p-3 shadow-sm relative ml-auto max-w-[85%] text-zinc-800 text-[13px] leading-relaxed">
+                    {/* Triángulo del mensaje */}
+                    <div className="absolute top-0 -right-2 w-0 h-0 border-t-[10px] border-t-white border-r-[10px] border-r-transparent"></div>
+                    
+                    <div className="space-y-1">
+                        {formatWhatsAppText(header)}
+                        
+                        <div className="py-2">
+                            <p><strong>1x Hamburguesa Trufada</strong> - $14.50</p>
+                            <p className="pl-3 opacity-70 text-[11px]">└ Extra Tocino (+$2.00)</p>
+                            <p><strong>2x Papas Fritas</strong> - $8.00</p>
+                        </div>
+
+                        <p><strong>💰 TOTAL A PAGAR:</strong> $24.50</p>
+                        
+                        <div className="mt-2 text-zinc-600 italic">
+                            {formatWhatsAppText(footer)}
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-end mt-1">
+                        <span className="text-[9px] opacity-40">12:00 PM ✓✓</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Barra de Entrada (Simulada) */}
+            <div className="bg-[#f0f0f0] p-2 flex items-center gap-2">
+                <div className="flex-1 bg-white rounded-full px-4 py-2 text-xs text-zinc-400">Escribe un mensaje</div>
+                <div className="w-10 h-10 rounded-full bg-[#075e54] flex items-center justify-center text-white">
+                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 // COMPONENTE WRAPPER DEL TELÉFONO (Inyecta la UI única con datos de demostración)
 function MenuPreviewWrapper({ localStore }: { localStore: any }) {
@@ -47,6 +119,8 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
         themeColor: localStore.themeColor,
         logoUrl: localStore.logoUrl,
         whatsapp: localStore.whatsapp || "",
+        whatsappHeader: localStore.whatsappHeader,
+        whatsappFooter: localStore.whatsappFooter,
         categories: [
             {
                 id: "demo-cat",
@@ -86,8 +160,12 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
         whatsapp: store.whatsapp || "",
         backgroundColor: store.backgroundColor || "#131313",
         themeColor: store.themeColor || "#FF5630",
-        logoUrl: store.logoUrl || ""
+        logoUrl: store.logoUrl || "",
+        whatsappHeader: store.whatsappHeader || "",
+        whatsappFooter: store.whatsappFooter || ""
     })
+
+    const [previewMode, setPreviewMode] = useState<"menu" | "whatsapp">("menu")
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -184,9 +262,14 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                             <label className="block text-sm font-medium text-zinc-700 mb-1">Encabezado (Antes de los productos)</label>
                             <textarea
                                 name="whatsappHeader"
-                                defaultValue={store.whatsappHeader}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
+                                value={localStore.whatsappHeader}
+                                onChange={(e) => {
+                                    setLocalStore({ ...localStore, whatsappHeader: e.target.value })
+                                    setPreviewMode("whatsapp") // Cambiar a vista previa de WhatsApp automáticamente
+                                }}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none font-mono text-xs"
                                 rows={2}
+                                placeholder="Ej: *NUEVO PEDIDO*"
                             />
                         </div>
 
@@ -194,9 +277,14 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                             <label className="block text-sm font-medium text-zinc-700 mb-1">Pie de mensaje (Después del total)</label>
                             <textarea
                                 name="whatsappFooter"
-                                defaultValue={store.whatsappFooter}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none"
+                                value={localStore.whatsappFooter}
+                                onChange={(e) => {
+                                    setLocalStore({ ...localStore, whatsappFooter: e.target.value })
+                                    setPreviewMode("whatsapp") // Cambiar a vista previa de WhatsApp automáticamente
+                                }}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none font-mono text-xs"
                                 rows={3}
+                                placeholder="Ej: Gracias por su compra."
                             />
                         </div>
                     </div>
@@ -242,8 +330,33 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
 
             {/* Vista Previa Móvil (Columna 2) */}
             <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10">
-                <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-6 text-center shrink-0">Vista Previa en Vivo</h3>
-                <MenuPreviewWrapper localStore={localStore} />
+                <div className="flex flex-col items-center mb-6 w-full">
+                    <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4 text-center shrink-0">Vista Previa en Vivo</h3>
+                    
+                    {/* Toggles de Vista Previa */}
+                    <div className="flex p-1 bg-zinc-100 rounded-xl w-full max-w-[280px]">
+                        <button
+                            onClick={() => setPreviewMode("menu")}
+                            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${previewMode === "menu" ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                        >
+                            Menú Digital
+                        </button>
+                        <button
+                            onClick={() => setPreviewMode("whatsapp")}
+                            className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${previewMode === "whatsapp" ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                        >
+                            Mensaje WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <div className="relative animate-in fade-in zoom-in duration-500">
+                    {previewMode === "menu" ? (
+                        <MenuPreviewWrapper localStore={localStore} />
+                    ) : (
+                        <WhatsAppPreview localStore={localStore} />
+                    )}
+                </div>
             </div>
 
         </div>
