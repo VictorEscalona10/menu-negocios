@@ -6,6 +6,8 @@ interface SharedMenuUIProps {
     store: {
         name: string;
         whatsapp: string;
+        whatsappHeader?: string; // NUEVO: Agregado para que TypeScript lo reconozca
+        whatsappFooter?: string;
         backgroundColor: string;
         themeColor: string;
         logoUrl?: string | null;
