@@ -13,19 +13,32 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const whatsappHeader = formData.get('whatsappHeader') as string
     const whatsappFooter = formData.get('whatsappFooter') as string
 
-    // 1. Extraemos el archivo de la imagen (si el usuario subió uno)
     const logo = formData.get('logo') as File | null;
     let logoUrl = undefined;
 
-    // 2. Si hay un logo y no está vacío, lo subimos a Supabase
     if (logo && logo.size > 0) {
         const supabase = await createClient();
 
-        // Generamos un nombre único para evitar que las imágenes se sobreescriban
+        // 1. ELIMINACIÓN INTELIGENTE: Buscamos si el local ya tenía un logo
+        const existingStore = await prisma.store.findUnique({
+            where: { id: storeId },
+            select: { logoUrl: true }
+        });
+
+        // Si ya tenía uno, le decimos a Supabase que lo borre de su servidor
+        if (existingStore?.logoUrl) {
+            // El truco del .pop() extrae el nombre final del archivo de la URL pública
+            const oldFileName = existingStore.logoUrl.split('/').pop();
+
+            if (oldFileName) {
+                await supabase.storage.from('logos').remove([oldFileName]);
+            }
+        }
+
+        // 2. Subimos el logo nuevo (tu código original)
         const fileExt = logo.name.split('.').pop();
         const fileName = `${storeId}-${Date.now()}.${fileExt}`;
 
-        // Subimos el archivo al bucket "logos"
         const { data, error } = await supabase.storage
             .from('logos')
             .upload(fileName, logo, { upsert: true });
@@ -33,7 +46,6 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         if (error) {
             console.error("Error subiendo imagen:", error);
         } else if (data) {
-            // Si se subió bien, obtenemos la URL pública para guardarla en la base de datos
             const { data: { publicUrl } } = supabase.storage
                 .from('logos')
                 .getPublicUrl(fileName);
@@ -42,7 +54,6 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         }
     }
 
-    // 3. Preparamos los datos para actualizar en Prisma
     const updateData: any = {
         name,
         whatsapp,
@@ -52,7 +63,6 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         themeColor,
     };
 
-    // Solo actualizamos el logoUrl si realmente subieron una imagen nueva
     if (logoUrl) {
         updateData.logoUrl = logoUrl;
     }
@@ -63,5 +73,5 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/settings')
-    revalidatePath(`/menu`) // Revalidamos la ruta pública para que los clientes vean el cambio
+    revalidatePath(`/menu`)
 }

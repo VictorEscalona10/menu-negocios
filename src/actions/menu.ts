@@ -73,10 +73,36 @@ export async function deleteCategory(categoryId: string) {
 }
 
 export async function deleteProduct(productId: string) {
+    // 1. Buscamos el producto antes de borrarlo para saber si tenía foto
+    const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { imageUrl: true }
+    });
+
+    // 2. Si tenía imagen, la borramos del bucket de Supabase
+    if (product?.imageUrl) {
+        const supabase = await createClient();
+        const fileName = product.imageUrl.split('/').pop();
+
+        if (fileName) {
+            await supabase.storage.from('products').remove([fileName]);
+        }
+    }
+
+    // 3. Ahora sí borramos el producto de la base de datos
     await prisma.product.delete({
         where: {
             id: productId
         }
+    });
+
+    revalidatePath('/dashboard/products')
+}
+
+export async function toggleProductAvailability(productId: string, currentValue: boolean) {
+    await prisma.product.update({
+        where: { id: productId },
+        data: { isAvailable: !currentValue }
     })
     revalidatePath('/dashboard/products')
 }

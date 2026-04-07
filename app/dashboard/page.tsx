@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { signOut } from '@/src/actions/auth'
 
 // 1. Movemos el Server Action FUERA del componente para evitar el bug de Turbopack
 async function createStoreAction(userId: string, formData: FormData) {
@@ -36,7 +37,6 @@ export default async function DashboardPage() {
         return redirect('/login') // Agregamos 'return' por buenas prácticas
     }
 
-    // Buscamos si este usuario ya tiene un local creado en Prisma
     const store = await prisma.store.findUnique({
         where: { userId: user.id }
     })
@@ -45,15 +45,24 @@ export default async function DashboardPage() {
     if (store && !store.isActive) {
         return (
             <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
-                <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-red-100 text-center space-y-4">
-                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full mx-auto flex items-center justify-center mb-4">
+                <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-red-100 text-center space-y-4 relative">
+
+                    {/* BOTÓN DE CERRAR SESIÓN (Para usuarios bloqueados) */}
+                    <div className="absolute top-4 right-4">
+                        <form action={signOut}>
+                            <button type="submit" className="text-zinc-400 hover:text-red-500 transition-colors p-2" title="Cerrar Sesión">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full mx-auto flex items-center justify-center mb-4 mt-2">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     </div>
                     <h1 className="text-2xl font-bold text-zinc-900">Servicio Pausado</h1>
                     <p className="text-zinc-600">
                         El acceso a tu menú público y a tu panel de administración ha sido suspendido. Por favor, regulariza tu pago para reactivar el servicio.
                     </p>
-                    {/* IMPORTANTE: Cambia este enlace por tu número real de WhatsApp para que te contacten a ti */}
                     <a href="https://wa.me/584243016454" target="_blank" className="block w-full bg-black text-white font-medium py-3 rounded-xl hover:bg-zinc-800 transition-colors mt-4">
                         Contactar Soporte
                     </a>
@@ -68,8 +77,19 @@ export default async function DashboardPage() {
     // INTERFAZ A: Si NO tiene local, le pedimos que lo cree
     if (!store) {
         return (
-            <div className="max-w-xl mx-auto mt-10 p-8 bg-white rounded-2xl shadow-sm border border-zinc-200">
-                <h1 className="text-2xl font-bold text-zinc-900 mb-2">¡Bienvenido a tu Menú!</h1>
+            <div className="max-w-xl mx-auto mt-10 p-8 bg-white rounded-2xl shadow-sm border border-zinc-200 relative">
+
+                {/* BOTÓN DE CERRAR SESIÓN */}
+                <div className="absolute top-6 right-6">
+                    <form action={signOut}>
+                        <button type="submit" className="flex items-center gap-2 text-xs font-medium text-zinc-500 hover:text-red-600 transition-colors bg-zinc-50 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-zinc-200 hover:border-red-200">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            Salir
+                        </button>
+                    </form>
+                </div>
+
+                <h1 className="text-2xl font-bold text-zinc-900 mb-2 mt-2">¡Bienvenido a tu Menú!</h1>
                 <p className="text-zinc-600 mb-6">Para empezar, necesitamos los datos básicos de tu negocio.</p>
 
                 {/* Pasamos el action ya vinculado con el ID */}
@@ -108,8 +128,19 @@ export default async function DashboardPage() {
     // INTERFAZ B: Si YA tiene local, le mostramos sus estadísticas
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
-            <div className="w-full max-w-4xl bg-white p-10 rounded-3xl shadow-sm border border-zinc-200">
-                <div className="text-center mb-12">
+            <div className="w-full max-w-4xl bg-white p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
+
+                {/* BOTÓN DE CERRAR SESIÓN */}
+                <div className="absolute top-6 right-6">
+                    <form action={signOut}>
+                        <button type="submit" className="flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-red-600 transition-colors bg-zinc-50 hover:bg-red-50 px-4 py-2 rounded-xl border border-zinc-200 hover:border-red-200">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            Cerrar Sesión
+                        </button>
+                    </form>
+                </div>
+
+                <div className="text-center mb-12 mt-4">
                     <h1 className="text-4xl font-extrabold text-zinc-900 mb-3 tracking-tight">Resumen de {store.name}</h1>
                     <p className="text-zinc-500 font-medium tracking-wide border-b border-zinc-100 pb-8 inline-block px-12">
                         Panel de Administración
@@ -119,9 +150,9 @@ export default async function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
                         <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">Enlace del menú</h3>
-                        <p className="text-lg font-bold text-zinc-900 truncate w-full">
+                        <a href={`/menu/${store.slug}`} className="text-lg font-bold text-zinc-900 truncate w-full hover:text-black transition-colors">
                             /menu/{store.slug}
-                        </p>
+                        </a>
                     </div>
                     <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
                         <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">WhatsApp</h3>
