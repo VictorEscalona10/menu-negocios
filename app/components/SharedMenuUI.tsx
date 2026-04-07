@@ -1,4 +1,7 @@
 // app/components/SharedMenuUI.tsx
+'use client'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
 
@@ -6,7 +9,7 @@ interface SharedMenuUIProps {
     store: {
         name: string;
         whatsapp: string;
-        whatsappHeader?: string; // NUEVO: Agregado para que TypeScript lo reconozca
+        whatsappHeader?: string;
         whatsappFooter?: string;
         backgroundColor: string;
         themeColor: string;
@@ -38,135 +41,351 @@ interface SharedMenuUIProps {
 }
 
 export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIProps) {
+    const bg = store.backgroundColor || '#131313';
+    const accent = store.themeColor || '#FF5630';
+
+    // Sólo categorías con productos
+    const activeCategories = store.categories.filter(c => c.products.length > 0);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    // Refs para el slider y el nav
+    const sliderRef = useRef<HTMLDivElement>(null);
+    const navRef = useRef<HTMLDivElement>(null);
+    const navItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const isScrollingProgrammatically = useRef(false);
+
+    // ── Scroll el slider al índice ──
+    const goToIndex = useCallback((index: number) => {
+        if (!sliderRef.current) return;
+        isScrollingProgrammatically.current = true;
+        const slideWidth = sliderRef.current.offsetWidth;
+        sliderRef.current.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+        setActiveIndex(index);
+        // Scroll el pill nav para que sea visible
+        const navBtn = navItemRefs.current[index];
+        if (navBtn && navRef.current) {
+            navBtn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+        }
+        setTimeout(() => { isScrollingProgrammatically.current = false; }, 500);
+    }, []);
+
+    // ── Detecta el slide activo al deslizar manualmente ──
+    useEffect(() => {
+        const slider = sliderRef.current;
+        if (!slider || isPreview) return;
+
+        const handleScroll = () => {
+            if (isScrollingProgrammatically.current) return;
+            const slideWidth = slider.offsetWidth;
+            if (slideWidth === 0) return;
+            const idx = Math.round(slider.scrollLeft / slideWidth);
+            if (idx !== activeIndex && idx >= 0 && idx < activeCategories.length) {
+                setActiveIndex(idx);
+                const navBtn = navItemRefs.current[idx];
+                if (navBtn && navRef.current) {
+                    navBtn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        };
+
+        slider.addEventListener('scroll', handleScroll, { passive: true });
+        return () => slider.removeEventListener('scroll', handleScroll);
+    }, [activeIndex, activeCategories.length, isPreview]);
+
     return (
         <div
-            className={`font-sans relative selection:bg-white/20 overflow-hidden ${isPreview ? 'w-full h-full overflow-y-auto no-scrollbar pb-24' : 'min-h-screen pb-40'}`}
-            style={{ backgroundColor: store.backgroundColor || '#131313' }}
+            className={`relative font-sans selection:bg-white/20 flex flex-col ${isPreview ? 'w-full h-full' : 'h-screen'}`}
+            style={{ backgroundColor: bg }}
         >
-            {/* Aura Dinámica del ThemeColor */}
+            {/* Google Fonts */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;900&family=Manrope:wght@400;500;600;700&display=swap');
+                .font-epilogue { font-family: 'Epilogue', sans-serif; }
+                .font-manrope { font-family: 'Manrope', sans-serif; }
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                .snap-slider {
+                    scroll-snap-type: x mandatory;
+                    -webkit-overflow-scrolling: touch;
+                }
+                .snap-slide {
+                    scroll-snap-align: start;
+                    scroll-snap-stop: always;
+                }
+            `}} />
+
+            {/* ── Ambient glow top (fixed, no afecta al layout) ── */}
             <div
-                className={`absolute top-0 left-0 w-full opacity-30 blur-[100px] pointer-events-none transform -translate-y-1/2 ${isPreview ? 'h-48' : 'h-[60vh]'}`}
-                style={{ background: `radial-gradient(circle, ${store.themeColor} 0%, transparent 70%)` }}
+                className="pointer-events-none fixed top-0 left-0 w-full h-[40vh] opacity-20 blur-[120px] z-0"
+                style={{ background: `radial-gradient(ellipse at 50% 0%, ${accent} 0%, transparent 70%)` }}
             />
 
-            {/* Cabecera Editorial */}
-            <header className={`relative px-6 z-10 flex flex-col items-center justify-center text-center ${isPreview ? 'pt-16 pb-8' : 'pt-20 pb-16'}`}>
+            {/* ═══════════════════════════════════
+                HEADER (fijo arriba, no scrollea)
+            ═══════════════════════════════════ */}
+            <header
+                className={`relative z-20 shrink-0 flex flex-col items-center text-center ${isPreview ? 'pt-6 pb-4 px-4' : 'pt-10 pb-6 px-6'}`}
+                style={{ background: `linear-gradient(to bottom, ${bg}, ${bg}ee)` }}
+            >
+                {/* Logo */}
                 {store.logoUrl ? (
-                    <div className={`${isPreview ? 'w-16 h-16 mb-4 border-[3px]' : 'w-28 h-28 mb-8 border-[1px]'} mx-auto rounded-full border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden bg-[#131313] relative z-20`}>
+                    <div
+                        className={`${isPreview ? 'w-12 h-12 mb-2' : 'w-16 h-16 mb-3'} rounded-full overflow-hidden ring-2 ring-white/10 shrink-0`}
+                        style={{ boxShadow: `0 0 28px ${accent}44` }}
+                    >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={store.logoUrl} alt="Logo" className="w-full h-full object-cover" />
                     </div>
                 ) : (
-                    <div className={`${isPreview ? 'w-16 h-16 mb-4 text-2xl border-[3px]' : 'w-28 h-28 mb-8 text-4xl border-[1px]'} mx-auto rounded-full border-white/10 shadow-2xl flex flex-col items-center justify-center bg-[#1c1b1b] relative z-20`}>
-                        <span style={{ color: store.themeColor }}>✦</span>
+                    <div
+                        className={`${isPreview ? 'w-12 h-12 mb-2 text-xl' : 'w-16 h-16 mb-3 text-2xl'} rounded-full ring-2 ring-white/10 flex items-center justify-center shrink-0`}
+                        style={{ backgroundColor: `${accent}22`, boxShadow: `0 0 28px ${accent}44` }}
+                    >
+                        🍽️
                     </div>
                 )}
 
-                <h1 className={`${isPreview ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black mb-2 tracking-tighter text-[#e5e2e1] drop-shadow-md leading-tight`}>
+                {/* Store name */}
+                <h1
+                    className={`font-epilogue font-black tracking-tight text-[#e5e2e1] ${isPreview ? 'text-lg' : 'text-2xl md:text-3xl'} leading-none mb-0.5`}
+                >
                     {store.name || 'Tu Negocio'}
                 </h1>
-                <p className={`font-serif text-[#d1c5b4] italic opacity-80 ${isPreview ? 'text-xs' : 'text-lg'}`}>
-                    Obras culinarias · Pedido Digital
+                <p className="font-manrope text-[#e4beb5]/60 text-[10px] tracking-widest uppercase">
+                    Menú Digital · Pedido Online
                 </p>
+                <div className="w-8 h-0.5 rounded-full mt-2.5" style={{ backgroundColor: accent }} />
             </header>
 
-            {/* Colección / Catálogo */}
-            <main className={`mx-auto px-4 sm:px-6 relative z-10 ${isPreview ? 'max-w-full space-y-10' : 'max-w-3xl space-y-24'}`}>
-                {store.categories.length === 0 ? (
-                    <div className="bg-[#1c1b1b]/80 backdrop-blur-xl border border-white/5 p-8 rounded-[2rem] text-center shadow-2xl">
-                        <p className="text-[#d1c5b4] font-serif italic text-base">La vista previa usa datos falsos en Settings...</p>
+            {/* ═══════════════════════════════════
+                CATEGORY NAV (sticky bajo el header)
+            ═══════════════════════════════════ */}
+            {activeCategories.length > 0 && (
+                <div
+                    className="relative z-20 shrink-0"
+                    style={{ background: `${bg}f5`, backdropFilter: 'blur(16px)' }}
+                >
+                    <div
+                        ref={navRef}
+                        className="flex gap-2 overflow-x-auto hide-scrollbar px-4 py-2.5"
+                    >
+                        {activeCategories.map((cat, idx) => {
+                            const isActive = activeIndex === idx;
+                            return (
+                                <button
+                                    key={cat.id}
+                                    ref={el => { navItemRefs.current[idx] = el; }}
+                                    onClick={() => goToIndex(idx)}
+                                    className={`shrink-0 px-4 py-1.5 rounded-full font-manrope font-semibold text-sm transition-all duration-200 whitespace-nowrap`}
+                                    style={isActive
+                                        ? { backgroundColor: accent, color: '#fff', boxShadow: `0 4px 14px ${accent}55` }
+                                        : { backgroundColor: 'rgba(255,255,255,0.06)', color: 'rgba(228,190,181,0.6)', border: '1px solid rgba(255,255,255,0.08)' }
+                                    }
+                                >
+                                    {cat.name}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Dot indicators */}
+                    {activeCategories.length > 1 && (
+                        <div className="flex justify-center gap-1.5 pb-2.5">
+                            {activeCategories.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => goToIndex(idx)}
+                                    className="rounded-full transition-all duration-300"
+                                    style={{
+                                        width: activeIndex === idx ? '20px' : '6px',
+                                        height: '6px',
+                                        backgroundColor: activeIndex === idx ? accent : 'rgba(255,255,255,0.2)',
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ═══════════════════════════════════
+                SLIDER HORIZONTAL DE CATEGORÍAS
+            ═══════════════════════════════════ */}
+            <div
+                ref={sliderRef}
+                className="relative z-10 flex-1 flex overflow-x-auto hide-scrollbar snap-slider"
+                style={{ minHeight: 0 }}
+            >
+                {activeCategories.length === 0 ? (
+                    <div className="w-full flex items-center justify-center text-[#e4beb5]/40 font-manrope text-sm p-8 text-center snap-slide shrink-0">
+                        Agrega categorías y productos desde el panel de administración.
                     </div>
                 ) : (
-                    store.categories.map((category) => {
-                        if (category.products.length === 0) return null;
+                    activeCategories.map((category, catIndex) => (
+                        /* ── Slide: una categoría ── */
+                        <div
+                            key={category.id}
+                            className="snap-slide shrink-0 w-full overflow-y-auto hide-scrollbar"
+                            style={{ minHeight: 0 }}
+                        >
+                            <div className={`px-4 py-4 space-y-3 ${isPreview ? 'max-w-full' : 'max-w-2xl mx-auto'} pb-36`}>
 
-                        return (
-                            <section key={category.id} className={`${isPreview ? 'space-y-6' : 'space-y-10'}`}>
-                                <div className="flex flex-col gap-2">
-                                    <h2 className={`${isPreview ? 'text-2xl' : 'text-4xl'} font-serif text-[#e5e2e1] tracking-tight`}>
-                                        {category.name}
-                                    </h2>
-                                    <div
-                                        className={`${isPreview ? 'h-[2px] w-8' : 'h-1 w-12'} rounded-full`}
-                                        style={{ backgroundColor: store.themeColor }}
-                                    />
-                                </div>
+                                {/* Contador de items */}
+                                <p className="font-manrope text-[10px] uppercase tracking-widest text-[#e4beb5]/40 px-1">
+                                    {category.products.length} {category.products.length === 1 ? 'producto' : 'productos'}
+                                </p>
 
-                                <div className={`${isPreview ? 'flex flex-col gap-4' : 'flex flex-col gap-8'}`}>
-                                    {category.products.map((product) => (
+                                {/* Productos */}
+                                {category.products.map((product, prodIndex) => {
+                                    const isHero = catIndex === 0 && prodIndex === 0 && !isPreview && !!product.imageUrl;
+
+                                    if (isHero) {
+                                        // ── HERO CARD (primer producto de primera categoría) ──
+                                        return (
+                                            <article
+                                                key={product.id}
+                                                className="relative rounded-2xl overflow-hidden mb-2"
+                                                style={{ boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22` }}
+                                            >
+                                                <div className="relative h-52 overflow-hidden">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={product.imageUrl!}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                                                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+                                                        <div>
+                                                            <h3 className="font-epilogue font-black text-white text-xl leading-tight">
+                                                                {product.name}
+                                                            </h3>
+                                                            <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>
+                                                                ${product.price.toFixed(2)}
+                                                            </p>
+                                                        </div>
+                                                        <div className="shrink-0">
+                                                            <AddToCartButton product={product} themeColor={accent} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {product.description && (
+                                                    <div className="px-4 py-3 bg-white/[0.03]">
+                                                        <p className="font-manrope text-xs text-[#e4beb5]/70 leading-relaxed line-clamp-2">
+                                                            {product.description}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </article>
+                                        );
+                                    }
+
+                                    // ── COMPACT CARD ──
+                                    return (
                                         <article
                                             key={product.id}
-                                            className={`group relative bg-[#1c1b1b]/60 backdrop-blur-xl border border-white/5 rounded-2xl md:rounded-[2rem] p-3 md:p-4 flex flex-row gap-3 md:gap-5 items-center shadow-2xl transition-all duration-500 hover:bg-[#201f1f]/80`}
+                                            className="flex items-center gap-3 rounded-2xl p-3 transition-all duration-200"
+                                            style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
                                         >
-                                            {/* Imagen del Producto */}
+                                            {/* Imagen */}
                                             {product.imageUrl ? (
-                                                <div className={`${isPreview ? 'w-16 h-16 rounded-xl' : 'w-24 h-24 sm:w-36 sm:h-36 rounded-[1.5rem]'} shrink-0 overflow-hidden bg-[#0e0e0e] shadow-inner relative`}>
+                                                <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                                     <img
                                                         src={product.imageUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                                                        className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                                                 </div>
                                             ) : (
-                                                <div className={`${isPreview ? 'w-12 h-12 rounded-lg' : 'w-20 h-20 sm:w-36 sm:h-36 rounded-[1.5rem]'} shrink-0  bg-[#0e0e0e] border border-white/5 flex items-center justify-center`}>
-                                                    <span className={`opacity-20 ${isPreview ? 'text-xl' : 'text-3xl'}`}>🍽️</span>
+                                                <div
+                                                    className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
+                                                    style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                                                >
+                                                    🍽️
                                                 </div>
                                             )}
 
-                                            {/* Información */}
-                                            <div className="flex-1 min-w-0 pr-1">
-                                                <h3 className={`font-bold text-[#e5e2e1] tracking-tight leading-tight truncate ${isPreview ? 'text-base mb-1' : 'text-xl sm:text-2xl mb-2'}`}>
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-epilogue font-bold text-[#e5e2e1] text-sm leading-tight">
                                                     {product.name}
                                                 </h3>
                                                 {product.description && (
-                                                    <p className={`text-[#d1c5b4] leading-snug line-clamp-2 ${isPreview ? 'text-[10px] mb-1.5' : 'text-sm mb-4'}`}>
+                                                    <p className="font-manrope text-[#e4beb5]/55 text-xs mt-0.5 line-clamp-2 leading-relaxed">
                                                         {product.description}
                                                     </p>
                                                 )}
-                                                {/* Precios responsivos */}
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <p
-                                                        className={`font-serif font-black tracking-tighter ${isPreview ? 'text-lg' : 'text-xl sm:text-2xl'}`}
-                                                        style={{ color: store.themeColor }}
-                                                    >
-                                                        ${product.price.toFixed(2)}
-                                                    </p>
-                                                </div>
+                                                <p className="font-manrope font-bold text-sm mt-1.5" style={{ color: accent }}>
+                                                    ${product.price.toFixed(2)}
+                                                </p>
                                             </div>
 
-                                            {/* Botón Acción Oculto o Pequeño en Preview  */}
-                                            <div className="shrink-0 bg-[#0e0e0e] p-1 md:p-1.5 rounded-full shadow-xl border border-white/5 hover:border-white/20 transition-colors pointer-events-auto">
+                                            {/* Botón + */}
+                                            <div className="shrink-0">
                                                 {isPreview ? (
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: store.themeColor || '#FF5630' }}>
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <div
+                                                        className="w-9 h-9 rounded-full flex items-center justify-center"
+                                                        style={{ backgroundColor: accent }}
+                                                    >
+                                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                                                         </svg>
                                                     </div>
                                                 ) : (
-                                                    <AddToCartButton
-                                                        product={product}
-                                                        themeColor={store.themeColor}
-                                                    />
+                                                    <AddToCartButton product={product} themeColor={accent} />
                                                 )}
                                             </div>
                                         </article>
-                                    ))}
-                                </div>
-                            </section>
-                        )
-                    })
-                )}
-            </main>
+                                    );
+                                })}
 
-            <FloatingCart
-                storeName={store.name}
-                whatsapp={store.whatsapp}
-                themeColor={store.themeColor}
-                whatsappHeader={store.whatsappHeader}
-                whatsappFooter={store.whatsappFooter}
-            />
+                                {/* Flechas de navegación entre categorías (solo si hay más de 1) */}
+                                {activeCategories.length > 1 && !isPreview && (
+                                    <div className="flex gap-3 pt-4 justify-center">
+                                        {catIndex > 0 && (
+                                            <button
+                                                onClick={() => goToIndex(catIndex - 1)}
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-full font-manrope text-sm font-semibold text-[#e4beb5]/70 hover:text-white transition-colors"
+                                                style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                                {activeCategories[catIndex - 1].name}
+                                            </button>
+                                        )}
+                                        {catIndex < activeCategories.length - 1 && (
+                                            <button
+                                                onClick={() => goToIndex(catIndex + 1)}
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-full font-manrope text-sm font-semibold text-white transition-colors ml-auto"
+                                                style={{ backgroundColor: accent, boxShadow: `0 4px 12px ${accent}55` }}
+                                            >
+                                                {activeCategories[catIndex + 1].name}
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Floating Cart */}
+            {!isPreview && (
+                <FloatingCart
+                    storeName={store.name}
+                    whatsapp={store.whatsapp}
+                    themeColor={accent}
+                    whatsappHeader={store.whatsappHeader}
+                    whatsappFooter={store.whatsappFooter}
+                />
+            )}
         </div>
-    )
+    );
 }
