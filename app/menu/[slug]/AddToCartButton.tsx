@@ -1,9 +1,7 @@
-// app/menu/[slug]/components/AddToCartButton.tsx
+// app/menu/[slug]/AddToCartButton.tsx
 'use client'
 
-import { useState } from 'react'
 import { useCartStore } from '@/src/store/cartStore'
-import ProductConfiguratorModal from './components/ProductConfiguratorModal'
 
 interface ModifierOption {
     id: string;
@@ -29,20 +27,20 @@ interface AddToCartButtonProps {
         modifierGroups?: ModifierGroup[];
     };
     themeColor: string;
+    onConfigure?: () => void;
 }
 
-export default function AddToCartButton({ product, themeColor }: AddToCartButtonProps) {
+export default function AddToCartButton({ product, themeColor, onConfigure }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
     const items = useCartStore((state) => state.items);
-    
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Sumar cuántos items existen con el mismo productId (independiente de los extras)
     const quantityInCart = items.filter(i => i.productId === product.id).reduce((sum, item) => sum + item.quantity, 0);
 
-    const handleButtonClick = () => {
+    const handleButtonClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (product.modifierGroups && product.modifierGroups.length > 0) {
-            setIsModalOpen(true);
+            onConfigure?.();
         } else {
             addItem({ productId: product.id, name: product.name, price: product.price });
         }
@@ -64,15 +62,6 @@ export default function AddToCartButton({ product, themeColor }: AddToCartButton
                 <span className="absolute -bottom-6 text-[10px] uppercase font-bold tracking-widest text-[#a3aac4] whitespace-nowrap">
                     En Cesta x{quantityInCart}
                 </span>
-            )}
-
-            {(product.modifierGroups && product.modifierGroups.length > 0) && (
-                <ProductConfiguratorModal 
-                    product={product as any} 
-                    themeColor={themeColor} 
-                    isOpen={isModalOpen} 
-                    onClose={() => setIsModalOpen(false)} 
-                />
             )}
         </div>
     )

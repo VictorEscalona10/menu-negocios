@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCartStore } from "@/src/store/cartStore"
 
 interface ModifierOption {
@@ -38,6 +38,12 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
     // El estado guarda un map de groupId -> array de option IDs seleccionados
     const [selections, setSelections] = useState<Record<string, string[]>>({})
+    const [showValidation, setShowValidation] = useState(false)
+
+    // Reset validation when selections change
+    useEffect(() => {
+        setShowValidation(false)
+    }, [selections])
 
     if (!isOpen) return null;
 
@@ -102,7 +108,8 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
     const handleAddToCart = () => {
         if (!validateRequired()) {
-            alert("Por favor selecciona todas las opciones obligatorias.");
+            setShowValidation(true);
+            // Hacer scroll al primer grupo faltante si es posible
             return;
         }
 
@@ -134,66 +141,78 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
         });
 
         onClose();
-        // Reset local state if needed (aunque al cerrar se suele destruir si unmounts o podemos limpiarlo manualmente)
         setSelections({});
     }
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-xl sm:p-4 transition-opacity duration-300">
+            {/* Backdrop click to close */}
+            <div className="absolute inset-0" onClick={onClose} />
+            
             <div
-                className="bg-[#1c1b1b] w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl overflow-hidden flex flex-col max-h-[90vh] shadow-2xl relative border border-white/10"
-                style={{ animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                className="bg-[#0a0a0a] w-full sm:max-w-xl sm:rounded-[2.5rem] rounded-t-[2.5rem] overflow-hidden flex flex-col max-h-[95vh] shadow-2xl relative border-t sm:border border-white/10"
+                style={{ 
+                    animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 -20px 50px rgba(0,0,0,0.5)'
+                }}
             >
-                {/* Header visual (Foto y títutlo) */}
-                <div className="relative">
+                {/* Drag Indicator (Mobile) */}
+                <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto my-3 sm:hidden shrink-0" />
+
+                {/* Header (Foto) */}
+                <div className="relative shrink-0">
                     {product.imageUrl ? (
-                        <div className="w-full h-48 sm:h-56 relative">
+                        <div className="w-full h-44 sm:h-52 relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1c1b1b] to-transparent" />
+                            <div className="absolute inset-0 bg-black/40" />
                         </div>
                     ) : (
-                        <div className="w-full h-24 bg-gradient-to-b from-[#131313] to-[#1c1b1b]" />
+                        <div className="w-full h-12" />
                     )}
 
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-black/40 hover:bg-black/80 backdrop-blur-md rounded-full text-white transition-colors"
+                        className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 backdrop-blur-xl rounded-full text-white transition-all active:scale-90"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
-                    <div className={`absolute bottom-0 left-0 w-full p-5 lg:p-6 pb-2 ${!product.imageUrl && 'top-4'}`}>
-                        <h2 className="text-3xl font-black text-white leading-tight">{product.name}</h2>
+                    <div className={`p-6 pb-2 ${!product.imageUrl ? 'pt-2' : 'absolute bottom-0 left-0 w-full'}`}>
+                        <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight font-epilogue drop-shadow-lg">{product.name}</h2>
                         {product.description && (
-                            <p className="text-[#a3aac4] text-sm mt-1 line-clamp-2">{product.description}</p>
+                            <p className="text-white/70 text-sm mt-1 line-clamp-2 font-manrope">{product.description}</p>
                         )}
-                        <p className="text-xl font-bold mt-2" style={{ color: themeColor }}>${product.price.toFixed(2)}</p>
                     </div>
                 </div>
 
                 {/* Content: Modificadores */}
-                <div className="flex-1 overflow-y-auto px-5 lg:px-6 pb-24 pt-4 space-y-6">
+                <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-8 scroll-smooth">
                     {product.modifierGroups.map((group) => {
                         const isRadio = group.maxSelect === 1;
                         const selectedInGroup = selections[group.id] || [];
+                        const isMissing = showValidation && group.isRequired && selectedInGroup.length === 0;
 
                         return (
-                            <div key={group.id} className="space-y-3">
-                                <div className="flex justify-between items-end">
+                            <div key={group.id} className={`space-y-4 transition-all duration-300 ${isMissing ? 'p-3 rounded-2xl bg-red-500/5 ring-1 ring-red-500/20' : ''}`}>
+                                <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="text-white font-bold text-lg">{group.name}</h3>
-                                        <p className="text-xs text-[#a3aac4]">
-                                            {group.isRequired ? 'Requerido' : 'Opcional'}
-                                            {group.maxSelect && !isRadio ? ` • Elige hasta ${group.maxSelect}` : ''}
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-white font-bold text-lg font-epilogue">{group.name}</h3>
+                                            {group.isRequired && (
+                                                <span className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Obligatorio</span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-white/40 font-manrope mt-0.5">
+                                            {isRadio ? 'Selecciona una opción' : `Selecciona hasta ${group.maxSelect || 'todos los que quieras'}`}
                                         </p>
                                     </div>
-                                    {group.isRequired && selectedInGroup.length === 0 && (
-                                        <span className="text-xs font-bold text-red-400 bg-red-400/10 px-2 py-1 rounded-md">Obligatorio</span>
+                                    {isMissing && (
+                                        <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider animate-pulse">Por favor selecciona</span>
                                     )}
                                 </div>
 
-                                <div className="space-y-2">
+                                <div className="grid gap-2">
                                     {group.options.map((option) => {
                                         const isSelected = selectedInGroup.includes(option.id);
                                         const isDisabled = !isSelected && !isRadio && group.maxSelect && selectedInGroup.length >= group.maxSelect;
@@ -201,26 +220,40 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                         return (
                                             <label
                                                 key={option.id}
-                                                className={`flex items-center justify-between p-3 rounded-2xl border transition-colors cursor-pointer ${isSelected ? 'bg-white/10 border-white/20' : 'bg-[#131313] border-transparent hover:border-white/10'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                className={`group flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer active:scale-[0.98] ${isSelected 
+                                                    ? 'bg-white/10 border-white/20' 
+                                                    : 'bg-white/[0.03] border-transparent hover:border-white/10'} 
+                                                    ${isDisabled ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
                                             >
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-4">
+                                                    {/* Custom Input Visual */}
                                                     <div
-                                                        className={`w-5 h-5 flex items-center justify-center flex-shrink-0 transition-colors ${isRadio ? 'rounded-full' : 'rounded'} border ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-[#4a4a4a]'}`}
+                                                        className={`w-6 h-6 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isRadio ? 'rounded-full' : 'rounded-lg'} border-2 ${isSelected ? 'scale-110 shadow-lg' : 'border-white/10 group-hover:border-white/20'}`}
                                                         style={isSelected ? { backgroundColor: themeColor, borderColor: themeColor } : {}}
                                                     >
-                                                        {isSelected && !isRadio && (
-                                                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                                                        )}
-                                                        {isSelected && isRadio && (
-                                                            <div className="w-2 h-2 bg-white rounded-full" />
+                                                        {isSelected && (
+                                                            <div className="animate-in fade-in zoom-in duration-200">
+                                                                {isRadio ? (
+                                                                    <div className="w-2 h-2 bg-white rounded-full" />
+                                                                ) : (
+                                                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3.5" d="M5 13l4 4L19 7"></path></svg>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <span className="font-medium text-white">{option.name}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className={`font-bold transition-colors ${isSelected ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>{option.name}</span>
+                                                    </div>
                                                 </div>
-                                                <span className="text-sm font-bold text-[#a3aac4]">
-                                                    {option.price > 0 ? `+$${option.price.toFixed(2)}` : ''}
-                                                </span>
-                                                {/* Hidden input to make it accessible */}
+                                                
+                                                <div className="flex items-center gap-2">
+                                                    {option.price > 0 && (
+                                                        <span className={`text-sm font-bold font-manrope transition-all ${isSelected ? 'text-white' : 'text-white/40'}`}>
+                                                            +${option.price.toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
+
                                                 <input
                                                     type={isRadio ? "radio" : "checkbox"}
                                                     className="hidden"
@@ -238,26 +271,36 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                     })}
                 </div>
 
-                {/* Footer Flotante Modal */}
-                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#1c1b1b] via-[#1c1b1b]/95 to-transparent pt-12">
+                {/* Footer Fixeado */}
+                <div className="shrink-0 p-6 bg-[#0a0a0a] border-t border-white/5 pb-10 sm:pb-6">
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Precio Total</span>
+                            <div className="text-2xl font-black text-white font-epilogue">${calculateTotal().toFixed(2)}</div>
+                        </div>
+                        {!validateRequired() && showValidation && (
+                            <div className="text-[10px] text-red-400 font-bold max-w-[120px] text-right leading-tight">Completa los campos requeridos</div>
+                        )}
+                    </div>
+                    
                     <button
                         onClick={handleAddToCart}
-                        disabled={!validateRequired()}
-                        className="w-full text-white font-bold text-lg py-4 px-6 md:px-8 rounded-[2rem] flex items-center justify-between transition-transform duration-300 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
-                        style={{ background: validateRequired() ? `linear-gradient(135deg, ${themeColor || '#FF5630'}, #131313)` : '#333' }}
+                        className="w-full text-white font-black text-lg py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] hover:brightness-110 shadow-xl disabled:grayscale disabled:opacity-50"
+                        style={{ backgroundColor: themeColor || '#FF5630', color: '#fff' }}
                     >
-                        <span>Añadir Orden</span>
-                        <span className="font-black text-xl">${calculateTotal().toFixed(2)}</span>
+                        <span>Añadir a la Orden</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
-                    <style dangerouslySetInnerHTML={{
-                        __html: `
-                        @keyframes slideUp {
-                            from { transform: translateY(100%); opacity: 0; }
-                            to { transform: translateY(0); opacity: 1; }
-                        }
-                    `}} />
                 </div>
             </div>
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes modalSlideUp {
+                    from { transform: translateY(100%); }
+                    to { transform: translateY(0); }
+                }
+            `}} />
         </div>
     )
 }

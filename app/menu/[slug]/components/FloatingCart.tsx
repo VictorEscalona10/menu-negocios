@@ -256,7 +256,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                                             ? 'border-transparent text-white'
                                             : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
                                         }`}
-                                        style={deliveryType === 'delivery' ? { background: `linear-gradient(135deg, ${themeColor}, #131313)`, borderColor: 'transparent' } : {}}
+                                        style={deliveryType === 'delivery' ? { backgroundColor: themeColor, borderColor: 'transparent' } : {}}
                                     >
                                         <span className="text-2xl">🚗</span>
                                         <span>Delivery</span>
@@ -269,7 +269,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                                             ? 'border-transparent text-white'
                                             : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
                                         }`}
-                                        style={deliveryType === 'pickup' ? { background: `linear-gradient(135deg, ${themeColor}, #131313)`, borderColor: 'transparent' } : {}}
+                                        style={deliveryType === 'pickup' ? { backgroundColor: themeColor, borderColor: 'transparent' } : {}}
                                     >
                                         <span className="text-2xl">🏃</span>
                                         <span>Pick-Up</span>
@@ -389,7 +389,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                             <button
                                 onClick={handleWhatsAppOrder}
                                 className="w-full text-white font-bold text-base py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:brightness-110"
-                                style={{ background: `linear-gradient(135deg, ${themeColor || '#FF5630'}, #131313)` }}
+                                style={{ backgroundColor: themeColor || '#FF5630' }}
                             >
                                 {/* WhatsApp icon */}
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -422,7 +422,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                         <button
                             onClick={() => setIsOpen(true)}
                             className="w-full text-white font-bold text-lg py-4 px-6 md:px-8 rounded-[2rem] flex items-center justify-between transition-transform duration-300 active:scale-[0.98] group"
-                            style={{ background: `linear-gradient(135deg, ${themeColor || '#FF5630'}, #131313)` }}
+                            style={{ backgroundColor: themeColor || '#FF5630' }}
                         >
                             <div className="flex flex-col items-start gap-1">
                                 <span className="text-[10px] uppercase tracking-widest opacity-80 font-bold">

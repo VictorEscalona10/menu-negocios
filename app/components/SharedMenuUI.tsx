@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
+import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
 
 interface SharedMenuUIProps {
     store: {
@@ -47,50 +48,75 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
     // Sólo categorías con productos
     const activeCategories = store.categories.filter(c => c.products.length > 0);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [activeConfigProduct, setActiveConfigProduct] = useState<any>(null);
 
     // Refs para el slider y el nav
     const sliderRef = useRef<HTMLDivElement>(null);
     const navRef = useRef<HTMLDivElement>(null);
     const navItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const slideRefs = useRef<(HTMLDivElement | null)[]>([]); // Referencia a cada slide
     const isScrollingProgrammatically = useRef(false);
 
     // ── Scroll el slider al índice ──
     const goToIndex = useCallback((index: number) => {
-        if (!sliderRef.current) return;
         isScrollingProgrammatically.current = true;
-        const slideWidth = sliderRef.current.offsetWidth;
-        sliderRef.current.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
         setActiveIndex(index);
-        // Scroll el pill nav para que sea visible
+
+        // 1. Mover el slider principal hacia el slide correspondiente
+        const slide = slideRefs.current[index];
+        if (slide) {
+            slide.scrollIntoView({ inline: 'start', behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 2. Scroll el pill nav (menú de arriba) para que sea visible
         const navBtn = navItemRefs.current[index];
         if (navBtn && navRef.current) {
             navBtn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
         }
+
         setTimeout(() => { isScrollingProgrammatically.current = false; }, 500);
     }, []);
 
-    // ── Detecta el slide activo al deslizar manualmente ──
+    // ── Detecta el slide activo al deslizar manualmente con IntersectionObserver ──
     useEffect(() => {
         const slider = sliderRef.current;
         if (!slider || isPreview) return;
 
-        const handleScroll = () => {
+        const observer = new IntersectionObserver((entries) => {
             if (isScrollingProgrammatically.current) return;
-            const slideWidth = slider.offsetWidth;
-            if (slideWidth === 0) return;
-            const idx = Math.round(slider.scrollLeft / slideWidth);
-            if (idx !== activeIndex && idx >= 0 && idx < activeCategories.length) {
-                setActiveIndex(idx);
-                const navBtn = navItemRefs.current[idx];
-                if (navBtn && navRef.current) {
-                    navBtn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        };
 
-        slider.addEventListener('scroll', handleScroll, { passive: true });
-        return () => slider.removeEventListener('scroll', handleScroll);
-    }, [activeIndex, activeCategories.length, isPreview]);
+            entries.forEach(entry => {
+                // Si el slide actual está visible en más de un 60%
+                if (entry.isIntersecting) {
+                    const idx = Number(entry.target.getAttribute('data-index'));
+                    if (!isNaN(idx) && idx !== activeIndex) {
+                        setActiveIndex(idx);
+
+                        // Centramos el botón del menú de navegación de arriba
+                        const navBtn = navItemRefs.current[idx];
+                        if (navBtn && navRef.current) {
+                            navBtn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                }
+            });
+        }, {
+            root: slider,
+            threshold: 0.6 // Se activa cuando al menos el 60% del slide es visible
+        });
+
+        // Observar todos los slides
+        const currentSlides = slideRefs.current;
+        currentSlides.forEach(slide => {
+            if (slide) observer.observe(slide);
+        });
+
+        return () => {
+            currentSlides.forEach(slide => {
+                if (slide) observer.unobserve(slide);
+            });
+        };
+    }, [activeIndex, isPreview, activeCategories.length]);
 
     return (
         <div
@@ -115,18 +141,14 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                 }
             `}} />
 
-            {/* ── Ambient glow top (fixed, no afecta al layout) ── */}
-            <div
-                className="pointer-events-none fixed top-0 left-0 w-full h-[40vh] opacity-20 blur-[120px] z-0"
-                style={{ background: `radial-gradient(ellipse at 50% 0%, ${accent} 0%, transparent 70%)` }}
-            />
+
 
             {/* ═══════════════════════════════════
                 HEADER (fijo arriba, no scrollea)
             ═══════════════════════════════════ */}
             <header
                 className={`relative z-20 shrink-0 flex flex-col items-center text-center ${isPreview ? 'pt-6 pb-4 px-4' : 'pt-10 pb-6 px-6'}`}
-                style={{ background: `linear-gradient(to bottom, ${bg}, ${bg}ee)` }}
+                style={{ backgroundColor: bg }}
             >
                 {/* Logo */}
                 {store.logoUrl ? (
@@ -226,6 +248,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                         /* ── Slide: una categoría ── */
                         <div
                             key={category.id}
+                            ref={el => { slideRefs.current[catIndex] = el; }} // Vinculamos la referencia
+                            data-index={catIndex}                             // Asignamos el índice para el Observer
                             className="snap-slide shrink-0 w-full overflow-y-auto hide-scrollbar"
                             style={{ minHeight: 0 }}
                         >
@@ -255,7 +279,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         alt={product.name}
                                                         className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                                                    <div className="absolute inset-0 bg-black/60" />
                                                     <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                                                         <div>
                                                             <h3 className="font-epilogue font-black text-white text-xl leading-tight">
@@ -266,7 +290,11 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                             </p>
                                                         </div>
                                                         <div className="shrink-0">
-                                                            <AddToCartButton product={product} themeColor={accent} />
+                                                            <AddToCartButton 
+                                                                product={product} 
+                                                                themeColor={accent} 
+                                                                onConfigure={() => setActiveConfigProduct(product)}
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -334,7 +362,11 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         </svg>
                                                     </div>
                                                 ) : (
-                                                    <AddToCartButton product={product} themeColor={accent} />
+                                                    <AddToCartButton 
+                                                        product={product} 
+                                                        themeColor={accent} 
+                                                        onConfigure={() => setActiveConfigProduct(product)}
+                                                    />
                                                 )}
                                             </div>
                                         </article>
@@ -376,8 +408,18 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                 )}
             </div>
 
+            {/* Product Configurator Modal (Global) */}
+            {activeConfigProduct && (
+                <ProductConfiguratorModal
+                    product={activeConfigProduct}
+                    themeColor={accent}
+                    isOpen={!!activeConfigProduct}
+                    onClose={() => setActiveConfigProduct(null)}
+                />
+            )}
+
             {/* Floating Cart */}
-            {!isPreview && (
+            {(!isPreview && !activeConfigProduct) && (
                 <FloatingCart
                     storeName={store.name}
                     whatsapp={store.whatsapp}
@@ -386,6 +428,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                     whatsappFooter={store.whatsappFooter}
                 />
             )}
+
         </div>
     );
 }
