@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { signOut } from '@/src/actions/auth'
+import { headers } from 'next/headers'
+import QRGenerator from '@/app/components/QRGenerator'
 
 // 1. Movemos el Server Action FUERA del componente para evitar el bug de Turbopack
 async function createStoreAction(userId: string, formData: FormData) {
@@ -126,6 +128,11 @@ export default async function DashboardPage() {
     }
 
     // INTERFAZ B: Si YA tiene local, le mostramos sus estadísticas
+    const headersList = await headers()
+    const host = headersList.get('host') ?? 'localhost:3000'
+    const proto = host.startsWith('localhost') ? 'http' : 'https'
+    const menuUrl = `${proto}://${host}/menu/${store.slug}`
+
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
             <div className="w-full max-w-4xl bg-white p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
@@ -165,6 +172,13 @@ export default async function DashboardPage() {
                             <p className="text-xl font-bold text-green-600">Activo</p>
                         </div>
                     </div>
+                </div>
+
+                {/* SECCIÓN QR */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 mb-8 flex flex-col items-center gap-2">
+                    <h2 className="text-sm uppercase tracking-widest font-bold text-zinc-400 mb-4">Código QR del Menú</h2>
+                    <QRGenerator menuUrl={menuUrl} storeName={store.name} />
+                    <p className="text-xs text-zinc-400 mt-3 text-center">Imprime este QR y colócalo en tu local para que los clientes accedan al menú desde su celular.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-center gap-4 border-t border-zinc-100 pt-8">
