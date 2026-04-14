@@ -6,9 +6,7 @@ import { createCategory, createProduct, deleteCategory, deleteProduct } from '@/
 import { CategoryForm } from './CategoryForm'
 import { ProductForm } from './ProductForm'
 import { DeleteButton } from './DeleteButton'
-import { ModifiersManager } from './ModifiersManager'
-import { ToggleAvailability } from './ToggleAvailability'
-import { EditProductModal } from './EditProductModal'
+import { ProductCard } from './ProductCard'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -119,56 +117,13 @@ export default async function ProductsPage() {
                                             <div className="grid grid-cols-1 gap-4 ml-2">
                                                 {category.products.map((product: any) => {
                                                     const boundDeleteProduct = deleteProduct.bind(null, product.id);
-
                                                     return (
-                                                        <div key={product.id} className={`group bg-white border p-5 rounded-2xl flex flex-col justify-between transition-colors shadow-sm ${
-                                                            product.isAvailable
-                                                                ? 'border-zinc-100 hover:border-zinc-200'
-                                                                : 'border-zinc-200 bg-zinc-50/60 opacity-60'
-                                                        }`}>
-                                                            <div>
-                                                                <div className="flex justify-between items-start mb-2 gap-4">
-                                                                    <div>
-                                                                        <h4 className="font-bold text-lg text-zinc-900 leading-tight">
-                                                                            {product.name}
-                                                                            {product.modifierGroups.length > 0 && (
-                                                                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-black bg-amber-100 text-amber-800 align-middle">
-                                                                                    + Extras
-                                                                                </span>
-                                                                            )}
-                                                                        </h4>
-                                                                        {!product.isAvailable && (
-                                                                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-600">
-                                                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
-                                                                                Agotado / Inactivo
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <ToggleAvailability
-                                                                                productId={product.id}
-                                                                                isAvailable={product.isAvailable}
-                                                                                productName={product.name}
-                                                                            />
-                                                                            <span className="font-black text-zinc-900 bg-zinc-50 px-3 py-1 rounded-lg">${product.price.toFixed(2)}</span>
-                                                                            
-                                                                            <div className="flex items-center gap-1">
-                                                                                <EditProductModal product={product} categories={store.categories} />
-                                                                                <DeleteButton 
-                                                                                    deleteAction={boundDeleteProduct} 
-                                                                                    itemName={product.name} 
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        <ModifiersManager product={product} />
-                                                                    </div>
-                                                                </div>
-                                                                {product.description && (
-                                                                    <p className="text-sm text-zinc-500 line-clamp-2 mt-1">{product.description}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                                        <ProductCard 
+                                                            key={product.id}
+                                                            product={product}
+                                                            categories={store.categories}
+                                                            deleteAction={boundDeleteProduct}
+                                                        />
                                                     )
                                                 })}
                                             </div>

@@ -6,6 +6,16 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 
 export async function createCategory(storeId: string, formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    // Verificar propiedad del local
+    const store = await prisma.store.findFirst({
+        where: { id: storeId, userId: user.id }
+    })
+    if (!store) throw new Error("No autorizado")
+
     const name = formData.get('name') as string
 
     await prisma.category.create({
@@ -19,10 +29,23 @@ export async function createCategory(storeId: string, formData: FormData) {
 }
 
 export async function createProduct(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
     const name = formData.get('name') as string
     const description = formData.get('description') as string
     const price = parseFloat(formData.get('price') as string)
     const categoryId = formData.get('categoryId') as string
+
+    // Verificar que la categoría pertenece al local del usuario
+    const category = await prisma.category.findFirst({
+        where: { 
+            id: categoryId,
+            store: { userId: user.id }
+        }
+    })
+    if (!category) throw new Error("No autorizado para agregar productos a esta categoría")
 
     // 1. Obtener el archivo de imagen
     const imageFile = formData.get('image') as File | null
@@ -63,16 +86,25 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
     const name = formData.get('name') as string
     const description = formData.get('description') as string
     const price = parseFloat(formData.get('price') as string)
     const categoryId = formData.get('categoryId') as string
 
-    // 1. Obtener los datos actuales del producto para saber si tiene imagen
-    const currentProduct = await prisma.product.findUnique({
-        where: { id: productId },
+    // 1. Obtener los datos actuales del producto y verificar propiedad
+    const currentProduct = await prisma.product.findFirst({
+        where: { 
+            id: productId,
+            category: { store: { userId: user.id } }
+        },
         select: { imageUrl: true }
     })
+
+    if (!currentProduct) throw new Error("No autorizado o producto no encontrado")
 
     // 2. Obtener el nuevo archivo de imagen
     const imageFile = formData.get('image') as File | null
@@ -123,6 +155,16 @@ export async function updateProduct(productId: string, formData: FormData) {
 }
 
 export async function deleteCategory(categoryId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    // Verificar propiedad
+    const category = await prisma.category.findFirst({
+        where: { id: categoryId, store: { userId: user.id } }
+    })
+    if (!category) throw new Error("No autorizado")
+
     // Prisma con cascade eliminará también sus productos
     await prisma.category.delete({
         where: {
@@ -133,11 +175,20 @@ export async function deleteCategory(categoryId: string) {
 }
 
 export async function deleteProduct(productId: string) {
-    // 1. Buscamos el producto antes de borrarlo para saber si tenía foto
-    const product = await prisma.product.findUnique({
-        where: { id: productId },
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    // 1. Buscamos el producto antes de borrarlo y verificamos propiedad
+    const product = await prisma.product.findFirst({
+        where: { 
+            id: productId,
+            category: { store: { userId: user.id } }
+        },
         select: { imageUrl: true }
     });
+
+    if (!product) throw new Error("No autorizado")
 
     // 2. Si tenía imagen, la borramos del bucket de Supabase
     if (product?.imageUrl) {
@@ -160,6 +211,16 @@ export async function deleteProduct(productId: string) {
 }
 
 export async function toggleProductAvailability(productId: string, currentValue: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    // Verificar propiedad
+    const product = await prisma.product.findFirst({
+        where: { id: productId, category: { store: { userId: user.id } } }
+    })
+    if (!product) throw new Error("No autorizado")
+
     await prisma.product.update({
         where: { id: productId },
         data: { isAvailable: !currentValue }

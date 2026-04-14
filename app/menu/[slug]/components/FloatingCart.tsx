@@ -17,6 +17,7 @@ type DeliveryType = 'delivery' | 'pickup';
 
 export default function FloatingCart({ storeName, whatsapp, themeColor, whatsappHeader, whatsappFooter, isPreview = false }: FloatingCartProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isProductsExpanded, setIsProductsExpanded] = useState(false);
 
     // Datos del cliente
     const [customerName, setCustomerName] = useState('');
@@ -166,225 +167,202 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                         {/* Contenido scrolleable */}
                         <div className="flex-1 overflow-y-auto">
 
-                            {/* ── Sección 1: Productos ── */}
-                            <div className="p-5 space-y-4 border-b border-white/10">
-                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">🛒 Productos</p>
-                                {items.map(item => {
-                                    const itemOptionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + Number(opt.price), 0) || 0;
-                                    const itemRowTotal = (Number(item.price) + itemOptionsPrice) * Number(item.quantity);
-
-                                    return (
-                                        <div key={item.id} className="flex justify-between items-start border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                                            <div className="flex-1 pr-4">
-                                                <div className="flex items-start gap-2">
-                                                    <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded text-sm mt-0.5">
-                                                        {item.quantity}x
-                                                    </span>
-                                                    <div>
-                                                        <h3 className="font-bold text-white text-base leading-tight">{item.name}</h3>
-                                                        {item.selectedOptions && item.selectedOptions.length > 0 && (
-                                                            <ul className="mt-1 space-y-0.5 mb-1">
-                                                                {item.selectedOptions.map(opt => (
-                                                                    <li key={opt.id} className="text-sm text-zinc-400 flex items-center justify-between">
-                                                                        <span>└ {opt.name}</span>
-                                                                        {opt.price > 0 && <span className="text-xs ml-2">+${opt.price.toFixed(2)}</span>}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
-                                                        {item.notes && (
-                                                            <p className="text-xs bg-white/5 border border-white/10 px-3 py-2 rounded-xl text-zinc-400 mt-2 mb-1 flex items-start gap-2 italic">
-                                                                <span className="shrink-0 text-amber-500/70 pt-0.5">📝</span>
-                                                                <span>{item.notes}</span>
-                                                            </p>
-                                                        )}
-                                                        <p className="font-bold mt-1 text-sm" style={{ color: themeColor }}>
-                                                            ${itemRowTotal.toFixed(2)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => deleteItem(item.id)}
-                                                className="shrink-0 bg-red-500/10 text-red-400 p-2 rounded-xl hover:bg-red-500 hover:text-white transition-colors"
-                                                title="Eliminar producto"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            </button>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-
-                            {/* ── Sección 2: Datos del Cliente ── */}
-                            <div className="p-5 space-y-3 border-b border-white/10">
-                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">👤 Datos del cliente</p>
-
-                                {/* Nombre */}
-                                <div>
-                                    <label className="block text-xs text-zinc-400 mb-1.5 font-medium">
-                                        Nombre completo <span style={{ color: themeColor }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={customerName}
-                                        onChange={e => setCustomerName(e.target.value)}
-                                        placeholder="Ej: Juan Pérez"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-white/30 transition-colors"
-                                    />
+                            {/* ── Sección 1: Datos del Cliente ── */}
+                            <div className="p-5 space-y-4 border-b border-white/10 bg-white/[0.02]">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-[10px] font-bold text-white">1</span>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Tus Datos</p>
                                 </div>
 
-                                {/* Cédula */}
-                                <div>
-                                    <label className="block text-xs text-zinc-400 mb-1.5 font-medium">
-                                        Cédula de identidad <span style={{ color: themeColor }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={customerCedula}
-                                        onChange={e => setCustomerCedula(e.target.value)}
-                                        placeholder="Ej: V-12.345.678"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-white/30 transition-colors"
-                                    />
+                                <div className="grid grid-cols-1 gap-4">
+                                    {/* Nombre */}
+                                    <div>
+                                        <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
+                                            Nombre completo <span style={{ color: themeColor }}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={customerName}
+                                            onChange={e => setCustomerName(e.target.value)}
+                                            placeholder="Ej: Juan Pérez"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
+                                        />
+                                    </div>
+
+                                    {/* Cédula */}
+                                    <div>
+                                        <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
+                                            Cédula de identidad <span style={{ color: themeColor }}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={customerCedula}
+                                            onChange={e => setCustomerCedula(e.target.value)}
+                                            placeholder="Ej: V-12.345.678"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Error de validación */}
                                 {formError && (
-                                    <p className="text-sm font-medium px-1" style={{ color: '#ef4444' }}>{formError}</p>
+                                    <div className="flex items-center gap-2 mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                        <span className="text-sm font-bold text-red-400">{formError}</span>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* ── Sección 3: Tipo de Entrega ── */}
-                            <div className="p-5 space-y-3 border-b border-white/10">
-                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">📦 Tipo de entrega</p>
+                            {/* ── Sección 2: Tipo de Entrega ── */}
+                            <div className="p-5 space-y-4 border-b border-white/10">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-[10px] font-bold text-white">2</span>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Entrega</p>
+                                </div>
 
-                                {/* Toggle Delivery / Pick-Up */}
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setDeliveryType('delivery')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all ${deliveryType === 'delivery'
-                                            ? 'border-transparent text-white'
-                                            : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
+                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${deliveryType === 'delivery'
+                                            ? 'border-transparent text-white ring-2 ring-white/20'
+                                            : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
                                         }`}
-                                        style={deliveryType === 'delivery' ? { backgroundColor: themeColor, borderColor: 'transparent' } : {}}
+                                        style={deliveryType === 'delivery' ? { backgroundColor: themeColor } : {}}
                                     >
                                         <span className="text-2xl">🚗</span>
                                         <span>Delivery</span>
-                                        <span className="text-[10px] opacity-70 font-normal">Te lo llevamos</span>
                                     </button>
 
                                     <button
                                         onClick={() => setDeliveryType('pickup')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all ${deliveryType === 'pickup'
-                                            ? 'border-transparent text-white'
-                                            : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
+                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${deliveryType === 'pickup'
+                                            ? 'border-transparent text-white ring-2 ring-white/20'
+                                            : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
                                         }`}
-                                        style={deliveryType === 'pickup' ? { backgroundColor: themeColor, borderColor: 'transparent' } : {}}
+                                        style={deliveryType === 'pickup' ? { backgroundColor: themeColor } : {}}
                                     >
                                         <span className="text-2xl">🏃</span>
                                         <span>Pick-Up</span>
-                                        <span className="text-[10px] opacity-70 font-normal">Paso a buscar</span>
                                     </button>
                                 </div>
 
-                                {/* Campo de ubicación GPS (solo si delivery) */}
                                 {deliveryType === 'delivery' && (
-                                    <div style={{ animation: 'fadeIn 0.25s ease' }}>
-                                        <label className="block text-xs text-zinc-400 mb-2 font-medium">
-                                            Tu ubicación actual
-                                        </label>
-
-                                        {/* Botón principal de detección */}
-                                        {locationStatus !== 'success' && (
+                                    <div className="mt-4" style={{ animation: 'fadeIn 0.25s ease' }}>
+                                        {locationStatus !== 'success' ? (
                                             <button
                                                 onClick={handleDetectLocation}
                                                 disabled={locationStatus === 'loading'}
-                                                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed transition-all font-medium text-sm text-white"
+                                                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-60 transition-all font-medium text-xs text-white"
                                             >
                                                 {locationStatus === 'loading' ? (
-                                                    <>
-                                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                                        </svg>
-                                                        <span>Detectando ubicación...</span>
-                                                    </>
+                                                    <span className="flex items-center gap-2">
+                                                        <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                                                        Detectando...
+                                                    </span>
                                                 ) : (
-                                                    <>
-                                                        {/* Pin GPS icon */}
-                                                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                            <circle cx="12" cy="12" r="3" />
-                                                            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-                                                            <circle cx="12" cy="12" r="8" strokeDasharray="3 2" />
-                                                        </svg>
-                                                        <span>
-                                                            {locationStatus === 'idle' ? 'Detectar mi ubicación' : 'Reintentar'}
-                                                        </span>
-                                                    </>
+                                                    <>📍 Detectar ubicación GPS</>
                                                 )}
                                             </button>
-                                        )}
-
-                                        {/* Ubicación detectada con éxito */}
-                                        {locationStatus === 'success' && (
-                                            <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3">
+                                        ) : (
+                                            <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
                                                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                    </svg>
+                                                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                                 </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-bold text-emerald-400">¡Ubicación detectada!</p>
-                                                    <p className="text-xs text-zinc-500 truncate">{locationUrl}</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => { setLocationStatus('idle'); setLocationUrl(''); }}
-                                                    className="text-zinc-500 hover:text-white transition-colors shrink-0"
-                                                    title="Cambiar ubicación"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
+                                                <p className="text-xs font-bold text-emerald-400 flex-1 truncate">{locationUrl}</p>
+                                                <button onClick={() => { setLocationStatus('idle'); setLocationUrl(''); }} className="text-zinc-500 hover:text-white transition-colors">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
                                             </div>
-                                        )}
-
-                                        {/* Permiso denegado */}
-                                        {locationStatus === 'denied' && (
-                                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
-                                                <p className="text-sm font-bold text-amber-400 mb-1">Permiso denegado</p>
-                                                <p className="text-xs text-zinc-400">Ve a los ajustes de tu navegador → permite el acceso a la ubicación para este sitio, y luego intenta de nuevo.</p>
-                                                <button onClick={() => setLocationStatus('idle')} className="mt-2 text-xs text-amber-400 underline">Reintentar</button>
-                                            </div>
-                                        )}
-
-                                        {/* Error genérico */}
-                                        {locationStatus === 'error' && (
-                                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
-                                                <p className="text-sm font-bold text-red-400 mb-1">No se pudo detectar la ubicación</p>
-                                                <p className="text-xs text-zinc-400">Asegúrate de tener el GPS activo e intenta de nuevo.</p>
-                                                <button onClick={() => setLocationStatus('idle')} className="mt-2 text-xs text-red-400 underline">Reintentar</button>
-                                            </div>
-                                        )}
-
-                                        {locationStatus === 'idle' && (
-                                            <p className="text-[11px] text-zinc-500 mt-1.5 px-1">
-                                                💡 El navegador pedirá permiso para acceder a tu GPS. Tu ubicación solo se usa para enviársela al local.
-                                            </p>
                                         )}
                                     </div>
                                 )}
                             </div>
 
+                            {/* ── Sección 3: Productos (Colapsable) ── */}
+                            <div className="border-b border-white/10">
+                                <button 
+                                    onClick={() => setIsProductsExpanded(!isProductsExpanded)}
+                                    className="w-full p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">🛒</div>
+                                        <div className="text-left">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Detalle del Pedido</p>
+                                            <p className="text-sm font-bold text-white">
+                                                {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors">
+                                            {isProductsExpanded ? 'Cerrar' : 'Revisar'}
+                                        </span>
+                                        <svg 
+                                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${isProductsExpanded ? 'rotate-180' : ''}`} 
+                                            fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </button>
+
+                                {isProductsExpanded && (
+                                    <div className="p-5 pt-0 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                                        {items.map(item => {
+                                            const itemOptionsPrice = item.selectedOptions?.reduce((sum, opt) => sum + Number(opt.price), 0) || 0;
+                                            const itemRowTotal = (Number(item.price) + itemOptionsPrice) * Number(item.quantity);
+
+                                            return (
+                                                <div key={item.id} className="flex justify-between items-start bg-white/[0.03] p-4 rounded-2xl border border-white/5">
+                                                    <div className="flex-1 pr-4">
+                                                        <div className="flex items-start gap-3">
+                                                            <span className="font-black text-white bg-white/10 px-2 py-1 rounded-lg text-xs">
+                                                                {item.quantity}x
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <h3 className="font-bold text-white text-sm leading-tight mb-1">{item.name}</h3>
+                                                                {item.selectedOptions && item.selectedOptions.length > 0 && (
+                                                                    <div className="space-y-1 mb-2">
+                                                                        {item.selectedOptions.map(opt => (
+                                                                            <div key={opt.id} className="text-[11px] text-zinc-500 flex items-center justify-between bg-white/5 px-2 py-0.5 rounded">
+                                                                                <span>• {opt.name}</span>
+                                                                                {opt.price > 0 && <span className="font-bold text-zinc-400">+${opt.price.toFixed(2)}</span>}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                                {item.notes && (
+                                                                    <div className="text-[11px] bg-amber-500/5 text-amber-500/80 px-2.5 py-1.5 rounded-lg border border-amber-500/10 italic">
+                                                                        "{item.notes}"
+                                                                    </div>
+                                                                )}
+                                                                <p className="font-black text-xs mt-2" style={{ color: themeColor }}>
+                                                                    Subtotal: ${itemRowTotal.toFixed(2)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
+                                                        className="shrink-0 bg-red-500/10 text-red-500/60 p-2.5 rounded-xl hover:bg-red-500 hover:text-white transition-all transform active:scale-90"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
                             {/* ── Sección 4: Notas adicionales ── */}
-                            <div className="p-5">
-                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">📝 Notas adicionales</p>
+                            <div className="p-5 pb-8">
+                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-1">📝 Notas para el local</p>
                                 <textarea
                                     value={orderNotes}
                                     onChange={e => setOrderNotes(e.target.value)}
-                                    placeholder="Ej: Sin cebolla, timbre 3B, piso 2..."
-                                    rows={3}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:border-white/30 transition-colors resize-none"
+                                    placeholder="Ej: El timbre no suena, llamar al llegar..."
+                                    rows={2}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all resize-none focus:bg-white/[0.08]"
                                 />
                             </div>
 

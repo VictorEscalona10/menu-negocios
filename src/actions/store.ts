@@ -6,6 +6,20 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 
 export async function updateStoreSettings(storeId: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("No autenticado");
+
+    // Validar propiedad del local antes de cualquier operación
+    const storeExists = await prisma.store.findFirst({
+        where: { id: storeId, userId: user.id }
+    });
+
+    if (!storeExists) {
+        throw new Error("No autorizado para editar este local");
+    }
+
     const name = formData.get('name') as string
     const whatsapp = formData.get('whatsapp') as string
     const backgroundColor = formData.get('backgroundColor') as string
