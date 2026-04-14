@@ -15,13 +15,14 @@ export type CartItem = {
     price: number;
     quantity: number;
     selectedOptions?: CartItemOption[];
+    notes?: string;
 }
 
 interface CartState {
     items: CartItem[];
     addItem: (item: Omit<CartItem, 'quantity' | 'id'> & { id?: string }) => void;
     removeItem: (id: string) => void;
-    deleteItem: (id: string) => void; // NUEVO: Para la papelera
+    deleteItem: (id: string) => void;
     getTotal: () => number;
     getTotalItems: () => number;
 }
@@ -32,9 +33,16 @@ export const useCartStore = create<CartState>((set, get) => ({
     addItem: (newItem) => set((state) => {
         let uniqueId = newItem.id || newItem.productId;
 
+        // Si hay opciones, las incluimos en el ID para diferenciar variantes
         if (newItem.selectedOptions && newItem.selectedOptions.length > 0) {
             const optionsHash = newItem.selectedOptions.map(o => o.id).sort().join('-');
-            uniqueId = `${newItem.productId}-${optionsHash}`;
+            uniqueId = `${uniqueId}-${optionsHash}`;
+        }
+
+        // Si hay notas, las incluimos en el ID para que items con notas distintas no se agrupen
+        if (newItem.notes && newItem.notes.trim()) {
+            const notesHash = Buffer.from(newItem.notes.trim()).toString('base64').substring(0, 8);
+            uniqueId = `${uniqueId}-note-${notesHash}`;
         }
 
         const existingItem = state.items.find(i => i.id === uniqueId);

@@ -8,7 +8,25 @@ interface Category {
     name: string
 }
 
-export function ProductForm({ categories, createProductAction }: { categories: Category[], createProductAction: (formData: FormData) => Promise<any> }) {
+export function ProductForm({ 
+    categories, 
+    action, 
+    initialData,
+    onSuccess
+}: { 
+    categories: Category[], 
+    action: (formData: FormData) => Promise<any>,
+    initialData?: {
+        id: string
+        name: string
+        description: string | null
+        price: number
+        categoryId: string
+        imageUrl: string | null
+    },
+    onSuccess?: () => void
+}) {
+    const isEditing = !!initialData
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
     const [isPending, setIsPending] = useState(false)
 
@@ -36,13 +54,21 @@ export function ProductForm({ categories, createProductAction }: { categories: C
 
         setIsPending(true)
         try {
-            await createProductAction(pendingFormData)
+            await action(pendingFormData)
             setStatus("success")
+            
+            if (onSuccess) {
+                // Pequeño delay para que se vea el mensaje de éxito antes de cerrar modal si aplica
+                setTimeout(() => onSuccess(), 1500)
+            }
+
             setTimeout(() => setStatus("idle"), 4000)
 
-            // Reseteamos el formulario
-            const formElement = document.getElementById("product-form") as HTMLFormElement
-            if (formElement) formElement.reset()
+            // Reseteamos el formulario solo si no estamos editando (en modal de edición se cerrará)
+            if (!isEditing) {
+                const formElement = document.getElementById("product-form") as HTMLFormElement
+                if (formElement) formElement.reset()
+            }
             setPendingFormData(null)
         } catch (error) {
             console.error(error)
@@ -65,11 +91,14 @@ export function ProductForm({ categories, createProductAction }: { categories: C
         <div className="relative">
             <ConfirmationModal
                 isOpen={isModalOpen}
-                title="Añadir Producto"
-                description={`¿Deseas guardar el producto "${productName}" en tu menú?`}
+                title={isEditing ? "Actualizar Producto" : "Añadir Producto"}
+                description={isEditing 
+                    ? `¿Deseas guardar los cambios en "${productName}"?`
+                    : `¿Deseas guardar el producto "${productName}" en tu menú?`
+                }
                 onConfirm={executeAction}
                 onCancel={() => setIsModalOpen(false)}
-                confirmText="Guardar Producto"
+                confirmText={isEditing ? "Actualizar" : "Guardar Producto"}
             />
 
             {status === "success" && (
@@ -79,15 +108,22 @@ export function ProductForm({ categories, createProductAction }: { categories: C
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
-                    <span className="font-medium text-sm text-center">¡Producto guardado correctamente!</span>
+                    <span className="font-medium text-sm text-center">
+                        {isEditing ? "¡Producto actualizado correctamente!" : "¡Producto guardado correctamente!"}
+                    </span>
                 </div>
             )}
 
-            <form id="product-form" onSubmit={handleFormSubmit} className="space-y-6">
+            <form id={isEditing ? `product-form-${initialData.id}` : "product-form"} onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Categoría</label>
                     <div className="relative">
-                        <select name="categoryId" className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium" required>
+                        <select 
+                            name="categoryId" 
+                            defaultValue={initialData?.categoryId}
+                            className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium" 
+                            required
+                        >
                             {categories.map((category) => (
                                 <option key={category.id} value={category.id}>
                                     {category.name}
@@ -102,11 +138,25 @@ export function ProductForm({ categories, createProductAction }: { categories: C
 
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Nombre del producto</label>
-                    <input type="text" name="name" placeholder="Ej: Hamburguesa Clásica" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium placeholder-zinc-400" required />
+                    <input 
+                        type="text" 
+                        name="name" 
+                        defaultValue={initialData?.name}
+                        placeholder="Ej: Hamburguesa Clásica" 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium placeholder-zinc-400" 
+                        required 
+                    />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-zinc-700 mb-1">Imagen del Producto</label>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1">
+                        Imagen del Producto {isEditing && <span className="text-zinc-400 font-normal">(Opcional, deja vacío para conservar)</span>}
+                    </label>
+                    {initialData?.imageUrl && (
+                        <div className="mb-3 relative w-20 h-20 rounded-xl overflow-hidden border border-zinc-100 shadow-sm">
+                            <img src={initialData.imageUrl} alt={initialData.name} className="w-full h-full object-cover" />
+                        </div>
+                    )}
                     <input
                         type="file"
                         name="image"
@@ -117,7 +167,13 @@ export function ProductForm({ categories, createProductAction }: { categories: C
 
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Descripción</label>
-                    <textarea name="description" placeholder="Ingredientes o detalles..." className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium resize-none placeholder-zinc-400" rows={3}></textarea>
+                    <textarea 
+                        name="description" 
+                        defaultValue={initialData?.description || ""}
+                        placeholder="Ingredientes o detalles..." 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium resize-none placeholder-zinc-400" 
+                        rows={3}
+                    ></textarea>
                 </div>
 
                 <div className="space-y-1.5">
@@ -126,7 +182,15 @@ export function ProductForm({ categories, createProductAction }: { categories: C
                         <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
                             <span className="text-zinc-500 font-bold">$</span>
                         </div>
-                        <input type="number" step="0.01" name="price" placeholder="5.50" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl pl-9 pr-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-bold placeholder-zinc-400" required />
+                        <input 
+                            type="number" 
+                            step="0.01" 
+                            name="price" 
+                            defaultValue={initialData?.price}
+                            placeholder="5.50" 
+                            className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl pl-9 pr-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-bold placeholder-zinc-400" 
+                            required 
+                        />
                     </div>
                 </div>
 
@@ -142,7 +206,10 @@ export function ProductForm({ categories, createProductAction }: { categories: C
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     )}
-                    {isPending ? "Agregando Producto..." : "Agregar Producto"}
+                    {isPending 
+                        ? (isEditing ? "Actualizando..." : "Agregando Producto...") 
+                        : (isEditing ? "Actualizar Producto" : "Agregar Producto")
+                    }
                 </button>
             </form>
         </div>

@@ -62,6 +62,66 @@ export async function createProduct(formData: FormData) {
     revalidatePath('/dashboard/products')
 }
 
+export async function updateProduct(productId: string, formData: FormData) {
+    const name = formData.get('name') as string
+    const description = formData.get('description') as string
+    const price = parseFloat(formData.get('price') as string)
+    const categoryId = formData.get('categoryId') as string
+
+    // 1. Obtener los datos actuales del producto para saber si tiene imagen
+    const currentProduct = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { imageUrl: true }
+    })
+
+    // 2. Obtener el nuevo archivo de imagen
+    const imageFile = formData.get('image') as File | null
+    let imageUrl = currentProduct?.imageUrl
+
+    // 3. Subir nueva imagen si existe
+    if (imageFile && imageFile.size > 0) {
+        const supabase = await createClient()
+        
+        // Subimos la nueva imagen
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+        const { data, error } = await supabase.storage
+            .from('products')
+            .upload(fileName, imageFile)
+
+        if (!error) {
+            const { data: { publicUrl } } = supabase.storage
+                .from('products')
+                .getPublicUrl(fileName)
+            
+            // Si había una imagen anterior, la borramos
+            if (currentProduct?.imageUrl) {
+                const oldFileName = currentProduct.imageUrl.split('/').pop()
+                if (oldFileName) {
+                    await supabase.storage.from('products').remove([oldFileName])
+                }
+            }
+            
+            imageUrl = publicUrl
+        }
+    }
+
+    // 4. Actualizar el producto en la base de datos
+    await prisma.product.update({
+        where: { id: productId },
+        data: {
+            name,
+            description,
+            price,
+            categoryId,
+            imageUrl,
+        }
+    })
+
+    revalidatePath('/dashboard/products')
+}
+
 export async function deleteCategory(categoryId: string) {
     // Prisma con cascade eliminará también sus productos
     await prisma.category.delete({

@@ -120,6 +120,10 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                     mensaje += `  └ ${opt.name}${priceText}\n`;
                 });
             }
+
+            if (item.notes) {
+                mensaje += `  📝 *Nota:* ${item.notes}\n`;
+            }
         });
 
         mensaje += `\n💰 *TOTAL A PAGAR:* $${Number(totalPrice).toFixed(2)}\n`;
@@ -187,6 +191,12 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                                                                     </li>
                                                                 ))}
                                                             </ul>
+                                                        )}
+                                                        {item.notes && (
+                                                            <p className="text-xs bg-white/5 border border-white/10 px-3 py-2 rounded-xl text-zinc-400 mt-2 mb-1 flex items-start gap-2 italic">
+                                                                <span className="shrink-0 text-amber-500/70 pt-0.5">📝</span>
+                                                                <span>{item.notes}</span>
+                                                            </p>
                                                         )}
                                                         <p className="font-bold mt-1 text-sm" style={{ color: themeColor }}>
                                                             ${itemRowTotal.toFixed(2)}

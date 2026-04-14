@@ -38,6 +38,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
     // El estado guarda un map de groupId -> array de option IDs seleccionados
     const [selections, setSelections] = useState<Record<string, string[]>>({})
+    const [notes, setNotes] = useState("")
     const [showValidation, setShowValidation] = useState(false)
 
     // Reset validation when selections change
@@ -137,11 +138,13 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
             productId: product.id,
             name: product.name,
             price: product.price,
-            selectedOptions: selectedOptionsFormatted
+            selectedOptions: selectedOptionsFormatted,
+            notes: notes.trim() || undefined
         });
 
         onClose();
         setSelections({});
+        setNotes("");
     }
 
     return (
@@ -269,6 +272,21 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                             </div>
                         )
                     })}
+
+                    {/* Notas Adicionales */}
+                    <div className="space-y-3 pt-2">
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-white font-bold text-lg font-epilogue">¿Alguna nota adicional?</h3>
+                        </div>
+                        <p className="text-xs text-white/40 font-manrope">Ej: Sin cebolla, término medio, etc.</p>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Escribe aquí tus preferencias..."
+                            rows={3}
+                            className="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-4 text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all font-manrope resize-none text-sm"
+                        ></textarea>
+                    </div>
                 </div>
 
                 {/* Footer Fixeado */}

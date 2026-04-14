@@ -8,6 +8,7 @@ import { ProductForm } from './ProductForm'
 import { DeleteButton } from './DeleteButton'
 import { ModifiersManager } from './ModifiersManager'
 import { ToggleAvailability } from './ToggleAvailability'
+import { EditProductModal } from './EditProductModal'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -82,7 +83,7 @@ export default async function ProductsPage() {
                     {/* Formulario de Productos - Highlighted */}
                     <div className="bg-white px-6 py-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
                         <h2 className="text-2xl font-black text-zinc-900 mb-8 tracking-tight">Agregar Producto Nuevo</h2>
-                        <ProductForm categories={store.categories} createProductAction={createProduct} />
+                        <ProductForm categories={store.categories} action={createProduct} />
                     </div>
                 </div>
 
@@ -151,10 +152,14 @@ export default async function ProductsPage() {
                                                                                 productName={product.name}
                                                                             />
                                                                             <span className="font-black text-zinc-900 bg-zinc-50 px-3 py-1 rounded-lg">${product.price.toFixed(2)}</span>
-                                                                            <DeleteButton 
-                                                                                deleteAction={boundDeleteProduct} 
-                                                                                itemName={product.name} 
-                                                                            />
+                                                                            
+                                                                            <div className="flex items-center gap-1">
+                                                                                <EditProductModal product={product} categories={store.categories} />
+                                                                                <DeleteButton 
+                                                                                    deleteAction={boundDeleteProduct} 
+                                                                                    itemName={product.name} 
+                                                                                />
+                                                                            </div>
                                                                         </div>
                                                                         <ModifiersManager product={product} />
                                                                     </div>
