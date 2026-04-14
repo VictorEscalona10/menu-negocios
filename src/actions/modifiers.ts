@@ -32,7 +32,7 @@ export async function createModifierGroup(productId: string, formData: FormData)
 
 export async function createModifierOption(modifierGroupId: string, formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
     // Verificar propiedad del grupo (y por ende de la tienda)
