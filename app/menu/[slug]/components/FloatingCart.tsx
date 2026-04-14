@@ -11,20 +11,52 @@ interface FloatingCartProps {
     whatsappHeader?: string;
     whatsappFooter?: string;
     isPreview?: boolean;
+    enableDelivery?: boolean;
+    enablePickup?: boolean;
+    enableDineIn?: boolean;
 }
 
-type DeliveryType = 'delivery' | 'pickup';
+type DeliveryType = 'delivery' | 'pickup' | 'dinein';
 
-export default function FloatingCart({ storeName, whatsapp, themeColor, whatsappHeader, whatsappFooter, isPreview = false }: FloatingCartProps) {
+export default function FloatingCart({
+    storeName,
+    whatsapp,
+    themeColor,
+    whatsappHeader,
+    whatsappFooter,
+    isPreview = false,
+    enableDelivery = true,
+    enablePickup = true,
+    enableDineIn = false,
+}: FloatingCartProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isProductsExpanded, setIsProductsExpanded] = useState(false);
 
     // Datos del cliente
     const [customerName, setCustomerName] = useState('');
     const [customerCedula, setCustomerCedula] = useState('');
-    const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
     const [orderNotes, setOrderNotes] = useState('');
     const [formError, setFormError] = useState('');
+
+    // Determinar el modo inicial: el primero activo
+    const getDefaultMode = (): DeliveryType => {
+        if (enableDelivery) return 'delivery';
+        if (enablePickup)   return 'pickup';
+        return 'dinein';
+    };
+
+    const [deliveryType, setDeliveryType] = useState<DeliveryType>(getDefaultMode);
+
+    // Si el admin cambia los modos disponibles, reajustar la selección
+    useEffect(() => {
+        const active: DeliveryType[] = [];
+        if (enableDelivery) active.push('delivery');
+        if (enablePickup)   active.push('pickup');
+        if (enableDineIn)   active.push('dinein');
+        if (active.length > 0 && !active.includes(deliveryType)) {
+            setDeliveryType(active[0]);
+        }
+    }, [enableDelivery, enablePickup, enableDineIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Estado de la geolocalización
     type LocationStatus = 'idle' | 'loading' | 'success' | 'denied' | 'error';
@@ -72,6 +104,14 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
 
     if (totalItems === 0) return null;
 
+    // Modos activos disponibles
+    const activeModes: { id: DeliveryType; label: string; emoji: string }[] = [];
+    if (enableDelivery) activeModes.push({ id: 'delivery', label: 'Delivery',     emoji: '🚗' });
+    if (enablePickup)   activeModes.push({ id: 'pickup',   label: 'Pick-Up',      emoji: '🏃' });
+    if (enableDineIn)   activeModes.push({ id: 'dinein',   label: 'En el Local',  emoji: '🍽️' });
+
+    const hasMultipleModes = activeModes.length > 1;
+
     const handleWhatsAppOrder = () => {
         if (isPreview) {
             alert("🔒 Modo Previsualización: Las órdenes a WhatsApp están desactivadas para no molestar a tus clientes.");
@@ -102,8 +142,10 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
             if (locationUrl) {
                 mensaje += `• Ubicación: ${locationUrl}\n`;
             }
-        } else {
+        } else if (deliveryType === 'pickup') {
             mensaje += `• Tipo: *🏃 Pick-Up (Paso a buscar)*\n`;
+        } else {
+            mensaje += `• Tipo: *🍽️ En el Local*\n`;
         }
 
         mensaje += `\n`;
@@ -219,32 +261,43 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                                     <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Entrega</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => setDeliveryType('delivery')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${deliveryType === 'delivery'
-                                            ? 'border-transparent text-white ring-2 ring-white/20'
-                                            : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
-                                        }`}
-                                        style={deliveryType === 'delivery' ? { backgroundColor: themeColor } : {}}
+                                {/* Si solo hay un modo activo, mostrar badge en lugar de botones */}
+                                {!hasMultipleModes ? (
+                                    <div
+                                        className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-white/10"
+                                        style={{ backgroundColor: `${themeColor}22` }}
                                     >
-                                        <span className="text-2xl">🚗</span>
-                                        <span>Delivery</span>
-                                    </button>
+                                        <span className="text-2xl">{activeModes[0]?.emoji}</span>
+                                        <div>
+                                            <p className="text-white font-bold text-sm">{activeModes[0]?.label}</p>
+                                            <p className="text-zinc-500 text-[10px]">Único modo de entrega disponible</p>
+                                        </div>
+                                        {/* Checkmark */}
+                                        <div className="ml-auto w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: themeColor }}>
+                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={`grid gap-3 ${activeModes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                                        {activeModes.map(mode => (
+                                            <button
+                                                key={mode.id}
+                                                onClick={() => setDeliveryType(mode.id)}
+                                                className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${
+                                                    deliveryType === mode.id
+                                                        ? 'border-transparent text-white ring-2 ring-white/20'
+                                                        : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
+                                                }`}
+                                                style={deliveryType === mode.id ? { backgroundColor: themeColor } : {}}
+                                            >
+                                                <span className="text-2xl">{mode.emoji}</span>
+                                                <span className="text-xs leading-tight text-center">{mode.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
 
-                                    <button
-                                        onClick={() => setDeliveryType('pickup')}
-                                        className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${deliveryType === 'pickup'
-                                            ? 'border-transparent text-white ring-2 ring-white/20'
-                                            : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
-                                        }`}
-                                        style={deliveryType === 'pickup' ? { backgroundColor: themeColor } : {}}
-                                    >
-                                        <span className="text-2xl">🏃</span>
-                                        <span>Pick-Up</span>
-                                    </button>
-                                </div>
-
+                                {/* GPS solo para delivery */}
                                 {deliveryType === 'delivery' && (
                                     <div className="mt-4" style={{ animation: 'fadeIn 0.25s ease' }}>
                                         {locationStatus !== 'success' ? (
@@ -279,7 +332,7 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
 
                             {/* ── Sección 3: Productos (Colapsable) ── */}
                             <div className="border-b border-white/10">
-                                <button 
+                                <button
                                     onClick={() => setIsProductsExpanded(!isProductsExpanded)}
                                     className="w-full p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
                                 >
@@ -296,8 +349,8 @@ export default function FloatingCart({ storeName, whatsapp, themeColor, whatsapp
                                         <span className="text-xs font-bold text-zinc-400 group-hover:text-white transition-colors">
                                             {isProductsExpanded ? 'Cerrar' : 'Revisar'}
                                         </span>
-                                        <svg 
-                                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${isProductsExpanded ? 'rotate-180' : ''}`} 
+                                        <svg
+                                            className={`w-4 h-4 text-zinc-400 transition-transform duration-300 ${isProductsExpanded ? 'rotate-180' : ''}`}
                                             fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
                                         >
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />

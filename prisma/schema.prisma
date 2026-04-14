@@ -23,6 +23,10 @@ model Store {
   themeColor      String  @default("#ef4444")
   isActive        Boolean @default(true)
 
+  enableDelivery  Boolean @default(true)
+  enablePickup    Boolean @default(true)
+  enableDineIn    Boolean @default(false)
+
   // Relación: Un local tiene muchas categorías
   categories Category[]
 }

@@ -15,6 +15,9 @@ interface SharedMenuUIProps {
         backgroundColor: string;
         themeColor: string;
         logoUrl?: string | null;
+        enableDelivery?: boolean;
+        enablePickup?: boolean;
+        enableDineIn?: boolean;
         categories: Array<{
             id: string;
             name: string;
@@ -426,6 +429,9 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                     themeColor={accent}
                     whatsappHeader={store.whatsappHeader}
                     whatsappFooter={store.whatsappFooter}
+                    enableDelivery={store.enableDelivery ?? true}
+                    enablePickup={store.enablePickup ?? true}
+                    enableDineIn={store.enableDineIn ?? false}
                 />
             )}
 

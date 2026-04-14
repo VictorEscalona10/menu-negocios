@@ -36,6 +36,9 @@ interface Store {
     logoUrl?: string;
     whatsappHeader?: string;
     whatsappFooter?: string;
+    enableDelivery?: boolean;
+    enablePickup?: boolean;
+    enableDineIn?: boolean;
 }
 
 import SharedMenuUI from '../../components/SharedMenuUI';
@@ -162,8 +165,19 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
         themeColor: store.themeColor || "#FF5630",
         logoUrl: store.logoUrl || "",
         whatsappHeader: store.whatsappHeader || "",
-        whatsappFooter: store.whatsappFooter || ""
+        whatsappFooter: store.whatsappFooter || "",
+        enableDelivery: store.enableDelivery ?? true,
+        enablePickup:   store.enablePickup   ?? true,
+        enableDineIn:   store.enableDineIn   ?? false,
     })
+
+    // Guard: at least one delivery mode must remain active
+    const handleDeliveryToggle = (mode: 'enableDelivery' | 'enablePickup' | 'enableDineIn') => {
+        const next = { ...localStore, [mode]: !localStore[mode] };
+        const anyActive = next.enableDelivery || next.enablePickup || next.enableDineIn;
+        if (!anyActive) return; // silently prevent disabling the last one
+        setLocalStore(next);
+    };
 
     const [previewMode, setPreviewMode] = useState<"menu" | "whatsapp">("menu")
 
@@ -286,6 +300,56 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                                 rows={3}
                                 placeholder="Ej: Gracias por su compra."
                             />
+                        </div>
+                    </div>
+
+                    {/* Opciones de Entrega */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <div>
+                            <h2 className="text-lg font-semibold text-zinc-800">Opciones de Entrega</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">Activa los modos que ofrece tu negocio. Debe haber al menos uno activo.</p>
+                        </div>
+
+                        {/* Hidden inputs para enviar false cuando el checkbox está desmarcado */}
+                        {/* Los checkboxes HTML solo envían valor cuando están marcados, así que usamos el estado local */}
+                        <input type="hidden" name="enableDelivery" value={localStore.enableDelivery ? 'on' : 'off'} />
+                        <input type="hidden" name="enablePickup"   value={localStore.enablePickup   ? 'on' : 'off'} />
+                        <input type="hidden" name="enableDineIn"   value={localStore.enableDineIn   ? 'on' : 'off'} />
+
+                        <div className="space-y-3">
+                            {([
+                                { key: 'enableDelivery' as const, label: 'Delivery',      sub: 'El negocio hace entregas a domicilio',  emoji: '🚗' },
+                                { key: 'enablePickup'   as const, label: 'Pick-Up',       sub: 'El cliente pasa a retirar su pedido',   emoji: '🏃' },
+                                { key: 'enableDineIn'   as const, label: 'En el Local',   sub: 'El cliente consume en el restaurante',  emoji: '🍽️' },
+                            ]).map(({ key, label, sub, emoji }) => {
+                                const isOn = localStore[key];
+                                const activeCount = [localStore.enableDelivery, localStore.enablePickup, localStore.enableDineIn].filter(Boolean).length;
+                                const isLast = isOn && activeCount === 1;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => handleDeliveryToggle(key)}
+                                        disabled={isLast}
+                                        title={isLast ? 'Debe haber al menos un modo activo' : undefined}
+                                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                                            isOn
+                                                ? 'border-black bg-black/5'
+                                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        } ${isLast ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                                    >
+                                        <span className="text-2xl shrink-0">{emoji}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`font-bold text-sm ${isOn ? 'text-zinc-900' : 'text-zinc-500'}`}>{label}</p>
+                                            <p className="text-xs text-zinc-400 truncate">{sub}</p>
+                                        </div>
+                                        {/* Toggle pill */}
+                                        <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${isOn ? 'bg-black' : 'bg-zinc-200'}`}>
+                                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

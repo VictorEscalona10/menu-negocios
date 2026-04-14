@@ -27,6 +27,16 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const whatsappHeader = formData.get('whatsappHeader') as string
     const whatsappFooter = formData.get('whatsappFooter') as string
 
+    // Delivery modes (checkboxes send 'on' when checked, null when unchecked)
+    const enableDelivery = formData.get('enableDelivery') === 'on'
+    const enablePickup   = formData.get('enablePickup')   === 'on'
+    const enableDineIn   = formData.get('enableDineIn')   === 'on'
+
+    // At least one mode must remain active
+    if (!enableDelivery && !enablePickup && !enableDineIn) {
+        throw new Error('Debes tener al menos un modo de entrega activo.')
+    }
+
     const logo = formData.get('logo') as File | null;
     let logoUrl = undefined;
 
@@ -75,6 +85,9 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         whatsappHeader,
         whatsappFooter,
         themeColor,
+        enableDelivery,
+        enablePickup,
+        enableDineIn,
     };
 
     if (logoUrl) {
