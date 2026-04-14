@@ -207,9 +207,11 @@ export function ModifiersManager({ product }: { product: Product }) {
                                                             <div key={option.id} className="flex justify-between items-center bg-zinc-50/30 p-4 rounded-2xl border border-zinc-100 group transition-all hover:bg-zinc-50">
                                                                 <span className="font-bold text-zinc-800">{option.name}</span>
                                                                 <div className="flex items-center gap-4">
-                                                                    <span className="font-black text-sm text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100/50">
-                                                                        {option.price > 0 ? `+$${option.price.toFixed(2)}` : 'Gratis'}
-                                                                    </span>
+                                                                    {option.price > 0 && (
+                                                                        <span className="font-black text-sm text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100/50">
+                                                                            +${option.price.toFixed(2)}
+                                                                        </span>
+                                                                    )}
                                                                     <button 
                                                                         onClick={() => handleDeleteOption(option.id)}
                                                                         disabled={isPending}
