@@ -39,6 +39,27 @@ interface Store {
     enableDelivery?: boolean;
     enablePickup?: boolean;
     enableDineIn?: boolean;
+    showProductImages?: boolean;
+    textColor?: string;
+    subtextColor?: string;
+    fontHeading?: string;
+    fontBody?: string;
+}
+
+const HEADING_FONTS = [
+    'Epilogue', 'Playfair Display', 'Oswald', 'Montserrat', 'Raleway',
+    'Bebas Neue', 'Cinzel', 'Cormorant Garamond', 'Abril Fatface', 'Josefin Sans',
+];
+
+const BODY_FONTS = [
+    'Manrope', 'Inter', 'Poppins', 'Roboto', 'Lato',
+    'DM Sans', 'Nunito', 'Outfit', 'Source Sans 3', 'Work Sans',
+];
+
+function buildGoogleFontsUrl(fonts: string[]) {
+    const unique = [...new Set(fonts.filter(Boolean))];
+    const params = unique.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;800;900`).join('&');
+    return `https://fonts.googleapis.com/css2?${params}&display=swap`;
 }
 
 import SharedMenuUI from '../../components/SharedMenuUI';
@@ -124,6 +145,12 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
         whatsapp: localStore.whatsapp || "",
         whatsappHeader: localStore.whatsappHeader,
         whatsappFooter: localStore.whatsappFooter,
+        // Tipografía y colores de texto
+        textColor:         localStore.textColor,
+        subtextColor:      localStore.subtextColor,
+        fontHeading:       localStore.fontHeading,
+        fontBody:          localStore.fontBody,
+        showProductImages: localStore.showProductImages,
         categories: [
             {
                 id: "demo-cat",
@@ -132,8 +159,15 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
                     {
                         id: "demo-prod-1",
                         name: "Hamburguesa Trufada",
-                        description: "Carne Angus 200g, mayonesa de trufa negra...",
+                        description: "Carne Angus 200g, mayonesa de trufa negra y papas fritas artesanales.",
                         price: 14.50,
+                        imageUrl: null
+                    },
+                    {
+                        id: "demo-prod-2",
+                        name: "Papas Gourmet",
+                        description: "Papas fritas con cheddar, tocineta y salsa especial.",
+                        price: 6.00,
                         imageUrl: null
                     }
                 ]
@@ -166,10 +200,18 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
         logoUrl: store.logoUrl || "",
         whatsappHeader: store.whatsappHeader || "",
         whatsappFooter: store.whatsappFooter || "",
-        enableDelivery: store.enableDelivery ?? true,
-        enablePickup:   store.enablePickup   ?? true,
-        enableDineIn:   store.enableDineIn   ?? false,
+        enableDelivery:    store.enableDelivery    ?? true,
+        enablePickup:      store.enablePickup      ?? true,
+        enableDineIn:      store.enableDineIn      ?? false,
+        showProductImages: store.showProductImages ?? true,
+        textColor:    store.textColor    || '#e5e2e1',
+        subtextColor: store.subtextColor || '#e4beb5',
+        fontHeading:  store.fontHeading  || 'Epilogue',
+        fontBody:     store.fontBody     || 'Manrope',
     })
+
+    // Cargar las fuentes seleccionadas en el panel de administración para vista previa
+    const fontsUrl = buildGoogleFontsUrl([localStore.fontHeading, localStore.fontBody]);
 
     // Guard: at least one delivery mode must remain active
     const handleDeliveryToggle = (mode: 'enableDelivery' | 'enablePickup' | 'enableDineIn') => {
@@ -353,7 +395,127 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                         </div>
                     </div>
 
-                    {/* Colores */}
+                    {/* Imágenes de Productos */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <div>
+                            <h2 className="text-lg font-semibold text-zinc-800">Apariencia del Menú</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">Personaliza cómo se muestran los productos a tus clientes.</p>
+                        </div>
+
+                        {/* Hidden input para enviar el estado del toggle */}
+                        <input type="hidden" name="showProductImages" value={localStore.showProductImages ? 'on' : 'off'} />
+
+                        <button
+                            type="button"
+                            onClick={() => setLocalStore({ ...localStore, showProductImages: !localStore.showProductImages })}
+                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                                localStore.showProductImages
+                                    ? 'border-black bg-black/5'
+                                    : 'border-zinc-200 bg-white hover:border-zinc-300'
+                            }`}
+                        >
+                            <span className="text-2xl shrink-0">🖼️</span>
+                            <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-sm ${localStore.showProductImages ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                                    Mostrar imágenes de productos
+                                </p>
+                                <p className="text-xs text-zinc-400 truncate">
+                                    {localStore.showProductImages ? 'Las fotos de cada producto son visibles en el menú' : 'El menú se muestra solo con texto, sin imágenes'}
+                                </p>
+                            </div>
+                            {/* Toggle pill */}
+                            <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.showProductImages ? 'bg-black' : 'bg-zinc-200'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.showProductImages ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Tipografía y Texto */}
+                    <div className="space-y-5 pt-4 border-t border-zinc-100">
+                        {/* Inyectar fuentes para previsualizar en el panel */}
+                        <link rel="stylesheet" href={fontsUrl} />
+
+                        <div>
+                            <h2 className="text-lg font-semibold text-zinc-800">Tipografía y Texto</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">Personaliza las fuentes y colores del texto del menú.</p>
+                        </div>
+
+                        {/* Colores de texto */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Principal</label>
+                                <p className="text-[10px] text-zinc-400 mb-2">Títulos de productos</p>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="textColor"
+                                        value={localStore.textColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, textColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.textColor}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Secundario</label>
+                                <p className="text-[10px] text-zinc-400 mb-2">Descripciones y etiquetas</p>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="subtextColor"
+                                        value={localStore.subtextColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, subtextColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.subtextColor}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Fuente de Títulos */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Títulos</label>
+                            <input type="hidden" name="fontHeading" value={localStore.fontHeading} />
+                            <select
+                                value={localStore.fontHeading}
+                                onChange={(e) => setLocalStore({ ...localStore, fontHeading: e.target.value })}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
+                            >
+                                {HEADING_FONTS.map(f => (
+                                    <option key={f} value={f}>{f}</option>
+                                ))}
+                            </select>
+                            <p
+                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-base"
+                                style={{ fontFamily: `'${localStore.fontHeading}', sans-serif` }}
+                            >
+                                Hamburguesa Trufada — $14.50
+                            </p>
+                        </div>
+
+                        {/* Fuente de Cuerpo */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Texto / Descripción</label>
+                            <input type="hidden" name="fontBody" value={localStore.fontBody} />
+                            <select
+                                value={localStore.fontBody}
+                                onChange={(e) => setLocalStore({ ...localStore, fontBody: e.target.value })}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
+                            >
+                                {BODY_FONTS.map(f => (
+                                    <option key={f} value={f}>{f}</option>
+                                ))}
+                            </select>
+                            <p
+                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-sm"
+                                style={{ fontFamily: `'${localStore.fontBody}', sans-serif` }}
+                            >
+                                Carne Angus 200g, mayonesa de trufa negra, papas fritas artesanales.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Identidad Visual (colores de fondo) */}
                     <div className="space-y-4 pt-4">
                         <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual</h2>
 

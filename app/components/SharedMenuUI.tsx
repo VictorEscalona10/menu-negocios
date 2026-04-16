@@ -18,6 +18,11 @@ interface SharedMenuUIProps {
         enableDelivery?: boolean;
         enablePickup?: boolean;
         enableDineIn?: boolean;
+        showProductImages?: boolean;
+        textColor?: string;
+        subtextColor?: string;
+        fontHeading?: string;
+        fontBody?: string;
         categories: Array<{
             id: string;
             name: string;
@@ -47,6 +52,15 @@ interface SharedMenuUIProps {
 export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIProps) {
     const bg = store.backgroundColor || '#131313';
     const accent = store.themeColor || '#FF5630';
+    const showImages = store.showProductImages ?? true;
+    const textColor    = store.textColor    || '#e5e2e1';
+    const subtextColor = store.subtextColor || '#e4beb5';
+    const fontHeading  = store.fontHeading  || 'Epilogue';
+    const fontBody     = store.fontBody     || 'Manrope';
+
+    // Build Google Fonts URL for selected fonts
+    const uniqueFonts = [...new Set([fontHeading, fontBody])];
+    const googleFontsUrl = `https://fonts.googleapis.com/css2?${uniqueFonts.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;900`).join('&')}&display=swap`;
 
     // Sólo categorías con productos
     const activeCategories = store.categories.filter(c => c.products.length > 0);
@@ -129,9 +143,9 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
             {/* Google Fonts */}
             <style dangerouslySetInnerHTML={{
                 __html: `
-                @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;900&family=Manrope:wght@400;500;600;700&display=swap');
-                .font-epilogue { font-family: 'Epilogue', sans-serif; }
-                .font-manrope { font-family: 'Manrope', sans-serif; }
+                @import url('${googleFontsUrl}');
+                .font-epilogue { font-family: '${fontHeading}', sans-serif; }
+                .font-manrope  { font-family: '${fontBody}', sans-serif; }
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 .snap-slider {
@@ -173,11 +187,12 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
 
                 {/* Store name */}
                 <h1
-                    className={`font-epilogue font-black tracking-tight text-[#e5e2e1] ${isPreview ? 'text-lg' : 'text-2xl md:text-3xl'} leading-none mb-0.5`}
+                    className={`font-epilogue font-black tracking-tight ${isPreview ? 'text-lg' : 'text-2xl md:text-3xl'} leading-none mb-0.5`}
+                    style={{ color: textColor }}
                 >
                     {store.name || 'Tu Negocio'}
                 </h1>
-                <p className="font-manrope text-[#e4beb5]/60 text-[10px] tracking-widest uppercase">
+                <p className="font-manrope text-[10px] tracking-widest uppercase" style={{ color: subtextColor }}>
                     Menú Digital · Pedido Online
                 </p>
                 <div className="w-8 h-0.5 rounded-full mt-2.5" style={{ backgroundColor: accent }} />
@@ -259,13 +274,13 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                             <div className={`px-4 py-4 space-y-3 ${isPreview ? 'max-w-full' : 'max-w-2xl mx-auto'} pb-36`}>
 
                                 {/* Contador de items */}
-                                <p className="font-manrope text-[10px] uppercase tracking-widest text-[#e4beb5]/40 px-1">
+                                <p className="font-manrope text-[10px] uppercase tracking-widest px-1" style={{ color: subtextColor }}>
                                     {category.products.length} {category.products.length === 1 ? 'producto' : 'productos'}
                                 </p>
 
                                 {/* Productos */}
                                 {category.products.map((product, prodIndex) => {
-                                    const isHero = catIndex === 0 && prodIndex === 0 && !isPreview && !!product.imageUrl;
+                                    const isHero = catIndex === 0 && prodIndex === 0 && !isPreview && showImages && !!product.imageUrl;
 
                                     if (isHero) {
                                         // ── HERO CARD (primer producto de primera categoría) ──
@@ -275,22 +290,38 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                 className="relative rounded-2xl overflow-hidden mb-2"
                                                 style={{ boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22` }}
                                             >
-                                                <div className="relative h-52 overflow-hidden">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
-                                                        src={product.imageUrl!}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/60" />
-                                                    <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                                                        <div>
-                                                            <h3 className="font-epilogue font-black text-white text-xl leading-tight">
-                                                                {product.name}
-                                                            </h3>
-                                                            <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>
-                                                                ${product.price.toFixed(2)}
-                                                            </p>
+                                                {showImages && product.imageUrl ? (
+                                                    <div className="relative h-52 overflow-hidden">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={product.imageUrl!}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/60" />
+                                                        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+                                                            <div>
+                                                                <h3 className="font-epilogue font-black text-white text-xl leading-tight">
+                                                                    {product.name}
+                                                                </h3>
+                                                                <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>
+                                                                    ${product.price.toFixed(2)}
+                                                                </p>
+                                                            </div>
+                                                            <div className="shrink-0">
+                                                                <AddToCartButton 
+                                                                    product={product} 
+                                                                    themeColor={accent} 
+                                                                    onConfigure={() => setActiveConfigProduct(product)}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 flex items-center justify-between gap-4" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className="font-epilogue font-black text-xl leading-tight" style={{ color: textColor }}>{product.name}</h3>
+                                                            <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>${product.price.toFixed(2)}</p>
                                                         </div>
                                                         <div className="shrink-0">
                                                             <AddToCartButton 
@@ -300,10 +331,10 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                             />
                                                         </div>
                                                     </div>
-                                                </div>
+                                                )}
                                                 {product.description && (
                                                     <div className="px-4 py-3 bg-white/[0.03]">
-                                                        <p className="font-manrope text-xs text-[#e4beb5]/70 leading-relaxed line-clamp-2">
+                                                        <p className="font-manrope text-xs leading-relaxed line-clamp-2" style={{ color: subtextColor }}>
                                                             {product.description}
                                                         </p>
                                                     </div>
@@ -320,31 +351,33 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                             style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
                                         >
                                             {/* Imagen */}
-                                            {product.imageUrl ? (
-                                                <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
-                                                        src={product.imageUrl}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div
-                                                    className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
-                                                    style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-                                                >
-                                                    🍽️
-                                                </div>
+                                            {showImages && (
+                                                product.imageUrl ? (
+                                                    <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={product.imageUrl}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
+                                                        style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                                                    >
+                                                        🍽️
+                                                    </div>
+                                                )
                                             )}
 
                                             {/* Info */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-epilogue font-bold text-[#e5e2e1] text-sm leading-tight">
+                                                <h3 className="font-epilogue font-bold text-sm leading-tight" style={{ color: textColor }}>
                                                     {product.name}
                                                 </h3>
                                                 {product.description && (
-                                                    <p className="font-manrope text-[#e4beb5]/55 text-xs mt-0.5 line-clamp-2 leading-relaxed">
+                                                    <p className="font-manrope text-xs mt-0.5 line-clamp-2 leading-relaxed" style={{ color: subtextColor }}>
                                                         {product.description}
                                                     </p>
                                                 )}
@@ -382,8 +415,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                         {catIndex > 0 && (
                                             <button
                                                 onClick={() => goToIndex(catIndex - 1)}
-                                                className="flex items-center gap-2 px-4 py-2.5 rounded-full font-manrope text-sm font-semibold text-[#e4beb5]/70 hover:text-white transition-colors"
-                                                style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                                className="flex items-center gap-2 px-4 py-2.5 rounded-full font-manrope text-sm font-semibold hover:text-white transition-colors"
+                                                style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: subtextColor }}
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

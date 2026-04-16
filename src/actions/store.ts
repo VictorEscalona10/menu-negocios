@@ -28,9 +28,15 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const whatsappFooter = formData.get('whatsappFooter') as string
 
     // Delivery modes (checkboxes send 'on' when checked, null when unchecked)
-    const enableDelivery = formData.get('enableDelivery') === 'on'
-    const enablePickup   = formData.get('enablePickup')   === 'on'
-    const enableDineIn   = formData.get('enableDineIn')   === 'on'
+    const enableDelivery      = formData.get('enableDelivery')     === 'on'
+    const enablePickup        = formData.get('enablePickup')       === 'on'
+    const enableDineIn        = formData.get('enableDineIn')       === 'on'
+    const showProductImages   = formData.get('showProductImages')  === 'on'
+
+    const textColor    = formData.get('textColor')    as string || '#e5e2e1'
+    const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
+    const fontHeading  = formData.get('fontHeading')  as string || 'Epilogue'
+    const fontBody     = formData.get('fontBody')     as string || 'Manrope'
 
     // At least one mode must remain active
     if (!enableDelivery && !enablePickup && !enableDineIn) {
@@ -88,6 +94,11 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         enableDelivery,
         enablePickup,
         enableDineIn,
+        showProductImages,
+        textColor,
+        subtextColor,
+        fontHeading,
+        fontBody,
     };
 
     if (logoUrl) {

@@ -56,9 +56,14 @@ export default async function SettingsPage() {
                         logoUrl: store.logoUrl || '',
                         whatsappHeader: store.whatsappHeader || '',
                         whatsappFooter: store.whatsappFooter || '',
-                        enableDelivery: store.enableDelivery,
-                        enablePickup:   store.enablePickup,
-                        enableDineIn:   store.enableDineIn,
+                        enableDelivery:    store.enableDelivery,
+                        enablePickup:      store.enablePickup,
+                        enableDineIn:      store.enableDineIn,
+                        showProductImages: store.showProductImages,
+                        textColor:    store.textColor    || '#e5e2e1',
+                        subtextColor: store.subtextColor || '#e4beb5',
+                        fontHeading:  store.fontHeading  || 'Epilogue',
+                        fontBody:     store.fontBody     || 'Manrope',
                     }} 
                     updateAction={updateStoreWithId} 
                 />

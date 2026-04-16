@@ -23,9 +23,15 @@ model Store {
   themeColor      String  @default("#ef4444")
   isActive        Boolean @default(true)
 
-  enableDelivery  Boolean @default(true)
-  enablePickup    Boolean @default(true)
-  enableDineIn    Boolean @default(false)
+  enableDelivery     Boolean @default(true)
+  enablePickup       Boolean @default(true)
+  enableDineIn       Boolean @default(false)
+  showProductImages  Boolean @default(true)
+
+  textColor    String  @default("#e5e2e1")
+  subtextColor String  @default("#e4beb5")
+  fontHeading  String  @default("Epilogue")
+  fontBody     String  @default("Manrope")
 
   // Relación: Un local tiene muchas categorías
   categories Category[]
