@@ -23,6 +23,7 @@ interface SharedMenuUIProps {
         subtextColor?: string;
         fontHeading?: string;
         fontBody?: string;
+        upsellCategoryId?: string | null;
         categories: Array<{
             id: string;
             name: string;
@@ -64,6 +65,11 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
 
     // Sólo categorías con productos
     const activeCategories = store.categories.filter(c => c.products.length > 0);
+
+    // Categoría para el carrusel upsell del carrito
+    const upsellCategory = store.upsellCategoryId
+        ? store.categories.find(c => c.id === store.upsellCategoryId) ?? null
+        : null;
     const [activeIndex, setActiveIndex] = useState(0);
     const [activeConfigProduct, setActiveConfigProduct] = useState<any>(null);
 
@@ -455,7 +461,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
             )}
 
             {/* Floating Cart */}
-            {(!isPreview && !activeConfigProduct) && (
+            {!isPreview && (
                 <FloatingCart
                     storeName={store.name}
                     whatsapp={store.whatsapp}
@@ -465,6 +471,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                     enableDelivery={store.enableDelivery ?? true}
                     enablePickup={store.enablePickup ?? true}
                     enableDineIn={store.enableDineIn ?? false}
+                    upsellCategory={upsellCategory}
+                    onConfigureUpsellProduct={(product) => setActiveConfigProduct(product)}
                 />
             )}
 

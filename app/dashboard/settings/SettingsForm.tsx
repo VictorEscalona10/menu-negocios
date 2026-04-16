@@ -44,6 +44,7 @@ interface Store {
     subtextColor?: string;
     fontHeading?: string;
     fontBody?: string;
+    upsellCategoryId?: string;
 }
 
 const HEADING_FONTS = [
@@ -188,7 +189,15 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
     )
 }
 
-export function SettingsForm({ store, updateAction }: { store: Store, updateAction: (formData: FormData) => Promise<{ success: boolean; message: string } | any> }) {
+export function SettingsForm({
+    store,
+    categories = [],
+    updateAction,
+}: {
+    store: Store;
+    categories?: { id: string; name: string }[];
+    updateAction: (formData: FormData) => Promise<{ success: boolean; message: string } | any>;
+}) {
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
     // ESTADO CONTROLADO LOCALMENTE (Para la Vista Previa)
@@ -208,6 +217,7 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
         subtextColor: store.subtextColor || '#e4beb5',
         fontHeading:  store.fontHeading  || 'Epilogue',
         fontBody:     store.fontBody     || 'Manrope',
+        upsellCategoryId: store.upsellCategoryId || '',
     })
 
     // Cargar las fuentes seleccionadas en el panel de administración para vista previa
@@ -392,6 +402,78 @@ export function SettingsForm({ store, updateAction }: { store: Store, updateActi
                                     </button>
                                 );
                             })}
+                        </div>
+                    </div>
+                    {/* ─── Categoría Estrella del Carrito ─── */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <div>
+                            <h2 className="text-lg font-semibold text-zinc-800">🔥 Categoría Estrella del Carrito</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">
+                                Elige una categoría para recomendarla al cliente en el carrito. Ideal para bebidas, postres o extras.
+                            </p>
+                        </div>
+
+                        <input type="hidden" name="upsellCategoryId" value={localStore.upsellCategoryId} />
+
+                        {/* Opción: Ninguna */}
+                        <div className="space-y-2">
+                            <button
+                                type="button"
+                                onClick={() => setLocalStore({ ...localStore, upsellCategoryId: '' })}
+                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${
+                                    localStore.upsellCategoryId === ''
+                                        ? 'border-black bg-black/5'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                }`}
+                            >
+                                <span className="text-xl shrink-0">🚫</span>
+                                <p className={`font-semibold text-sm ${localStore.upsellCategoryId === '' ? 'text-zinc-900' : 'text-zinc-400'}`}>
+                                    No mostrar recomendaciones
+                                </p>
+                                {localStore.upsellCategoryId === '' && (
+                                    <div className="ml-auto shrink-0 w-5 h-5 rounded-full bg-black flex items-center justify-center">
+                                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                )}
+                            </button>
+
+                            {categories.length === 0 ? (
+                                <p className="text-xs text-zinc-400 px-1 py-2">
+                                    Aún no tienes categorías creadas. Crea algunas desde el panel principal.
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-1 gap-2">
+                                    {categories.map((cat) => {
+                                        const isSelected = localStore.upsellCategoryId === cat.id;
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => setLocalStore({ ...localStore, upsellCategoryId: cat.id })}
+                                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${
+                                                    isSelected
+                                                        ? 'border-black bg-black/5'
+                                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                                }`}
+                                            >
+                                                <span className="text-xl shrink-0">📂</span>
+                                                <p className={`font-semibold text-sm ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                                                    {cat.name}
+                                                </p>
+                                                {isSelected && (
+                                                    <div className="ml-auto shrink-0 w-5 h-5 rounded-full bg-black flex items-center justify-center">
+                                                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
 

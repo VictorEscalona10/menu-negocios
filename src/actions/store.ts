@@ -37,6 +37,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
     const fontHeading  = formData.get('fontHeading')  as string || 'Epilogue'
     const fontBody     = formData.get('fontBody')     as string || 'Manrope'
+    const upsellCategoryId = (formData.get('upsellCategoryId') as string || '').trim() || null
 
     // At least one mode must remain active
     if (!enableDelivery && !enablePickup && !enableDineIn) {
@@ -99,6 +100,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         subtextColor,
         fontHeading,
         fontBody,
+        upsellCategoryId,
     };
 
     if (logoUrl) {

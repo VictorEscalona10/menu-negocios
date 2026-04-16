@@ -4,6 +4,21 @@
 import { useState, useEffect } from 'react'
 import { useCartStore } from '@/src/store/cartStore'
 
+interface UpsellProduct {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    imageUrl: string | null;
+    modifierGroups?: any;
+}
+
+interface UpsellCategory {
+    id: string;
+    name: string;
+    products: UpsellProduct[];
+}
+
 interface FloatingCartProps {
     storeName: string;
     whatsapp: string;
@@ -14,6 +29,8 @@ interface FloatingCartProps {
     enableDelivery?: boolean;
     enablePickup?: boolean;
     enableDineIn?: boolean;
+    upsellCategory?: UpsellCategory | null;
+    onConfigureUpsellProduct?: (product: any) => void;
 }
 
 type DeliveryType = 'delivery' | 'pickup' | 'dinein';
@@ -28,6 +45,8 @@ export default function FloatingCart({
     enableDelivery = true,
     enablePickup = true,
     enableDineIn = false,
+    upsellCategory = null,
+    onConfigureUpsellProduct,
 }: FloatingCartProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isProductsExpanded, setIsProductsExpanded] = useState(false);
@@ -87,7 +106,7 @@ export default function FloatingCart({
         );
     };
 
-    const { items, getTotal, getTotalItems, deleteItem } = useCartStore();
+    const { items, getTotal, getTotalItems, deleteItem, addItem } = useCartStore();
     const totalItems = getTotalItems();
     const totalPrice = getTotal();
 
@@ -407,7 +426,91 @@ export default function FloatingCart({
                                 )}
                             </div>
 
-                            {/* ── Sección 4: Notas adicionales ── */}
+                            {/* ── Sección 4: Upsell Carrusel ── */}
+                            {upsellCategory && upsellCategory.products.length > 0 && (
+                                <div className="border-b border-white/10">
+                                    {/* Header */}
+                                    <div className="px-5 pt-5 pb-3 flex items-center gap-2">
+                                        <span className="text-base">🔥</span>
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest" style={{ color: themeColor }}>
+                                                Completa tu orden
+                                            </p>
+                                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                                                {upsellCategory.name}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Carrusel horizontal */}
+                                    <div className="flex gap-3 overflow-x-auto px-5 pb-5 scrollbar-none"
+                                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                    >
+                                        {upsellCategory.products.map((prod) => {
+                                            return (
+                                                <div
+                                                    key={prod.id}
+                                                    className="shrink-0 w-[140px] bg-white/[0.04] border border-white/10 rounded-2xl overflow-hidden flex flex-col"
+                                                >
+                                                    {/* Imagen o placeholder */}
+                                                    {prod.imageUrl ? (
+                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                        <img
+                                                            src={prod.imageUrl}
+                                                            alt={prod.name}
+                                                            className="w-full h-[80px] object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div
+                                                            className="w-full h-[80px] flex items-center justify-center text-3xl"
+                                                            style={{ backgroundColor: `${themeColor}15` }}
+                                                        >
+                                                            🍽️
+                                                        </div>
+                                                    )}
+
+                                                    {/* Info */}
+                                                    <div className="p-2.5 flex flex-col flex-1 gap-1.5">
+                                                        <p className="text-white font-bold text-xs leading-tight line-clamp-2">
+                                                            {prod.name}
+                                                        </p>
+                                                        <p className="text-xs font-black" style={{ color: themeColor }}>
+                                                            ${prod.price.toFixed(2)}
+                                                        </p>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (prod.modifierGroups && prod.modifierGroups.length > 0) {
+                                                                    // Tiene modificadores: abrir modal
+                                                                    if (onConfigureUpsellProduct) {
+                                                                        onConfigureUpsellProduct(prod);
+                                                                    }
+                                                                } else {
+                                                                    // Sin modificadores: agregar directo
+                                                                    addItem({
+                                                                        id: prod.id,
+                                                                        productId: prod.id,
+                                                                        name: prod.name,
+                                                                        price: prod.price,
+                                                                        notes: '',
+                                                                        selectedOptions: [],
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="mt-auto w-full flex items-center justify-center gap-1 py-2 rounded-xl font-bold text-xs transition-all text-white hover:brightness-110 active:scale-95"
+                                                            style={{ backgroundColor: themeColor }}
+                                                        >
+                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg> 
+                                                            Agregar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ── Sección 4 (anterior): Notas adicionales ── */}
                             <div className="p-5 pb-8">
                                 <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-1">📝 Notas para el local</p>
                                 <textarea

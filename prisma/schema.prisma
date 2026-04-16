@@ -33,6 +33,8 @@ model Store {
   fontHeading  String  @default("Epilogue")
   fontBody     String  @default("Manrope")
 
+  upsellCategoryId String? // Categoría estrella para el carrito
+
   // Relación: Un local tiene muchas categorías
   categories Category[]
 }

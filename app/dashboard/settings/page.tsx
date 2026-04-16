@@ -17,7 +17,13 @@ export default async function SettingsPage() {
 
     // 2. Buscamos el local asociado a este usuario exacto
     const store = await prisma.store.findUnique({
-        where: { userId: user.id }
+        where: { userId: user.id },
+        include: {
+            categories: {
+                select: { id: true, name: true },
+                orderBy: { name: 'asc' }
+            }
+        }
     })
 
     if (!store) {
@@ -64,7 +70,9 @@ export default async function SettingsPage() {
                         subtextColor: store.subtextColor || '#e4beb5',
                         fontHeading:  store.fontHeading  || 'Epilogue',
                         fontBody:     store.fontBody     || 'Manrope',
+                        upsellCategoryId: store.upsellCategoryId || '',
                     }} 
+                    categories={store.categories}
                     updateAction={updateStoreWithId} 
                 />
             </div>
