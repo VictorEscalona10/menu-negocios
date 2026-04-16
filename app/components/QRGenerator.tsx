@@ -77,48 +77,14 @@ export default function QRGenerator({ menuUrl, storeName }: QRGeneratorProps) {
             </div>
 
             {/* URL del menú */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: '#f4f4f5',
-                    border: '1px solid #e4e4e7',
-                    borderRadius: '10px',
-                    padding: '8px 14px',
-                    maxWidth: '100%',
-                    width: '100%',
-                }}
-            >
-                <span
-                    style={{
-                        fontSize: '0.78rem',
-                        color: '#52525b',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        flex: 1,
-                        fontFamily: 'monospace',
-                    }}
-                >
+            <div className="flex items-center gap-2 bg-zinc-100 border border-zinc-200 rounded-xl px-3 py-2.5 w-full min-w-0 overflow-hidden">
+                <span className="text-xs text-zinc-600 overflow-hidden text-ellipsis whitespace-nowrap flex-1 font-mono">
                     {menuUrl}
                 </span>
                 <button
                     onClick={handleCopy}
                     title="Copiar enlace"
-                    style={{
-                        flexShrink: 0,
-                        background: copied ? '#22c55e' : '#18181b',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '7px',
-                        padding: '5px 12px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'background 0.2s',
-                        whiteSpace: 'nowrap',
-                    }}
+                    className={`shrink-0 text-white rounded-lg px-3 py-1.5 text-[0.7rem] font-semibold transition-colors ${copied ? 'bg-green-500' : 'bg-zinc-900 hover:bg-zinc-800'}`}
                 >
                     {copied ? '✓ Copiado' : 'Copiar'}
                 </button>
@@ -128,25 +94,7 @@ export default function QRGenerator({ menuUrl, storeName }: QRGeneratorProps) {
             <button
                 onClick={handleDownload}
                 disabled={!ready}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: '#18181b',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '12px 28px',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    cursor: ready ? 'pointer' : 'not-allowed',
-                    opacity: ready ? 1 : 0.5,
-                    transition: 'opacity 0.2s, transform 0.15s',
-                    width: '100%',
-                    justifyContent: 'center',
-                }}
-                onMouseEnter={e => { if (ready) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
+                className={`flex items-center justify-center gap-2 bg-zinc-900 text-white rounded-xl py-3 px-6 text-sm font-semibold w-full transition-all ${ready ? 'cursor-pointer opacity-100 hover:-translate-y-0.5 hover:shadow-md' : 'cursor-not-allowed opacity-50'}`}
             >
                 {/* Download icon */}
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
