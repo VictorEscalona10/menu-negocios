@@ -8,13 +8,13 @@ interface Category {
     name: string
 }
 
-export function ProductForm({ 
-    categories, 
-    action, 
+export function ProductForm({
+    categories,
+    action,
     initialData,
     onSuccess
-}: { 
-    categories: Category[], 
+}: {
+    categories: Category[],
     action: (formData: FormData) => Promise<any>,
     initialData?: {
         id: string
@@ -28,6 +28,7 @@ export function ProductForm({
 }) {
     const isEditing = !!initialData
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
+    const [errorMessage, setErrorMessage] = useState("")
     const [isPending, setIsPending] = useState(false)
 
     // Modal state
@@ -53,10 +54,20 @@ export function ProductForm({
         if (!pendingFormData) return
 
         setIsPending(true)
+        setErrorMessage("")
         try {
-            await action(pendingFormData)
-            setStatus("success")
+            const res = await action(pendingFormData)
             
+            // Si la acción devuelve explícitamente un objeto con { error: string }
+            if (res && res.error) {
+                setErrorMessage(res.error)
+                setStatus("error")
+                setTimeout(() => setStatus("idle"), 6000)
+                return
+            }
+
+            setStatus("success")
+
             if (onSuccess) {
                 // Pequeño delay para que se vea el mensaje de éxito antes de cerrar modal si aplica
                 setTimeout(() => onSuccess(), 1500)
@@ -70,10 +81,11 @@ export function ProductForm({
                 if (formElement) formElement.reset()
             }
             setPendingFormData(null)
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
+            setErrorMessage(error.message || "Ocurrió un error inesperado.")
             setStatus("error")
-            setTimeout(() => setStatus("idle"), 4000)
+            setTimeout(() => setStatus("idle"), 6000)
         } finally {
             setIsPending(false)
         }
@@ -92,7 +104,7 @@ export function ProductForm({
             <ConfirmationModal
                 isOpen={isModalOpen}
                 title={isEditing ? "Actualizar Producto" : "Añadir Producto"}
-                description={isEditing 
+                description={isEditing
                     ? `¿Deseas guardar los cambios en "${productName}"?`
                     : `¿Deseas guardar el producto "${productName}" en tu menú?`
                 }
@@ -114,14 +126,27 @@ export function ProductForm({
                 </div>
             )}
 
+            {status === "error" && errorMessage && (
+                <div className="absolute top-0 left-0 right-0 -m-4 mb-4 bg-red-50 text-red-800 p-3 rounded-xl border border-red-200 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 z-10 shadow-sm">
+                    <div className="bg-red-100 p-1.5 rounded-full shrink-0">
+                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span className="font-medium text-sm max-w-full truncate text-wrap">
+                        {errorMessage}
+                    </span>
+                </div>
+            )}
+
             <form id={isEditing ? `product-form-${initialData.id}` : "product-form"} onSubmit={handleFormSubmit} className="space-y-6">
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Categoría</label>
                     <div className="relative">
-                        <select 
-                            name="categoryId" 
+                        <select
+                            name="categoryId"
                             defaultValue={initialData?.categoryId}
-                            className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium" 
+                            className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium"
                             required
                         >
                             {categories.map((category) => (
@@ -138,13 +163,13 @@ export function ProductForm({
 
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Nombre del producto</label>
-                    <input 
-                        type="text" 
-                        name="name" 
+                    <input
+                        type="text"
+                        name="name"
                         defaultValue={initialData?.name}
-                        placeholder="Ej: Hamburguesa Clásica" 
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium placeholder-zinc-400" 
-                        required 
+                        placeholder="Ej: Hamburguesa Clásica"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium placeholder-zinc-400"
+                        required
                     />
                 </div>
 
@@ -167,11 +192,11 @@ export function ProductForm({
 
                 <div className="space-y-1.5">
                     <label className="block text-sm font-bold text-zinc-800 ml-1">Descripción</label>
-                    <textarea 
-                        name="description" 
+                    <textarea
+                        name="description"
                         defaultValue={initialData?.description || ""}
-                        placeholder="Ingredientes o detalles..." 
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium resize-none placeholder-zinc-400" 
+                        placeholder="Ingredientes o detalles..."
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-medium resize-none placeholder-zinc-400"
                         rows={3}
                     ></textarea>
                 </div>
@@ -182,14 +207,14 @@ export function ProductForm({
                         <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
                             <span className="text-zinc-500 font-bold">$</span>
                         </div>
-                        <input 
-                            type="number" 
-                            step="0.01" 
-                            name="price" 
+                        <input
+                            type="number"
+                            step="0.01"
+                            name="price"
                             defaultValue={initialData?.price}
-                            placeholder="5.50" 
-                            className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl pl-9 pr-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-bold placeholder-zinc-400" 
-                            required 
+                            placeholder="5.50"
+                            className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl pl-9 pr-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-black focus:border-black transition-all font-bold placeholder-zinc-400"
+                            required
                         />
                     </div>
                 </div>
@@ -206,8 +231,8 @@ export function ProductForm({
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     )}
-                    {isPending 
-                        ? (isEditing ? "Actualizando..." : "Agregando Producto...") 
+                    {isPending
+                        ? (isEditing ? "Actualizando..." : "Agregando Producto...")
                         : (isEditing ? "Actualizar Producto" : "Agregar Producto")
                     }
                 </button>

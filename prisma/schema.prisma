@@ -56,6 +56,7 @@ model Product {
   price       Float
   isAvailable Boolean @default(true) // ¡La magia para apagar productos agotados!
   imageUrl    String? // URL de la imagen en Supabase Storage
+  order       Int     @default(0) // NUEVO: Para el orden visual manual
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

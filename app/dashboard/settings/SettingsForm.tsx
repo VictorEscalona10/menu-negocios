@@ -69,7 +69,7 @@ import SharedMenuUI from '../../components/SharedMenuUI';
 function WhatsAppPreview({ localStore }: { localStore: any }) {
     const header = localStore.whatsappHeader || `🍔 *NUEVO PEDIDO - ${localStore.name}* 🍔`;
     const footer = localStore.whatsappFooter || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
-    
+
     // Función simple para formatear *negrita* de WhatsApp en HTML
     const formatWhatsAppText = (text: string) => {
         return text.split('\n').map((line, i) => {
@@ -101,10 +101,10 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                 <div className="bg-white rounded-lg rounded-tr-none p-3 shadow-sm relative ml-auto max-w-[85%] text-zinc-800 text-[13px] leading-relaxed">
                     {/* Triángulo del mensaje */}
                     <div className="absolute top-0 -right-2 w-0 h-0 border-t-[10px] border-t-white border-r-[10px] border-r-transparent"></div>
-                    
+
                     <div className="space-y-1">
                         {formatWhatsAppText(header)}
-                        
+
                         <div className="py-2">
                             <p><strong>1x Hamburguesa Trufada</strong> - $14.50</p>
                             <p className="pl-3 opacity-70 text-[11px]">└ Extra Tocino (+$2.00)</p>
@@ -112,12 +112,12 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                         </div>
 
                         <p><strong>💰 TOTAL A PAGAR:</strong> $24.50</p>
-                        
+
                         <div className="mt-2 text-zinc-600 italic">
                             {formatWhatsAppText(footer)}
                         </div>
                     </div>
-                    
+
                     <div className="flex justify-end mt-1">
                         <span className="text-[9px] opacity-40">12:00 PM ✓✓</span>
                     </div>
@@ -128,7 +128,7 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
             <div className="bg-[#f0f0f0] p-2 flex items-center gap-2">
                 <div className="flex-1 bg-white rounded-full px-4 py-2 text-xs text-zinc-400">Escribe un mensaje</div>
                 <div className="w-10 h-10 rounded-full bg-[#075e54] flex items-center justify-center text-white">
-                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
                 </div>
             </div>
         </div>
@@ -147,10 +147,10 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
         whatsappHeader: localStore.whatsappHeader,
         whatsappFooter: localStore.whatsappFooter,
         // Tipografía y colores de texto
-        textColor:         localStore.textColor,
-        subtextColor:      localStore.subtextColor,
-        fontHeading:       localStore.fontHeading,
-        fontBody:          localStore.fontBody,
+        textColor: localStore.textColor,
+        subtextColor: localStore.subtextColor,
+        fontHeading: localStore.fontHeading,
+        fontBody: localStore.fontBody,
         showProductImages: localStore.showProductImages,
         categories: [
             {
@@ -209,14 +209,14 @@ export function SettingsForm({
         logoUrl: store.logoUrl || "",
         whatsappHeader: store.whatsappHeader || "",
         whatsappFooter: store.whatsappFooter || "",
-        enableDelivery:    store.enableDelivery    ?? true,
-        enablePickup:      store.enablePickup      ?? true,
-        enableDineIn:      store.enableDineIn      ?? false,
+        enableDelivery: store.enableDelivery ?? true,
+        enablePickup: store.enablePickup ?? true,
+        enableDineIn: store.enableDineIn ?? false,
         showProductImages: store.showProductImages ?? true,
-        textColor:    store.textColor    || '#e5e2e1',
+        textColor: store.textColor || '#e5e2e1',
         subtextColor: store.subtextColor || '#e4beb5',
-        fontHeading:  store.fontHeading  || 'Epilogue',
-        fontBody:     store.fontBody     || 'Manrope',
+        fontHeading: store.fontHeading || 'Epilogue',
+        fontBody: store.fontBody || 'Manrope',
         upsellCategoryId: store.upsellCategoryId || '',
     })
 
@@ -365,14 +365,14 @@ export function SettingsForm({
                         {/* Hidden inputs para enviar false cuando el checkbox está desmarcado */}
                         {/* Los checkboxes HTML solo envían valor cuando están marcados, así que usamos el estado local */}
                         <input type="hidden" name="enableDelivery" value={localStore.enableDelivery ? 'on' : 'off'} />
-                        <input type="hidden" name="enablePickup"   value={localStore.enablePickup   ? 'on' : 'off'} />
-                        <input type="hidden" name="enableDineIn"   value={localStore.enableDineIn   ? 'on' : 'off'} />
+                        <input type="hidden" name="enablePickup" value={localStore.enablePickup ? 'on' : 'off'} />
+                        <input type="hidden" name="enableDineIn" value={localStore.enableDineIn ? 'on' : 'off'} />
 
                         <div className="space-y-3">
                             {([
-                                { key: 'enableDelivery' as const, label: 'Delivery',      sub: 'El negocio hace entregas a domicilio',  emoji: '🚗' },
-                                { key: 'enablePickup'   as const, label: 'Pick-Up',       sub: 'El cliente pasa a retirar su pedido',   emoji: '🏃' },
-                                { key: 'enableDineIn'   as const, label: 'En el Local',   sub: 'El cliente consume en el restaurante',  emoji: '🍽️' },
+                                { key: 'enableDelivery' as const, label: 'Delivery', sub: 'El negocio hace entregas a domicilio', emoji: '🚗' },
+                                { key: 'enablePickup' as const, label: 'Pick-Up', sub: 'El cliente pasa a retirar su pedido', emoji: '🏃' },
+                                { key: 'enableDineIn' as const, label: 'En el Local', sub: 'El cliente consume en el restaurante', emoji: '🍽️' },
                             ]).map(({ key, label, sub, emoji }) => {
                                 const isOn = localStore[key];
                                 const activeCount = [localStore.enableDelivery, localStore.enablePickup, localStore.enableDineIn].filter(Boolean).length;
@@ -384,11 +384,10 @@ export function SettingsForm({
                                         onClick={() => handleDeliveryToggle(key)}
                                         disabled={isLast}
                                         title={isLast ? 'Debe haber al menos un modo activo' : undefined}
-                                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                                            isOn
-                                                ? 'border-black bg-black/5'
-                                                : 'border-zinc-200 bg-white hover:border-zinc-300'
-                                        } ${isLast ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${isOn
+                                            ? 'border-black bg-black/5'
+                                            : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                            } ${isLast ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
                                         <span className="text-2xl shrink-0">{emoji}</span>
                                         <div className="flex-1 min-w-0">
@@ -420,11 +419,10 @@ export function SettingsForm({
                             <button
                                 type="button"
                                 onClick={() => setLocalStore({ ...localStore, upsellCategoryId: '' })}
-                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${
-                                    localStore.upsellCategoryId === ''
-                                        ? 'border-black bg-black/5'
-                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
-                                }`}
+                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${localStore.upsellCategoryId === ''
+                                    ? 'border-black bg-black/5'
+                                    : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                    }`}
                             >
                                 <span className="text-xl shrink-0">🚫</span>
                                 <p className={`font-semibold text-sm ${localStore.upsellCategoryId === '' ? 'text-zinc-900' : 'text-zinc-400'}`}>
@@ -452,11 +450,10 @@ export function SettingsForm({
                                                 key={cat.id}
                                                 type="button"
                                                 onClick={() => setLocalStore({ ...localStore, upsellCategoryId: cat.id })}
-                                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${
-                                                    isSelected
-                                                        ? 'border-black bg-black/5'
-                                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
-                                                }`}
+                                                className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all text-left ${isSelected
+                                                    ? 'border-black bg-black/5'
+                                                    : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                                    }`}
                                             >
                                                 <span className="text-xl shrink-0">📂</span>
                                                 <p className={`font-semibold text-sm ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
@@ -490,11 +487,10 @@ export function SettingsForm({
                         <button
                             type="button"
                             onClick={() => setLocalStore({ ...localStore, showProductImages: !localStore.showProductImages })}
-                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                                localStore.showProductImages
-                                    ? 'border-black bg-black/5'
-                                    : 'border-zinc-200 bg-white hover:border-zinc-300'
-                            }`}
+                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${localStore.showProductImages
+                                ? 'border-black bg-black/5'
+                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                }`}
                         >
                             <span className="text-2xl shrink-0">🖼️</span>
                             <div className="flex-1 min-w-0">
@@ -637,10 +633,10 @@ export function SettingsForm({
             </div>
 
             {/* Vista Previa Móvil (Columna 2) */}
-            <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10">
+            <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10 lg:sticky lg:top-8 lg:h-max">
                 <div className="flex flex-col items-center mb-6 w-full">
                     <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4 text-center shrink-0">Vista Previa en Vivo</h3>
-                    
+
                     {/* Toggles de Vista Previa */}
                     <div className="flex p-1 bg-zinc-100 rounded-xl w-full max-w-[280px]">
                         <button

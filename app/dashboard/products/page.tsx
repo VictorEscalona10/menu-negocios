@@ -6,7 +6,7 @@ import { createCategory, createProduct, deleteCategory, deleteProduct } from '@/
 import { CategoryForm } from './CategoryForm'
 import { ProductForm } from './ProductForm'
 import { DeleteButton } from './DeleteButton'
-import { ProductCard } from './ProductCard'
+import { SortableProductList } from './SortableProductList'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -34,9 +34,10 @@ export default async function ProductsPage() {
                                 }
                             }
                         },
-                        orderBy: {
-                            name: 'asc'
-                        }
+                        orderBy: [
+                            { order: 'asc' },
+                            { name: 'asc' }
+                        ]
                     }
                 }
             }
@@ -114,19 +115,12 @@ export default async function ProductsPage() {
                                         {category.products.length === 0 ? (
                                             <p className="text-sm text-zinc-400 italic ml-4">Categoría vacía.</p>
                                         ) : (
-                                            <div className="grid grid-cols-1 gap-4 ml-2">
-                                                {category.products.map((product: any) => {
-                                                    const boundDeleteProduct = deleteProduct.bind(null, product.id);
-                                                    return (
-                                                        <ProductCard 
-                                                            key={product.id}
-                                                            product={product}
-                                                            categories={store.categories}
-                                                            deleteAction={boundDeleteProduct}
-                                                        />
-                                                    )
-                                                })}
-                                            </div>
+                                            <SortableProductList 
+                                                categoryId={category.id}
+                                                initialProducts={category.products}
+                                                categories={store.categories}
+                                                deleteProductAction={deleteProduct}
+                                            />
                                         )}
                                     </div>
                                 )

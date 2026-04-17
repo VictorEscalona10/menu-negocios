@@ -54,10 +54,10 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
     const bg = store.backgroundColor || '#131313';
     const accent = store.themeColor || '#FF5630';
     const showImages = store.showProductImages ?? true;
-    const textColor    = store.textColor    || '#e5e2e1';
+    const textColor = store.textColor || '#e5e2e1';
     const subtextColor = store.subtextColor || '#e4beb5';
-    const fontHeading  = store.fontHeading  || 'Epilogue';
-    const fontBody     = store.fontBody     || 'Manrope';
+    const fontHeading = store.fontHeading || 'Epilogue';
+    const fontBody = store.fontBody || 'Manrope';
 
     // Build Google Fonts URL for selected fonts
     const uniqueFonts = [...new Set([fontHeading, fontBody])];
@@ -315,9 +315,9 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                                 </p>
                                                             </div>
                                                             <div className="shrink-0">
-                                                                <AddToCartButton 
-                                                                    product={product} 
-                                                                    themeColor={accent} 
+                                                                <AddToCartButton
+                                                                    product={product}
+                                                                    themeColor={accent}
                                                                     onConfigure={() => setActiveConfigProduct(product)}
                                                                 />
                                                             </div>
@@ -330,9 +330,9 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                             <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>${product.price.toFixed(2)}</p>
                                                         </div>
                                                         <div className="shrink-0">
-                                                            <AddToCartButton 
-                                                                product={product} 
-                                                                themeColor={accent} 
+                                                            <AddToCartButton
+                                                                product={product}
+                                                                themeColor={accent}
                                                                 onConfigure={() => setActiveConfigProduct(product)}
                                                             />
                                                         </div>
@@ -404,9 +404,9 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         </svg>
                                                     </div>
                                                 ) : (
-                                                    <AddToCartButton 
-                                                        product={product} 
-                                                        themeColor={accent} 
+                                                    <AddToCartButton
+                                                        product={product}
+                                                        themeColor={accent}
                                                         onConfigure={() => setActiveConfigProduct(product)}
                                                     />
                                                 )}
