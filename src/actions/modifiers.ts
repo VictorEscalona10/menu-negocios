@@ -59,11 +59,28 @@ export async function deleteModifierGroup(id: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    // Verificar propiedad
-    const group = await prisma.modifierGroup.findFirst({
-        where: { id, product: { category: { store: { userId: user.id } } } }
+    // 1. Buscamos el grupo incluyendo la cadena de propiedad
+    const group = await prisma.modifierGroup.findUnique({
+        where: { id },
+        include: {
+            product: {
+                include: {
+                    category: {
+                        include: {
+                            store: true
+                        }
+                    }
+                }
+            }
+        }
     })
-    if (!group) throw new Error("No autorizado")
+
+    // 2. Verificaciones explícitas
+    if (!group) throw new Error("El grupo de extras no existe o ya fue eliminado.")
+    
+    if (group.product.category.store.userId !== user.id) {
+        throw new Error("No tienes permiso para eliminar este grupo.")
+    }
 
     await prisma.modifierGroup.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
@@ -74,14 +91,32 @@ export async function deleteModifierOption(id: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    // Verificar propiedad
-    const option = await prisma.modifierOption.findFirst({
-        where: { 
-            id, 
-            modifierGroup: { product: { category: { store: { userId: user.id } } } } 
+    // 1. Buscamos la opción incluyendo la cadena de propiedad
+    const option = await prisma.modifierOption.findUnique({
+        where: { id },
+        include: {
+            modifierGroup: {
+                include: {
+                    product: {
+                        include: {
+                            category: {
+                                include: {
+                                    store: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     })
-    if (!option) throw new Error("No autorizado")
+
+    // 2. Verificaciones explícitas
+    if (!option) throw new Error("La opción no existe o ya fue eliminada.")
+
+    if (option.modifierGroup.product.category.store.userId !== user.id) {
+        throw new Error("No tienes permiso para eliminar esta opción.")
+    }
 
     await prisma.modifierOption.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
