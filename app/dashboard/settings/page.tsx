@@ -66,6 +66,7 @@ export default async function SettingsPage() {
                         enablePickup:      store.enablePickup,
                         enableDineIn:      store.enableDineIn,
                         showProductImages: store.showProductImages,
+                        forceNotesModal:   store.forceNotesModal,
                         textColor:    store.textColor    || '#e5e2e1',
                         subtextColor: store.subtextColor || '#e4beb5',
                         fontHeading:  store.fontHeading  || 'Epilogue',
