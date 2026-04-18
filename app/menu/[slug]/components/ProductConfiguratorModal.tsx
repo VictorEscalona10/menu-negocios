@@ -23,7 +23,7 @@ interface Product {
     price: number;
     description: string | null;
     imageUrl: string | null;
-    modifierGroups: ModifierGroup[];
+    modifierGroups?: ModifierGroup[];
 }
 
 interface ProductConfiguratorModalProps {
@@ -61,7 +61,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
             const isCurrentlySelected = currentSelected.includes(optionId)
 
             // Check limits si aplica
-            const groupInfo = product.modifierGroups.find(g => g.id === groupId);
+            const groupInfo = (product.modifierGroups || []).find(g => g.id === groupId);
 
             if (isCurrentlySelected) {
                 return {
@@ -85,7 +85,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
     const calculateTotal = () => {
         let total = product.price;
         Object.entries(selections).forEach(([groupId, optionIds]) => {
-            const group = product.modifierGroups.find(g => g.id === groupId);
+            const group = (product.modifierGroups || []).find(g => g.id === groupId);
             if (group) {
                 optionIds.forEach(id => {
                     const option = group.options.find(o => o.id === id);
@@ -97,7 +97,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
     }
 
     const validateRequired = () => {
-        const requiredGroups = product.modifierGroups.filter(g => g.isRequired);
+        const requiredGroups = (product.modifierGroups || []).filter(g => g.isRequired);
         for (const rg of requiredGroups) {
             const selected = selections[rg.id];
             if (!selected || selected.length === 0) {
@@ -118,7 +118,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
         const selectedOptionsFormatted: any[] = [];
 
         Object.entries(selections).forEach(([groupId, optionIds]) => {
-            const group = product.modifierGroups.find(g => g.id === groupId);
+            const group = (product.modifierGroups || []).find(g => g.id === groupId);
             if (group) {
                 optionIds.forEach(id => {
                     const option = group.options.find(o => o.id === id);
@@ -191,7 +191,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
 
                 {/* Content: Modificadores */}
                 <div className="flex-1 overflow-y-auto px-6 pt-2 pb-6 space-y-8 scroll-smooth">
-                    {product.modifierGroups.map((group) => {
+                    {(product.modifierGroups || []).map((group) => {
                         const isRadio = group.maxSelect === 1;
                         const selectedInGroup = selections[group.id] || [];
                         const isMissing = showValidation && group.isRequired && selectedInGroup.length === 0;
