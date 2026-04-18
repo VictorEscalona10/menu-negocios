@@ -19,6 +19,7 @@ interface SharedMenuUIProps {
         enablePickup?: boolean;
         enableDineIn?: boolean;
         showProductImages?: boolean;
+        forceNotesModal?: boolean;
         textColor?: string;
         subtextColor?: string;
         fontHeading?: string;
