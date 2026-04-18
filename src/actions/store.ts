@@ -32,6 +32,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const enablePickup        = formData.get('enablePickup')       === 'on'
     const enableDineIn        = formData.get('enableDineIn')       === 'on'
     const showProductImages   = formData.get('showProductImages')  === 'on'
+    const forceNotesModal     = formData.get('forceNotesModal')    === 'on'
 
     const textColor    = formData.get('textColor')    as string || '#e5e2e1'
     const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
@@ -48,6 +49,13 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     let logoUrl = undefined;
 
     if (logo && logo.size > 0) {
+        if (logo.size > 2 * 1024 * 1024) {
+            throw new Error("El logotipo excede el tamaño máximo permitido (2MB).");
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(logo.type)) {
+            throw new Error("Formato de logotipo no válido. Solo se permiten JPEG, PNG o WEBP.");
+        }
+
         const supabase = await createClient();
 
         // 1. ELIMINACIÓN INTELIGENTE: Buscamos si el local ya tenía un logo
@@ -96,6 +104,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         enablePickup,
         enableDineIn,
         showProductImages,
+        forceNotesModal,
         textColor,
         subtextColor,
         fontHeading,

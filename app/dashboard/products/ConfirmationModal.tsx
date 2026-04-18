@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 
 interface ConfirmationModalProps {
     isOpen: boolean
@@ -13,9 +14,15 @@ interface ConfirmationModalProps {
 }
 
 export function ConfirmationModal({ isOpen, title, description, onConfirm, onCancel, confirmText = "Confirmar", cancelText = "Cancelar" }: ConfirmationModalProps) {
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
     
     // Bloquear scroll cuando está abierto
     useEffect(() => {
+        if (!mounted) return
         if (isOpen) {
             document.body.style.overflow = "hidden"
         } else {
@@ -24,11 +31,11 @@ export function ConfirmationModal({ isOpen, title, description, onConfirm, onCan
         return () => {
             document.body.style.overflow = "unset"
         }
-    }, [isOpen])
+    }, [isOpen, mounted])
 
-    if (!isOpen) return null
+    if (!isOpen || !mounted) return null
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop con desenfoque */}
             <div 
@@ -63,6 +70,7 @@ export function ConfirmationModal({ isOpen, title, description, onConfirm, onCan
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }

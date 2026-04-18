@@ -50,6 +50,7 @@ export default function FloatingCart({
 }: FloatingCartProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isProductsExpanded, setIsProductsExpanded] = useState(false);
+    const [addedUpsellProductId, setAddedUpsellProductId] = useState<string | null>(null);
 
     // Datos del cliente
     const [customerName, setCustomerName] = useState('');
@@ -511,31 +512,43 @@ export default function FloatingCart({
                                                         <p className="text-xs font-black" style={{ color: themeColor }}>
                                                             ${prod.price.toFixed(2)}
                                                         </p>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (prod.modifierGroups && prod.modifierGroups.length > 0) {
-                                                                    // Tiene modificadores: abrir modal
-                                                                    if (onConfigureUpsellProduct) {
-                                                                        onConfigureUpsellProduct(prod);
+                                                        {addedUpsellProductId === prod.id ? (
+                                                            <button
+                                                                disabled
+                                                                className="mt-auto w-full flex items-center justify-center gap-1 py-2 rounded-xl font-bold text-xs transition-all text-white bg-emerald-500 cursor-not-allowed"
+                                                            >
+                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                                Agregado
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (prod.modifierGroups && prod.modifierGroups.length > 0) {
+                                                                        // Tiene modificadores: abrir modal
+                                                                        if (onConfigureUpsellProduct) {
+                                                                            onConfigureUpsellProduct(prod);
+                                                                        }
+                                                                    } else {
+                                                                        // Sin modificadores: agregar directo
+                                                                        addItem({
+                                                                            id: prod.id,
+                                                                            productId: prod.id,
+                                                                            name: prod.name,
+                                                                            price: prod.price,
+                                                                            notes: '',
+                                                                            selectedOptions: [],
+                                                                        });
+                                                                        setAddedUpsellProductId(prod.id);
+                                                                        setTimeout(() => setAddedUpsellProductId(null), 1500);
                                                                     }
-                                                                } else {
-                                                                    // Sin modificadores: agregar directo
-                                                                    addItem({
-                                                                        id: prod.id,
-                                                                        productId: prod.id,
-                                                                        name: prod.name,
-                                                                        price: prod.price,
-                                                                        notes: '',
-                                                                        selectedOptions: [],
-                                                                    });
-                                                                }
-                                                            }}
-                                                            className="mt-auto w-full flex items-center justify-center gap-1 py-2 rounded-xl font-bold text-xs transition-all text-white hover:brightness-110 active:scale-95"
-                                                            style={{ backgroundColor: themeColor }}
-                                                        >
-                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                                                            Agregar
-                                                        </button>
+                                                                }}
+                                                                className="mt-auto w-full flex items-center justify-center gap-1 py-2 rounded-xl font-bold text-xs transition-all text-white hover:brightness-110 active:scale-95"
+                                                                style={{ backgroundColor: themeColor }}
+                                                            >
+                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                                                Agregar
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { ProductForm } from "./ProductForm"
 import { updateProduct } from "@/src/actions/menu"
 
@@ -26,6 +27,11 @@ export function EditProductModal({
     categories: Category[] 
 }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // El Server Action necesita el ID del producto, así que lo bindeamos
     const boundUpdateAction = updateProduct.bind(null, product.id)
@@ -42,7 +48,7 @@ export function EditProductModal({
                 </svg>
             </button>
 
-            {isOpen && (
+            {isOpen && mounted && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
                     <div 
                         className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-300"
@@ -74,7 +80,8 @@ export function EditProductModal({
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     )

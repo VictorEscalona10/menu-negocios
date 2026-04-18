@@ -4,6 +4,17 @@
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { z } from 'zod'
+
+const productSchema = z.object({
+    name: z.string({ message: "Nombre inválido o ausente" })
+        .min(1, "El nombre es obligatorio"),
+    description: z.union([z.string(), z.null()]).optional().transform(v => !v ? null : String(v)),
+    price: z.coerce.number({ message: "El precio debe ser un número válido" })
+        .min(0, "El precio no puede ser negativo"),
+    categoryId: z.string({ message: "Categoría inválida o ausente" })
+        .min(1, "La categoría es obligatoria"),
+})
 
 export async function createCategory(storeId: string, formData: FormData) {
     const supabase = await createClient()
@@ -33,10 +44,18 @@ export async function createProduct(formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const price = parseFloat(formData.get('price') as string)
-    const categoryId = formData.get('categoryId') as string
+    const validatedData = productSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        price: formData.get('price'),
+        categoryId: formData.get('categoryId'),
+    })
+
+    if (!validatedData.success) {
+        throw new Error(validatedData.error.issues[0].message)
+    }
+
+    const { name, description, price, categoryId } = validatedData.data
 
     // Verificar que la categoría pertenece al local del usuario
     const category = await prisma.category.findFirst({
@@ -53,6 +72,13 @@ export async function createProduct(formData: FormData) {
 
     // 2. Subir imagen a Supabase si existe
     if (imageFile && imageFile.size > 0) {
+        if (imageFile.size > 2 * 1024 * 1024) {
+            throw new Error("La imagen adjunta excede el tamaño máximo permitido (2MB).");
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(imageFile.type)) {
+            throw new Error("Formato de imagen no válido. Solo se permiten JPEG, PNG o WEBP.");
+        }
+
         const supabase = await createClient()
         const fileExt = imageFile.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
@@ -91,10 +117,18 @@ export async function updateProduct(productId: string, formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const price = parseFloat(formData.get('price') as string)
-    const categoryId = formData.get('categoryId') as string
+    const validatedData = productSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        price: formData.get('price'),
+        categoryId: formData.get('categoryId'),
+    })
+
+    if (!validatedData.success) {
+        throw new Error(validatedData.error.issues[0].message)
+    }
+
+    const { name, description, price, categoryId } = validatedData.data
 
     // 1. Obtener los datos actuales del producto y verificar propiedad
     const currentProduct = await prisma.product.findFirst({
@@ -113,6 +147,13 @@ export async function updateProduct(productId: string, formData: FormData) {
 
     // 3. Subir nueva imagen si existe
     if (imageFile && imageFile.size > 0) {
+        if (imageFile.size > 2 * 1024 * 1024) {
+            throw new Error("La imagen adjunta excede el tamaño máximo permitido (2MB).");
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(imageFile.type)) {
+            throw new Error("Formato de imagen no válido. Solo se permiten JPEG, PNG o WEBP.");
+        }
+
         const supabase = await createClient()
         
         // Subimos la nueva imagen

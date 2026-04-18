@@ -28,9 +28,10 @@ interface AddToCartButtonProps {
     };
     themeColor: string;
     onConfigure?: () => void;
+    forceNotesModal?: boolean;
 }
 
-export default function AddToCartButton({ product, themeColor, onConfigure }: AddToCartButtonProps) {
+export default function AddToCartButton({ product, themeColor, onConfigure, forceNotesModal }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
     const items = useCartStore((state) => state.items);
 
@@ -39,7 +40,7 @@ export default function AddToCartButton({ product, themeColor, onConfigure }: Ad
 
     const handleButtonClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (product.modifierGroups && product.modifierGroups.length > 0) {
+        if (forceNotesModal || (product.modifierGroups && product.modifierGroups.length > 0)) {
             onConfigure?.();
         } else {
             addItem({ productId: product.id, name: product.name, price: product.price });

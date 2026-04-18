@@ -40,6 +40,7 @@ interface Store {
     enablePickup?: boolean;
     enableDineIn?: boolean;
     showProductImages?: boolean;
+    forceNotesModal?: boolean;
     textColor?: string;
     subtextColor?: string;
     fontHeading?: string;
@@ -213,6 +214,7 @@ export function SettingsForm({
         enablePickup: store.enablePickup ?? true,
         enableDineIn: store.enableDineIn ?? false,
         showProductImages: store.showProductImages ?? true,
+        forceNotesModal: store.forceNotesModal ?? false,
         textColor: store.textColor || '#e5e2e1',
         subtextColor: store.subtextColor || '#e4beb5',
         fontHeading: store.fontHeading || 'Epilogue',
@@ -504,6 +506,31 @@ export function SettingsForm({
                             {/* Toggle pill */}
                             <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.showProductImages ? 'bg-black' : 'bg-zinc-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.showProductImages ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                        </button>
+
+                        {/* Switch Forzar Modal de Notas */}
+                        <input type="hidden" name="forceNotesModal" value={localStore.forceNotesModal ? 'on' : 'off'} />
+                        <button
+                            type="button"
+                            onClick={() => setLocalStore({ ...localStore, forceNotesModal: !localStore.forceNotesModal })}
+                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${localStore.forceNotesModal
+                                ? 'border-black bg-black/5'
+                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                }`}
+                        >
+                            <span className="text-2xl shrink-0">📝</span>
+                            <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-sm ${localStore.forceNotesModal ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                                    Forzar modal de comentarios
+                                </p>
+                                <p className="text-xs text-zinc-400 truncate">
+                                    {localStore.forceNotesModal ? 'El modal de opciones se abre siempre al añadir un plato' : 'Solo se abre si el plato tiene extras o modificadores'}
+                                </p>
+                            </div>
+                            {/* Toggle pill */}
+                            <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.forceNotesModal ? 'bg-black' : 'bg-zinc-200'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.forceNotesModal ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
                     </div>

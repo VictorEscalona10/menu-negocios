@@ -11,3 +11,23 @@ export async function signOut() {
 
     redirect('/login');
 }
+
+export async function signInAction(formData: FormData) {
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    
+    if (!email || !password) return { error: "Por favor, completa todos los campos." }
+    
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    })
+
+    if (error) {
+        return { error: "Credenciales incorrectas. Revisa tu correo o contraseña." }
+    }
+
+    redirect('/dashboard')
+}

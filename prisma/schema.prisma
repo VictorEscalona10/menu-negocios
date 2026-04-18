@@ -27,6 +27,7 @@ model Store {
   enablePickup       Boolean @default(true)
   enableDineIn       Boolean @default(false)
   showProductImages  Boolean @default(true)
+  forceNotesModal    Boolean @default(false)
 
   textColor    String  @default("#e5e2e1")
   subtextColor String  @default("#e4beb5")

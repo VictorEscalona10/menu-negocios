@@ -319,6 +319,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                                     product={product}
                                                                     themeColor={accent}
                                                                     onConfigure={() => setActiveConfigProduct(product)}
+                                                                    forceNotesModal={store.forceNotesModal}
                                                                 />
                                                             </div>
                                                         </div>
@@ -334,6 +335,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                                 product={product}
                                                                 themeColor={accent}
                                                                 onConfigure={() => setActiveConfigProduct(product)}
+                                                                forceNotesModal={store.forceNotesModal}
                                                             />
                                                         </div>
                                                     </div>
@@ -408,6 +410,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         product={product}
                                                         themeColor={accent}
                                                         onConfigure={() => setActiveConfigProduct(product)}
+                                                        forceNotesModal={store.forceNotesModal}
                                                     />
                                                 )}
                                             </div>

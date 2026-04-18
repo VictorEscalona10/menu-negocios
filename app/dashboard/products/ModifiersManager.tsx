@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { 
     createModifierGroup, 
     createModifierOption, 
@@ -31,6 +32,11 @@ interface Product {
 export function ModifiersManager({ product }: { product: Product }) {
     const [isOpen, setIsOpen] = useState(false)
     const [isPending, setIsPending] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // Form states
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
@@ -91,7 +97,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                 <span>Extras</span>
             </button>
 
-            {isOpen && (
+            {isOpen && mounted && createPortal(
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 px-0 sm:p-4">
                     {/* Background click to close */}
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
@@ -275,7 +281,8 @@ export function ModifiersManager({ product }: { product: Product }) {
 
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     )
