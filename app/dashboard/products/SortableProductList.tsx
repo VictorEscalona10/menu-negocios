@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   DndContext, 
   closestCenter, 
@@ -30,6 +30,11 @@ interface SortableProductListProps {
 export function SortableProductList({ categoryId, initialProducts, categories, deleteProductAction }: SortableProductListProps) {
   const [items, setItems] = useState(initialProducts)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  // Sincronizar estado local cuando los props cambian (importante después de revalidatePath)
+  useEffect(() => {
+    setItems(initialProducts)
+  }, [initialProducts])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

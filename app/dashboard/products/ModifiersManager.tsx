@@ -8,6 +8,7 @@ import {
     deleteModifierGroup, 
     deleteModifierOption 
 } from "@/src/actions/modifiers"
+import { ConfirmationModal } from "./ConfirmationModal"
 
 interface ModifierOption {
     id: string;
@@ -38,16 +39,29 @@ export function ModifiersManager({ product }: { product: Product }) {
         setMounted(true)
     }, [])
 
-    // Form states
+    // UI states
+    const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+    const [deletingItem, setDeletingItem] = useState<{ id: string, name: string, type: 'group' | 'option' } | null>(null)
     const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
+
+    // Helper to show status and clear it
+    const showStatus = (type: 'success' | 'error', message: string) => {
+        setStatus({ type, message })
+        setTimeout(() => setStatus(null), 5000)
+    }
 
     const handleCreateGroup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const formData = new FormData(e.currentTarget)
+        const form = e.currentTarget
+        const formData = new FormData(form)
         setIsPending(true)
+        setStatus(null)
         try {
             await createModifierGroup(product.id, formData)
-            e.currentTarget.reset()
+            form.reset()
+            showStatus('success', 'Grupo de extras creado correctamente.')
+        } catch (error: any) {
+            showStatus('error', error.message || 'Error al crear el grupo.')
         } finally {
             setIsPending(false)
         }
@@ -55,31 +69,40 @@ export function ModifiersManager({ product }: { product: Product }) {
 
     const handleCreateOption = async (e: React.FormEvent<HTMLFormElement>, groupId: string) => {
         e.preventDefault()
-        const formData = new FormData(e.currentTarget)
+        const form = e.currentTarget
+        const formData = new FormData(form)
         setIsPending(true)
+        setStatus(null)
         try {
             await createModifierOption(groupId, formData)
-            e.currentTarget.reset()
+            form.reset()
             setActiveGroupId(null)
+            showStatus('success', 'Opción añadida correctamente.')
+        } catch (error: any) {
+            showStatus('error', error.message || 'Error al añadir la opción.')
         } finally {
             setIsPending(false)
         }
     }
 
-    const handleDeleteGroup = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar este grupo de opciones y todas sus opciones?")) return;
+    const handleConfirmDelete = async () => {
+        if (!deletingItem) return
+        
+        const { id, type } = deletingItem
+        setDeletingItem(null)
         setIsPending(true)
+        setStatus(null)
+        
         try {
-            await deleteModifierGroup(id)
-        } finally {
-            setIsPending(false)
-        }
-    }
-
-    const handleDeleteOption = async (id: string) => {
-        setIsPending(true)
-        try {
-            await deleteModifierOption(id)
+            if (type === 'group') {
+                await deleteModifierGroup(id)
+                showStatus('success', 'Grupo eliminado correctamente.')
+            } else {
+                await deleteModifierOption(id)
+                showStatus('success', 'Opción eliminada correctamente.')
+            }
+        } catch (error: any) {
+            showStatus('error', error.message || 'Error al eliminar el elemento.')
         } finally {
             setIsPending(false)
         }
@@ -125,6 +148,24 @@ export function ModifiersManager({ product }: { product: Product }) {
 
                         {/* Body */}
                         <div className="p-6 sm:p-8 overflow-y-auto bg-zinc-50/30 flex-1 space-y-10 custom-scrollbar pb-10 sm:pb-8">
+                            
+                            {/* Inline Feedback */}
+                            {status && (
+                                <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 border ${
+                                    status.type === 'success' 
+                                        ? 'bg-emerald-50 text-emerald-800 border-emerald-100' 
+                                        : 'bg-red-50 text-red-800 border-red-100'
+                                }`}>
+                                    <div className={`p-1.5 rounded-full shrink-0 ${status.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                                        {status.type === 'success' ? (
+                                            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                        ) : (
+                                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        )}
+                                    </div>
+                                    <span className="text-sm font-bold tracking-tight">{status.message}</span>
+                                </div>
+                            )}
 
                             {/* Section: Grupo Nuevo */}
                             <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
@@ -193,7 +234,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                                                     </div>
                                                 </div>
                                                 <button 
-                                                    onClick={() => handleDeleteGroup(group.id)}
+                                                    onClick={() => setDeletingItem({ id: group.id, name: group.name, type: 'group' })}
                                                     disabled={isPending}
                                                     className="p-3 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all disabled:opacity-50 active:scale-90"
                                                 >
@@ -219,7 +260,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                                                                         </span>
                                                                     )}
                                                                     <button 
-                                                                        onClick={() => handleDeleteOption(option.id)}
+                                                                        onClick={() => setDeletingItem({ id: option.id, name: option.name, type: 'option' })}
                                                                         disabled={isPending}
                                                                         className="text-zinc-300 hover:text-red-500 transition-all p-1.5 active:scale-90"
                                                                     >
@@ -284,6 +325,16 @@ export function ModifiersManager({ product }: { product: Product }) {
                 </div>,
                 document.body
             )}
+
+            <ConfirmationModal 
+                isOpen={!!deletingItem}
+                title={`¿Eliminar ${deletingItem?.type === 'group' ? 'grupo' : 'opción'}?`}
+                description={`¿Estás seguro que deseas eliminar "${deletingItem?.name}"? Esta acción no se puede deshacer.`}
+                confirmText="Sí, eliminar"
+                cancelText="Cancelar"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setDeletingItem(null)}
+            />
         </>
     )
 }
