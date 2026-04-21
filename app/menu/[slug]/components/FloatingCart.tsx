@@ -152,7 +152,7 @@ export default function FloatingCart({
 
     const hasMultipleModes = activeModes.length > 1;
 
-    const handleWhatsAppOrder = () => {
+    const handleWhatsAppOrder = async () => {
         if (isPreview) {
             alert("🔒 Modo Previsualización: Las órdenes a WhatsApp están desactivadas para no molestar a tus clientes.");
             return;
@@ -239,8 +239,8 @@ export default function FloatingCart({
 
         const textoCodificado = encodeURIComponent(mensaje);
 
-        // Log the order intent for analytics
-        logOrderIntent(storeId, totalPrice, deliveryType);
+        // Log the order intent for analytics (we await it to ensure it's sent)
+        await logOrderIntent(storeId, totalPrice, deliveryType);
 
         window.open(`https://wa.me/${whatsapp}?text=${textoCodificado}`, '_blank');
 
