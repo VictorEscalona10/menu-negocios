@@ -72,6 +72,7 @@ export default async function SettingsPage() {
                         fontHeading:  store.fontHeading  || 'Epilogue',
                         fontBody:     store.fontBody     || 'Manrope',
                         upsellCategoryId: store.upsellCategoryId || '',
+                        id: store.id,
                     }} 
                     categories={store.categories}
                     updateAction={updateStoreWithId} 
