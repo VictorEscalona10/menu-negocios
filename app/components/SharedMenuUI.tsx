@@ -8,6 +8,7 @@ import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfigura
 
 interface SharedMenuUIProps {
     store: {
+        id: string;
         name: string;
         whatsapp: string;
         whatsappHeader?: string;
@@ -467,6 +468,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
             {/* Floating Cart */}
             {!isPreview && (
                 <FloatingCart
+                    storeId={store.id}
                     storeName={store.name}
                     whatsapp={store.whatsapp}
                     themeColor={accent}

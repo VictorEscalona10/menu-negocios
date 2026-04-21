@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useCartStore } from '@/src/store/cartStore'
+import { logOrderIntent } from '@/src/actions/analytics'
 
 interface UpsellProduct {
     id: string;
@@ -20,6 +21,7 @@ interface UpsellCategory {
 }
 
 interface FloatingCartProps {
+    storeId: string;
     storeName: string;
     whatsapp: string;
     themeColor: string;
@@ -36,6 +38,7 @@ interface FloatingCartProps {
 type DeliveryType = 'delivery' | 'pickup' | 'dinein';
 
 export default function FloatingCart({
+    storeId,
     storeName,
     whatsapp,
     themeColor,
@@ -58,6 +61,22 @@ export default function FloatingCart({
     const [customerAddress, setCustomerAddress] = useState('');
     const [orderNotes, setOrderNotes] = useState('');
     const [formError, setFormError] = useState('');
+
+    // Handlers con sanitización en tiempo real
+    const handleNameChange = (value: string) => {
+        // Solo letras, espacios, acentos y ñ — máximo 50 caracteres
+        const sanitized = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '').slice(0, 50);
+        setCustomerName(sanitized);
+    };
+
+    const handleCedulaChange = (value: string) => {
+        // Permitir V, E, J, P al inicio + números, puntos y guiones — máximo 15 chars
+        const sanitized = value
+            .toUpperCase()
+            .replace(/[^0-9.\-]/g, '')
+            .slice(0, 15);
+        setCustomerCedula(sanitized);
+    };
 
     // Determinar el modo inicial: el primero activo
     const getDefaultMode = (): DeliveryType => {
@@ -144,8 +163,18 @@ export default function FloatingCart({
             setFormError('⚠️ El nombre del cliente es obligatorio.');
             return;
         }
+        if (customerName.trim().length < 3) {
+            setFormError('⚠️ El nombre debe tener al menos 3 caracteres.');
+            return;
+        }
         if (!customerCedula.trim()) {
             setFormError('⚠️ La cédula de identidad es obligatoria.');
+            return;
+        }
+        // Verificar que la cédula tenga al menos algunos dígitos
+        const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
+        if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
+            setFormError('⚠️ La cédula debe tener entre 6 y 9 dígitos numéricos.');
             return;
         }
 
@@ -209,6 +238,10 @@ export default function FloatingCart({
         mensaje += footer;
 
         const textoCodificado = encodeURIComponent(mensaje);
+
+        // Log the order intent for analytics
+        logOrderIntent(storeId, totalPrice, deliveryType);
+
         window.open(`https://wa.me/${whatsapp}?text=${textoCodificado}`, '_blank');
 
         setIsOpen(false);
@@ -253,8 +286,9 @@ export default function FloatingCart({
                                         <input
                                             type="text"
                                             value={customerName}
-                                            onChange={e => setCustomerName(e.target.value)}
+                                            onChange={e => handleNameChange(e.target.value)}
                                             placeholder="Ej: Juan Pérez"
+                                            maxLength={50}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
                                         />
                                     </div>
@@ -267,8 +301,9 @@ export default function FloatingCart({
                                         <input
                                             type="text"
                                             value={customerCedula}
-                                            onChange={e => setCustomerCedula(e.target.value)}
-                                            placeholder="Ej: V-12.345.678"
+                                            onChange={e => handleCedulaChange(e.target.value)}
+                                            maxLength={15}
+                                            inputMode="text"
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
                                         />
                                     </div>
@@ -312,8 +347,8 @@ export default function FloatingCart({
                                                 key={mode.id}
                                                 onClick={() => setDeliveryType(mode.id)}
                                                 className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl border font-bold text-sm transition-all shadow-lg ${deliveryType === mode.id
-                                                        ? 'border-transparent text-white ring-2 ring-white/20'
-                                                        : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
+                                                    ? 'border-transparent text-white ring-2 ring-white/20'
+                                                    : 'bg-white/5 border-white/10 text-zinc-500 hover:bg-white/10'
                                                     }`}
                                                 style={deliveryType === mode.id ? { backgroundColor: themeColor } : {}}
                                             >
@@ -355,7 +390,7 @@ export default function FloatingCart({
                                                     >
                                                         {locationStatus === 'loading' ? (
                                                             <span className="flex items-center gap-2">
-                                                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                                                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
                                                                 Detectando...
                                                             </span>
                                                         ) : (

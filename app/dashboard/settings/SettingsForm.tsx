@@ -46,6 +46,7 @@ interface Store {
     fontHeading?: string;
     fontBody?: string;
     upsellCategoryId?: string;
+    id: string;
 }
 
 const HEADING_FONTS = [
@@ -140,6 +141,7 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
 function MenuPreviewWrapper({ localStore }: { localStore: any }) {
     // Creamos un dataset de demostración fusionado con los colores vivos del administrador
     const mockStore = {
+        id: "demo-id",
         name: localStore.name,
         backgroundColor: localStore.backgroundColor,
         themeColor: localStore.themeColor,

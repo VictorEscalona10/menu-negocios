@@ -86,3 +86,11 @@ model ModifierOption {
   modifierGroupId String
   modifierGroup   ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
 }
+
+model OrderIntentLog {
+  id           String   @id @default(uuid())
+  storeId      String
+  total        Float
+  deliveryType String   // Ej: "delivery", "pickup", "dinein"
+  createdAt    DateTime @default(now())
+}
