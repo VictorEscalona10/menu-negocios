@@ -7,6 +7,7 @@ interface ModifierOption {
     id: string;
     name: string;
     price: number;
+    isAvailable: boolean;
 }
 
 interface ModifierGroup {
@@ -216,7 +217,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                 </div>
 
                                 <div className="grid gap-2">
-                                    {group.options.map((option) => {
+                                    {group.options.filter(o => o.isAvailable).map((option) => {
                                         const isSelected = selectedInGroup.includes(option.id);
                                         const isDisabled = !isSelected && !isRadio && group.maxSelect && selectedInGroup.length >= group.maxSelect;
 

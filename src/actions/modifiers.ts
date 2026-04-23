@@ -121,3 +121,41 @@ export async function deleteModifierOption(id: string) {
     await prisma.modifierOption.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
 }
+
+export async function toggleModifierOptionAvailability(id: string, isAvailable: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    // Verificar propiedad de la opción
+    const option = await prisma.modifierOption.findUnique({
+        where: { id },
+        include: {
+            modifierGroup: {
+                include: {
+                    product: {
+                        include: {
+                            category: {
+                                include: {
+                                    store: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    if (!option) throw new Error("La opción no existe")
+    if (option.modifierGroup.product.category.store.userId !== user.id) {
+        throw new Error("No autorizado")
+    }
+
+    await prisma.modifierOption.update({
+        where: { id },
+        data: { isAvailable }
+    })
+
+    revalidatePath(`/dashboard/products`)
+}
