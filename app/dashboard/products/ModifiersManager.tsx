@@ -6,7 +6,8 @@ import {
     createModifierGroup, 
     createModifierOption, 
     deleteModifierGroup, 
-    deleteModifierOption 
+    deleteModifierOption,
+    toggleModifierOptionAvailability
 } from "@/src/actions/modifiers"
 import { ConfirmationModal } from "./ConfirmationModal"
 
@@ -14,6 +15,7 @@ interface ModifierOption {
     id: string;
     name: string;
     price: number;
+    isAvailable: boolean;
 }
 
 interface ModifierGroup {
@@ -103,6 +105,19 @@ export function ModifiersManager({ product }: { product: Product }) {
             }
         } catch (error: any) {
             showStatus('error', error.message || 'Error al eliminar el elemento.')
+        } finally {
+            setIsPending(false)
+        }
+    }
+
+    const handleToggleAvailability = async (id: string, currentStatus: boolean) => {
+        setIsPending(true)
+        setStatus(null)
+        try {
+            await toggleModifierOptionAvailability(id, !currentStatus)
+            showStatus('success', `Opción ${!currentStatus ? 'activada' : 'desactivada'} correctamente.`)
+        } catch (error: any) {
+            showStatus('error', error.message || 'Error al cambiar el estado.')
         } finally {
             setIsPending(false)
         }
@@ -251,14 +266,32 @@ export function ModifiersManager({ product }: { product: Product }) {
                                                 ) : (
                                                     <div className="grid grid-cols-1 gap-3">
                                                         {group.options.map((option) => (
-                                                            <div key={option.id} className="flex justify-between items-center bg-zinc-50/30 p-4 rounded-2xl border border-zinc-100 group transition-all hover:bg-zinc-50">
-                                                                <span className="font-bold text-zinc-800">{option.name}</span>
-                                                                <div className="flex items-center gap-4">
+                                                            <div key={option.id} className={`flex justify-between items-center bg-zinc-50/30 p-4 rounded-2xl border border-zinc-100 group transition-all hover:bg-zinc-50 ${!option.isAvailable ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                                                <div className="flex flex-col">
+                                                                    <span className={`font-bold ${!option.isAvailable ? 'text-zinc-500' : 'text-zinc-800'}`}>
+                                                                        {option.name}
+                                                                        {!option.isAvailable && <span className="ml-2 text-[10px] bg-zinc-200 text-zinc-500 px-2 py-0.5 rounded-full uppercase tracking-tighter">Agotado</span>}
+                                                                    </span>
                                                                     {option.price > 0 && (
-                                                                        <span className="font-black text-sm text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100/50">
+                                                                        <span className="font-black text-xs text-emerald-600 mt-0.5">
                                                                             +${option.price.toFixed(2)}
                                                                         </span>
                                                                     )}
+                                                                </div>
+                                                                
+                                                                <div className="flex items-center gap-2 sm:gap-4">
+                                                                    {/* Switch de Disponibilidad */}
+                                                                    <label className="relative inline-flex items-center cursor-pointer group/switch scale-90" title={option.isAvailable ? "Desactivar opción" : "Activar opción"}>
+                                                                        <input 
+                                                                            type="checkbox" 
+                                                                            className="sr-only peer" 
+                                                                            checked={option.isAvailable}
+                                                                            onChange={() => handleToggleAvailability(option.id, option.isAvailable)}
+                                                                            disabled={isPending}
+                                                                        />
+                                                                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                                                    </label>
+
                                                                     <button 
                                                                         onClick={() => setDeletingItem({ id: option.id, name: option.name, type: 'option' })}
                                                                         disabled={isPending}
