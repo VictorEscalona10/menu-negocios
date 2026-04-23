@@ -30,9 +30,11 @@ interface SortableProductListProps {
 export function SortableProductList({ categoryId, initialProducts, categories, deleteProductAction }: SortableProductListProps) {
   const [items, setItems] = useState(initialProducts)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   // Sincronizar estado local cuando los props cambian (importante después de revalidatePath)
   useEffect(() => {
+    setMounted(true)
     setItems(initialProducts)
   }, [initialProducts])
 
@@ -70,6 +72,8 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
       }
     }
   }
+
+  if (!mounted) return null;
 
   return (
     <DndContext 

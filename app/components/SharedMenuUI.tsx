@@ -298,7 +298,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                             <article
                                                 key={product.id}
                                                 className="relative rounded-2xl overflow-hidden mb-2 border"
-                                                style={{ 
+                                                style={{
                                                     boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
                                                     borderColor: `${accent}33`,
                                                     backgroundColor: cardBg

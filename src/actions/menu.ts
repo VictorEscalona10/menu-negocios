@@ -59,7 +59,7 @@ export async function createProduct(formData: FormData) {
 
     // Verificar que la categoría pertenece al local del usuario
     const category = await prisma.category.findFirst({
-        where: { 
+        where: {
             id: categoryId,
             store: { userId: user.id }
         }
@@ -132,7 +132,7 @@ export async function updateProduct(productId: string, formData: FormData) {
 
     // 1. Obtener los datos actuales del producto y verificar propiedad
     const currentProduct = await prisma.product.findFirst({
-        where: { 
+        where: {
             id: productId,
             category: { store: { userId: user.id } }
         },
@@ -155,7 +155,7 @@ export async function updateProduct(productId: string, formData: FormData) {
         }
 
         const supabase = await createClient()
-        
+
         // Subimos la nueva imagen
         const fileExt = imageFile.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
@@ -173,7 +173,7 @@ export async function updateProduct(productId: string, formData: FormData) {
             const { data: { publicUrl } } = supabase.storage
                 .from('products')
                 .getPublicUrl(fileName)
-            
+
             // Si había una imagen anterior, la borramos
             if (currentProduct?.imageUrl) {
                 const oldFileName = currentProduct.imageUrl.split('/').pop()
@@ -181,7 +181,7 @@ export async function updateProduct(productId: string, formData: FormData) {
                     await supabase.storage.from('products').remove([oldFileName])
                 }
             }
-            
+
             imageUrl = publicUrl
         }
     }
@@ -228,7 +228,7 @@ export async function deleteProduct(productId: string) {
 
     // 1. Buscamos el producto antes de borrarlo y verificamos propiedad
     const product = await prisma.product.findFirst({
-        where: { 
+        where: {
             id: productId,
             category: { store: { userId: user.id } }
         },
@@ -283,10 +283,10 @@ export async function updateProductsOrder(orderedIds: string[]) {
     // Autorización implícita: actualizamos solo si el producto pertenece 
     // a una categoría del usuario actual, por seguridad adicional lo validamos o 
     // lo hacemos simple confiando transaccionalmente.
-    
+
     // Al ser Array de promesas, map es más rápido
     await prisma.$transaction(
-        orderedIds.map((id, index) => 
+        orderedIds.map((id, index) =>
             prisma.product.update({
                 where: { id },
                 data: { order: index }
@@ -294,5 +294,39 @@ export async function updateProductsOrder(orderedIds: string[]) {
         )
     )
 
+    revalidatePath('/dashboard/products')
+}
+
+export async function updateCategoriesOrder(orderedIds: string[]) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    await prisma.$transaction(
+        orderedIds.map((id, index) =>
+            prisma.category.update({
+                where: { id },
+                data: { order: index }
+            })
+        )
+    )
+
+    revalidatePath('/dashboard/products')
+}
+
+export async function toggleCategoryAvailability(categoryId: string, currentValue: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("No autenticado")
+
+    const category = await prisma.category.findFirst({
+        where: { id: categoryId, store: { userId: user.id } }
+    })
+    if (!category) throw new Error("No autorizado")
+
+    await prisma.category.update({
+        where: { id: categoryId },
+        data: { isActive: !currentValue }
+    })
     revalidatePath('/dashboard/products')
 }

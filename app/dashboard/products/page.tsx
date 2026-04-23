@@ -7,6 +7,7 @@ import { CategoryForm } from './CategoryForm'
 import { ProductForm } from './ProductForm'
 import { DeleteButton } from './DeleteButton'
 import { SortableProductList } from './SortableProductList'
+import { SortableCategoryList } from './SortableCategoryList'
 
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
@@ -93,39 +94,12 @@ export default async function ProductsPage() {
                     {store.categories.length === 0 ? (
                         <p className="text-zinc-500 bg-zinc-50 p-6 rounded-2xl text-center border border-zinc-100">Tu menú está limpio. Comienza agregando categorías en el panel.</p>
                     ) : (
-                        <div className="space-y-10">
-                            {store.categories.map((category: any) => {
-                                const boundDeleteCategory = deleteCategory.bind(null, category.id);
-                                
-                                return (
-                                    <div key={category.id}>
-                                        <div className="flex items-center gap-3 mb-6 bg-zinc-50/50 p-2 pl-4 rounded-xl inline-flex group border border-transparent hover:border-zinc-100 transition-colors">
-                                            <h3 className="text-xl font-bold text-zinc-900 tracking-tight">
-                                                {category.name}
-                                            </h3>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <DeleteButton 
-                                                    deleteAction={boundDeleteCategory} 
-                                                    itemName={category.name} 
-                                                    isCategory={true} 
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {category.products.length === 0 ? (
-                                            <p className="text-sm text-zinc-400 italic ml-4">Categoría vacía.</p>
-                                        ) : (
-                                            <SortableProductList 
-                                                categoryId={category.id}
-                                                initialProducts={category.products}
-                                                categories={store.categories}
-                                                deleteProductAction={deleteProduct}
-                                            />
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
+                        <SortableCategoryList 
+                            initialCategories={store.categories}
+                            deleteCategoryAction={deleteCategory}
+                            deleteProductAction={deleteProduct}
+                            categoriesForProducts={store.categories}
+                        />
                     )}
                 </div>
             </div>
