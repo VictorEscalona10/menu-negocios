@@ -19,9 +19,10 @@ model Store {
   whatsappHeader String   @default("🍔 *NUEVO PEDIDO* 🍔")
   whatsappFooter String   @default("¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.")
 
-  backgroundColor String  @default("#ffffff")
-  themeColor      String  @default("#ef4444")
-  isActive        Boolean @default(true)
+  backgroundColor     String  @default("#ffffff")
+  themeColor          String  @default("#ef4444")
+  cardBackgroundColor String  @default("#ffffff")
+  isActive            Boolean @default(true)
 
   enableDelivery    Boolean @default(true)
   enablePickup      Boolean @default(true)

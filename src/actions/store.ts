@@ -26,6 +26,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const themeColor = formData.get('themeColor') as string
     const whatsappHeader = formData.get('whatsappHeader') as string
     const whatsappFooter = formData.get('whatsappFooter') as string
+    const cardBackgroundColor = formData.get('cardBackgroundColor') as string
 
     // Delivery modes (checkboxes send 'on' when checked, null when unchecked)
     const enableDelivery      = formData.get('enableDelivery')     === 'on'
@@ -110,6 +111,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         fontHeading,
         fontBody,
         upsellCategoryId,
+        cardBackgroundColor,
     };
 
     if (logoUrl) {
