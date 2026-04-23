@@ -37,6 +37,7 @@ export async function createCategory(storeId: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${store.slug}`)
 }
 
 export async function createProduct(formData: FormData) {
@@ -62,7 +63,8 @@ export async function createProduct(formData: FormData) {
         where: {
             id: categoryId,
             store: { userId: user.id }
-        }
+        },
+        include: { store: true }
     })
     if (!category) throw new Error("No autorizado para agregar productos a esta categoría")
 
@@ -110,6 +112,7 @@ export async function createProduct(formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${category.store.slug}`)
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
@@ -136,7 +139,10 @@ export async function updateProduct(productId: string, formData: FormData) {
             id: productId,
             category: { store: { userId: user.id } }
         },
-        select: { imageUrl: true }
+        select: { 
+            imageUrl: true,
+            category: { select: { store: { select: { slug: true } } } }
+        }
     })
 
     if (!currentProduct) throw new Error("No autorizado o producto no encontrado")
@@ -199,6 +205,7 @@ export async function updateProduct(productId: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${currentProduct.category.store.slug}`)
 }
 
 export async function deleteCategory(categoryId: string) {
@@ -208,7 +215,8 @@ export async function deleteCategory(categoryId: string) {
 
     // Verificar propiedad
     const category = await prisma.category.findFirst({
-        where: { id: categoryId, store: { userId: user.id } }
+        where: { id: categoryId, store: { userId: user.id } },
+        include: { store: true }
     })
     if (!category) throw new Error("No autorizado")
 
@@ -219,6 +227,7 @@ export async function deleteCategory(categoryId: string) {
         }
     })
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${category.store.slug}`)
 }
 
 export async function deleteProduct(productId: string) {
@@ -232,7 +241,10 @@ export async function deleteProduct(productId: string) {
             id: productId,
             category: { store: { userId: user.id } }
         },
-        select: { imageUrl: true }
+        select: { 
+            imageUrl: true,
+            category: { select: { store: { select: { slug: true } } } }
+        }
     });
 
     if (!product) throw new Error("No autorizado")
@@ -255,6 +267,7 @@ export async function deleteProduct(productId: string) {
     });
 
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${product.category.store.slug}`)
 }
 
 export async function toggleProductAvailability(productId: string, currentValue: boolean) {
@@ -303,6 +316,16 @@ export async function updateProductsOrder(orderedIds: string[]) {
         )
     )
 
+    if (orderedIds.length > 0) {
+        const firstProduct = await prisma.product.findFirst({
+            where: { id: orderedIds[0] },
+            select: { category: { select: { store: { select: { slug: true } } } } }
+        })
+        if (firstProduct) {
+            revalidatePath(`/menu/${firstProduct.category.store.slug}`)
+        }
+    }
+
     revalidatePath('/dashboard/products')
 }
 
@@ -320,6 +343,16 @@ export async function updateCategoriesOrder(orderedIds: string[]) {
         )
     )
 
+    if (orderedIds.length > 0) {
+        const firstCategory = await prisma.category.findFirst({
+            where: { id: orderedIds[0] },
+            select: { store: { select: { slug: true } } }
+        })
+        if (firstCategory) {
+            revalidatePath(`/menu/${firstCategory.store.slug}`)
+        }
+    }
+
     revalidatePath('/dashboard/products')
 }
 
@@ -329,7 +362,8 @@ export async function toggleCategoryAvailability(categoryId: string, currentValu
     if (!user) throw new Error("No autenticado")
 
     const category = await prisma.category.findFirst({
-        where: { id: categoryId, store: { userId: user.id } }
+        where: { id: categoryId, store: { userId: user.id } },
+        include: { store: true }
     })
     if (!category) throw new Error("No autorizado")
 
@@ -338,4 +372,5 @@ export async function toggleCategoryAvailability(categoryId: string, currentValu
         data: { isActive: !currentValue }
     })
     revalidatePath('/dashboard/products')
+    revalidatePath(`/menu/${category.store.slug}`)
 }
