@@ -312,22 +312,37 @@ export function SettingsForm({
                         </div>
 
                         <div className="pt-2">
-                            <label className="block text-sm font-semibold text-zinc-700 mb-2">Fondo de Tarjetas (Productos)</label>
-                            <p className="text-[10px] text-zinc-400 mb-2">Color del recuadro de cada producto</p>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-semibold text-zinc-700">Fondo de Tarjetas (Productos)</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, cardBackgroundColor: 'rgba(255,255,255,0.05)' })}
+                                    className="text-[10px] font-bold text-zinc-400 hover:text-black transition-colors uppercase tracking-wider"
+                                >
+                                    ✨ Usar Automático
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-zinc-400 mb-2">Color del recuadro de cada producto. Usa el automático para un efecto elegante.</p>
                             <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
                                 <input
                                     type="color"
-                                    name="cardBackgroundColor"
                                     value={localStore.cardBackgroundColor.startsWith('rgba') ? '#1a1a1a' : localStore.cardBackgroundColor}
                                     onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
                                     className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
                                 />
-                                <input 
-                                    type="text"
-                                    value={localStore.cardBackgroundColor}
-                                    onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
-                                    className="text-xs text-zinc-600 font-mono font-medium bg-transparent outline-none flex-1"
-                                />
+                                <input type="hidden" name="cardBackgroundColor" value={localStore.cardBackgroundColor} />
+                                <div className="flex-1 flex flex-col">
+                                    <input 
+                                        type="text"
+                                        value={localStore.cardBackgroundColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
+                                        className="text-xs text-zinc-600 font-mono font-medium bg-transparent outline-none w-full"
+                                        placeholder="Ej: #1a1a1a o rgba(255,255,255,0.05)"
+                                    />
+                                    {localStore.cardBackgroundColor.startsWith('rgba') && (
+                                        <span className="text-[9px] text-green-600 font-bold uppercase mt-0.5">Modo Automático Activo</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
