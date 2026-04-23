@@ -72,6 +72,7 @@ export default async function SettingsPage() {
                         fontHeading:  store.fontHeading  || 'Epilogue',
                         fontBody:     store.fontBody     || 'Manrope',
                         upsellCategoryId: store.upsellCategoryId || '',
+                        cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
                         id: store.id,
                     }} 
                     categories={store.categories}
