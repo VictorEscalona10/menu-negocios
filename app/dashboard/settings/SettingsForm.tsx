@@ -46,6 +46,7 @@ interface Store {
     fontHeading?: string;
     fontBody?: string;
     upsellCategoryId?: string;
+    cardBackgroundColor?: string;
     id: string;
 }
 
@@ -155,6 +156,7 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
         fontHeading: localStore.fontHeading,
         fontBody: localStore.fontBody,
         showProductImages: localStore.showProductImages,
+        cardBackgroundColor: localStore.cardBackgroundColor,
         categories: [
             {
                 id: "demo-cat",
@@ -222,6 +224,7 @@ export function SettingsForm({
         fontHeading: store.fontHeading || 'Epilogue',
         fontBody: store.fontBody || 'Manrope',
         upsellCategoryId: store.upsellCategoryId || '',
+        cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
     })
 
     // Cargar las fuentes seleccionadas en el panel de administración para vista previa
@@ -274,8 +277,148 @@ export function SettingsForm({
                         </div>
                     )}
 
+                    {/* Identidad Visual (colores de fondo) */}
+                    <div className="space-y-4 pt-4">
+                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">🎨 Identidad Visual</h2>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Color de Fondo</label>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="backgroundColor"
+                                        value={localStore.backgroundColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, backgroundColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.backgroundColor}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Acento Texturas</label>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="themeColor"
+                                        value={localStore.themeColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, themeColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.themeColor}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <label className="block text-sm font-semibold text-zinc-700 mb-2">Fondo de Tarjetas (Productos)</label>
+                            <p className="text-[10px] text-zinc-400 mb-2">Color del recuadro de cada producto</p>
+                            <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                <input
+                                    type="color"
+                                    name="cardBackgroundColor"
+                                    value={localStore.cardBackgroundColor.startsWith('rgba') ? '#1a1a1a' : localStore.cardBackgroundColor}
+                                    onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
+                                    className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                />
+                                <input 
+                                    type="text"
+                                    value={localStore.cardBackgroundColor}
+                                    onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
+                                    className="text-xs text-zinc-600 font-mono font-medium bg-transparent outline-none flex-1"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tipografía y Texto */}
+                    <div className="space-y-5 pt-4 border-t border-zinc-100">
+                        {/* Inyectar fuentes para previsualizar en el panel */}
+                        <link rel="stylesheet" href={fontsUrl} />
+
+                        <div>
+                            <h2 className="text-lg font-semibold text-zinc-800">🔤 Tipografía y Texto</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">Personaliza las fuentes y colores del texto del menú.</p>
+                        </div>
+
+                        {/* Colores de texto */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Principal</label>
+                                <p className="text-[10px] text-zinc-400 mb-2">Títulos de productos</p>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="textColor"
+                                        value={localStore.textColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, textColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.textColor}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Secundario</label>
+                                <p className="text-[10px] text-zinc-400 mb-2">Descripciones y etiquetas</p>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="subtextColor"
+                                        value={localStore.subtextColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, subtextColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.subtextColor}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Fuente de Títulos */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Títulos</label>
+                            <input type="hidden" name="fontHeading" value={localStore.fontHeading} />
+                            <select
+                                value={localStore.fontHeading}
+                                onChange={(e) => setLocalStore({ ...localStore, fontHeading: e.target.value })}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
+                            >
+                                {HEADING_FONTS.map(f => (
+                                    <option key={f} value={f}>{f}</option>
+                                ))}
+                            </select>
+                            <p
+                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-base"
+                                style={{ fontFamily: `'${localStore.fontHeading}', sans-serif` }}
+                            >
+                                Hamburguesa Trufada — $14.50
+                            </p>
+                        </div>
+
+                        {/* Fuente de Cuerpo */}
+                        <div>
+                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Texto / Descripción</label>
+                            <input type="hidden" name="fontBody" value={localStore.fontBody} />
+                            <select
+                                value={localStore.fontBody}
+                                onChange={(e) => setLocalStore({ ...localStore, fontBody: e.target.value })}
+                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
+                            >
+                                {BODY_FONTS.map(f => (
+                                    <option key={f} value={f}>{f}</option>
+                                ))}
+                            </select>
+                            <p
+                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-sm"
+                                style={{ fontFamily: `'${localStore.fontBody}', sans-serif` }}
+                            >
+                                Carne Angus 200g, mayonesa de trufa negra, papas fritas artesanales.
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Datos Básicos */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Información del Negocio</h2>
 
                         <div>
@@ -537,125 +680,6 @@ export function SettingsForm({
                         </button>
                     </div>
 
-                    {/* Tipografía y Texto */}
-                    <div className="space-y-5 pt-4 border-t border-zinc-100">
-                        {/* Inyectar fuentes para previsualizar en el panel */}
-                        <link rel="stylesheet" href={fontsUrl} />
-
-                        <div>
-                            <h2 className="text-lg font-semibold text-zinc-800">Tipografía y Texto</h2>
-                            <p className="text-xs text-zinc-400 mt-0.5">Personaliza las fuentes y colores del texto del menú.</p>
-                        </div>
-
-                        {/* Colores de texto */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Principal</label>
-                                <p className="text-[10px] text-zinc-400 mb-2">Títulos de productos</p>
-                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
-                                    <input
-                                        type="color"
-                                        name="textColor"
-                                        value={localStore.textColor}
-                                        onChange={(e) => setLocalStore({ ...localStore, textColor: e.target.value })}
-                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                    />
-                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.textColor}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Secundario</label>
-                                <p className="text-[10px] text-zinc-400 mb-2">Descripciones y etiquetas</p>
-                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
-                                    <input
-                                        type="color"
-                                        name="subtextColor"
-                                        value={localStore.subtextColor}
-                                        onChange={(e) => setLocalStore({ ...localStore, subtextColor: e.target.value })}
-                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                    />
-                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.subtextColor}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Fuente de Títulos */}
-                        <div>
-                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Títulos</label>
-                            <input type="hidden" name="fontHeading" value={localStore.fontHeading} />
-                            <select
-                                value={localStore.fontHeading}
-                                onChange={(e) => setLocalStore({ ...localStore, fontHeading: e.target.value })}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
-                            >
-                                {HEADING_FONTS.map(f => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
-                            <p
-                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-base"
-                                style={{ fontFamily: `'${localStore.fontHeading}', sans-serif` }}
-                            >
-                                Hamburguesa Trufada — $14.50
-                            </p>
-                        </div>
-
-                        {/* Fuente de Cuerpo */}
-                        <div>
-                            <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Texto / Descripción</label>
-                            <input type="hidden" name="fontBody" value={localStore.fontBody} />
-                            <select
-                                value={localStore.fontBody}
-                                onChange={(e) => setLocalStore({ ...localStore, fontBody: e.target.value })}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm"
-                            >
-                                {BODY_FONTS.map(f => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
-                            <p
-                                className="mt-2 px-3 py-2 bg-zinc-100 rounded-lg text-sm"
-                                style={{ fontFamily: `'${localStore.fontBody}', sans-serif` }}
-                            >
-                                Carne Angus 200g, mayonesa de trufa negra, papas fritas artesanales.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Identidad Visual (colores de fondo) */}
-                    <div className="space-y-4 pt-4">
-                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual</h2>
-
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Color de Fondo</label>
-                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
-                                    <input
-                                        type="color"
-                                        name="backgroundColor"
-                                        value={localStore.backgroundColor}
-                                        onChange={(e) => setLocalStore({ ...localStore, backgroundColor: e.target.value })}
-                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                    />
-                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.backgroundColor}</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Acento Texturas</label>
-                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
-                                    <input
-                                        type="color"
-                                        name="themeColor"
-                                        value={localStore.themeColor}
-                                        onChange={(e) => setLocalStore({ ...localStore, themeColor: e.target.value })}
-                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
-                                    />
-                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.themeColor}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <SubmitButton />
                 </form>

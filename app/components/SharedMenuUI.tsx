@@ -26,6 +26,7 @@ interface SharedMenuUIProps {
         fontHeading?: string;
         fontBody?: string;
         upsellCategoryId?: string | null;
+        cardBackgroundColor?: string;
         categories: Array<{
             id: string;
             name: string;
@@ -60,6 +61,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
     const subtextColor = store.subtextColor || '#e4beb5';
     const fontHeading = store.fontHeading || 'Epilogue';
     const fontBody = store.fontBody || 'Manrope';
+    const cardBg = store.cardBackgroundColor || 'rgba(255,255,255,0.05)';
 
     // Build Google Fonts URL for selected fonts
     const uniqueFonts = [...new Set([fontHeading, fontBody])];
@@ -295,8 +297,12 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                         return (
                                             <article
                                                 key={product.id}
-                                                className="relative rounded-2xl overflow-hidden mb-2"
-                                                style={{ boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22` }}
+                                                className="relative rounded-2xl overflow-hidden mb-2 border"
+                                                style={{ 
+                                                    boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
+                                                    borderColor: `${accent}33`,
+                                                    backgroundColor: cardBg
+                                                }}
                                             >
                                                 {showImages && product.imageUrl ? (
                                                     <div className="relative h-52 overflow-hidden">
@@ -327,7 +333,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="p-4 flex items-center justify-between gap-4" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                                    <div className="p-4 flex items-center justify-between gap-4" style={{ backgroundColor: cardBg, border: `1px solid ${accent}33` }}>
                                                         <div className="flex-1 min-w-0">
                                                             <h3 className="font-epilogue font-black text-xl leading-tight" style={{ color: textColor }}>{product.name}</h3>
                                                             <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>${product.price.toFixed(2)}</p>
@@ -343,7 +349,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                     </div>
                                                 )}
                                                 {product.description && (
-                                                    <div className="px-4 py-3 bg-white/[0.03]">
+                                                    <div className="px-4 py-3" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
                                                         <p className="font-manrope text-xs leading-relaxed line-clamp-2" style={{ color: subtextColor }}>
                                                             {product.description}
                                                         </p>
@@ -358,7 +364,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                         <article
                                             key={product.id}
                                             className="flex items-center gap-3 rounded-2xl p-3 transition-all duration-200"
-                                            style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                                            style={{ backgroundColor: cardBg, border: `1px solid ${accent}22` }}
                                         >
                                             {/* Imagen */}
                                             {showImages && (
