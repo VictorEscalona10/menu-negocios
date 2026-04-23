@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { 
   DndContext, 
   closestCenter, 
@@ -31,11 +31,16 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
   const [items, setItems] = useState(initialProducts)
   const [isUpdating, setIsUpdating] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const pendingUpdate = useRef(false)
 
-  // Sincronizar estado local cuando los props cambian (importante después de revalidatePath)
   useEffect(() => {
     setMounted(true)
-    setItems(initialProducts)
+  }, [])
+
+  useEffect(() => {
+    if (!pendingUpdate.current) {
+      setItems(initialProducts)
+    }
   }, [initialProducts])
 
   const sensors = useSensors(
@@ -53,6 +58,8 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
     const { active, over } = event
 
     if (over && active.id !== over.id) {
+      pendingUpdate.current = true
+
       const oldIndex = items.findIndex((i) => i.id === active.id)
       const newIndex = items.findIndex((i) => i.id === over.id)
       
@@ -66,9 +73,10 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
       } catch (error) {
         console.error("Error updating order", error)
         // Revert UI on fail
-        setItems(items)
+        setItems(initialProducts)
       } finally {
         setIsUpdating(false)
+        setTimeout(() => { pendingUpdate.current = false }, 500)
       }
     }
   }
