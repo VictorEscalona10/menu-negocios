@@ -23,6 +23,7 @@ export default async function ProductsPage() {
         where: { userId: user.id },
         include: {
             categories: {
+                orderBy: { order: 'asc' },
                 include: {
                     products: {
                         include: {

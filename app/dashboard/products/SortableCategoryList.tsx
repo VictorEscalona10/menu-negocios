@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   DndContext,
   closestCenter,
@@ -40,10 +40,17 @@ export function SortableCategoryList({
   const [items, setItems] = useState(initialCategories)
   const [isUpdating, setIsUpdating] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const pendingUpdate = useRef(false)
 
   useEffect(() => {
     setMounted(true)
-    setItems(initialCategories)
+  }, [])
+
+  // Solo sincronizar del servidor cuando NO hay un drag pendiente
+  useEffect(() => {
+    if (!pendingUpdate.current) {
+      setItems(initialCategories)
+    }
   }, [initialCategories])
 
   const sensors = useSensors(
@@ -61,6 +68,8 @@ export function SortableCategoryList({
     const { active, over } = event
 
     if (over && active.id !== over.id) {
+      pendingUpdate.current = true
+
       const oldIndex = items.findIndex((i) => i.id === active.id)
       const newIndex = items.findIndex((i) => i.id === over.id)
 
@@ -76,6 +85,8 @@ export function SortableCategoryList({
         setItems(initialCategories)
       } finally {
         setIsUpdating(false)
+        // Pequeño delay para dejar que revalidatePath haga su trabajo antes de permitir sync
+        setTimeout(() => { pendingUpdate.current = false }, 500)
       }
     }
   }
