@@ -262,9 +262,14 @@ export async function toggleProductAvailability(productId: string, currentValue:
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    // Verificar propiedad
+    // Modificamos la búsqueda para traer el slug del local
     const product = await prisma.product.findFirst({
-        where: { id: productId, category: { store: { userId: user.id } } }
+        where: { id: productId, category: { store: { userId: user.id } } },
+        include: {
+            category: {
+                include: { store: true }
+            }
+        }
     })
     if (!product) throw new Error("No autorizado")
 
@@ -272,7 +277,11 @@ export async function toggleProductAvailability(productId: string, currentValue:
         where: { id: productId },
         data: { isAvailable: !currentValue }
     })
+
+    // 1. Actualiza el panel de admin
     revalidatePath('/dashboard/products')
+    // 2. MAGIA: Actualiza el menú público instantáneamente
+    revalidatePath(`/menu/${product.category.store.slug}`)
 }
 
 export async function updateProductsOrder(orderedIds: string[]) {
