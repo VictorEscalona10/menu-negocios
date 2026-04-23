@@ -53,7 +53,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // El middleware se ejecuta en todas las rutas excepto archivos estáticos e imágenes
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        /*
+         * Ejecutar el middleware SOLO en las rutas que necesitan
+         * protección o redirección de autenticación.
+         */
+        '/dashboard/:path*',
+        '/login'
     ],
 }
