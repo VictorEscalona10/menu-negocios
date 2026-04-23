@@ -147,20 +147,20 @@ function SortableCategoryItem({
   const boundDeleteCategory = deleteCategoryAction.bind(null, category.id);
 
   return (
-    <div ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-50' : ''}`}>
-      <div className={`flex items-center justify-between mb-6 p-2 pl-4 rounded-xl group border transition-all ${
+    <div ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-50' : ''} overflow-hidden`}>
+      <div className={`flex items-center justify-between mb-6 p-2 pl-3 sm:pl-4 rounded-xl group border transition-all min-w-0 gap-1 sm:gap-2 ${
         category.isActive ? 'bg-zinc-50/80 border-zinc-100 hover:shadow-sm' : 'bg-zinc-100/50 border-zinc-200'
       }`}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
           {/* Drag Handle */}
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition-colors shrink-0">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>
           </div>
 
-          <div className="flex flex-col">
-            <h3 className={`text-xl font-bold tracking-tight transition-colors ${category.isActive ? 'text-zinc-900' : 'text-zinc-400 line-through'}`}>
+          <div className="flex flex-col min-w-0 flex-1">
+            <h3 className={`text-base sm:text-xl font-bold tracking-tight transition-colors break-words ${category.isActive ? 'text-zinc-900' : 'text-zinc-400 line-through'}`}>
               {category.name}
             </h3>
             {!category.isActive && (
@@ -169,13 +169,15 @@ function SortableCategoryItem({
           </div>
 
           {/* Switch de activar/desactivar */}
-          <ToggleCategoryAvailability
-            categoryId={category.id}
-            isActive={category.isActive}
-            categoryName={category.name}
-          />
+          <div className="shrink-0">
+            <ToggleCategoryAvailability
+              categoryId={category.id}
+              isActive={category.isActive}
+              categoryName={category.name}
+            />
+          </div>
 
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <DeleteButton
               deleteAction={boundDeleteCategory}
               itemName={category.name}
@@ -187,10 +189,10 @@ function SortableCategoryItem({
         {/* Collapse Toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 hover:bg-zinc-200/50 rounded-lg transition-colors text-zinc-500 mr-2"
+          className="p-1.5 sm:p-2 hover:bg-zinc-200/50 rounded-lg transition-colors text-zinc-500 mr-1 sm:mr-2 shrink-0"
         >
           <svg
-            className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
+            className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
