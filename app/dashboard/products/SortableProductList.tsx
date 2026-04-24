@@ -1,20 +1,21 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { 
-  DndContext, 
-  closestCenter, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
   useSensors,
   DragEndEvent
 } from "@dnd-kit/core"
-import { 
-  arrayMove, 
-  SortableContext, 
-  sortableKeyboardCoordinates, 
-  verticalListSortingStrategy 
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
 } from "@dnd-kit/sortable"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import { updateProductsOrder } from "@/src/actions/menu"
@@ -49,6 +50,12 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
         distance: 8, // Require 8px of movement to drag, allows clicking buttons inside card
       },
     }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -62,7 +69,7 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
 
       const oldIndex = items.findIndex((i) => i.id === active.id)
       const newIndex = items.findIndex((i) => i.id === over.id)
-      
+
       const newItems = arrayMove(items, oldIndex, newIndex)
       setItems(newItems)
 
@@ -84,7 +91,7 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
   if (!mounted) return null;
 
   return (
-    <DndContext 
+    <DndContext
       id={categoryId}
       sensors={sensors}
       collisionDetection={closestCenter}
@@ -92,16 +99,16 @@ export function SortableProductList({ categoryId, initialProducts, categories, d
       onDragEnd={handleDragEnd}
     >
       <div className={`grid grid-cols-1 gap-4 ml-2 transition-opacity duration-300 ${isUpdating ? 'opacity-60' : 'opacity-100'}`}>
-        <SortableContext 
+        <SortableContext
           items={items.map(p => p.id)}
           strategy={verticalListSortingStrategy}
         >
           {items.map((product) => {
-             // Binding actions locally so the card can consume them directly
-             const boundDeleteProduct = deleteProductAction.bind(null, product.id)
-             
-             return (
-              <SortableProductCard 
+            // Binding actions locally so the card can consume them directly
+            const boundDeleteProduct = deleteProductAction.bind(null, product.id)
+
+            return (
+              <SortableProductCard
                 key={product.id}
                 product={product}
                 categories={categories}

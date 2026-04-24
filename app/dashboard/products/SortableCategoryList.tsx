@@ -6,6 +6,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent
@@ -57,6 +58,12 @@ export function SortableCategoryList({
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -148,12 +155,11 @@ function SortableCategoryItem({
 
   return (
     <div ref={setNodeRef} style={style} className={`${isDragging ? 'opacity-50' : ''} overflow-hidden`}>
-      <div className={`flex items-center justify-between mb-6 p-2 pl-3 sm:pl-4 rounded-xl group border transition-all min-w-0 gap-1 sm:gap-2 ${
-        category.isActive ? 'bg-zinc-50/80 border-zinc-100 hover:shadow-sm' : 'bg-zinc-100/50 border-zinc-200'
-      }`}>
+      <div className={`flex items-center justify-between mb-6 p-2 pl-3 sm:pl-4 rounded-xl group border transition-all min-w-0 gap-1 sm:gap-2 ${category.isActive ? 'bg-zinc-50/80 border-zinc-100 hover:shadow-sm' : 'bg-zinc-100/50 border-zinc-200'
+        }`}>
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
           {/* Drag Handle */}
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition-colors shrink-0">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition-colors shrink-0 touch-none">
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>

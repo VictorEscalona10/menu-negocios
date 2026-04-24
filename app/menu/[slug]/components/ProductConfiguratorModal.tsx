@@ -40,6 +40,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
     // El estado guarda un map de groupId -> array de option IDs seleccionados
     const [selections, setSelections] = useState<Record<string, string[]>>({})
     const [notes, setNotes] = useState("")
+    const [quantity, setQuantity] = useState(1)
     const [showValidation, setShowValidation] = useState(false)
 
     // Reset validation when selections change
@@ -94,7 +95,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                 })
             }
         });
-        return total;
+        return total * quantity;
     }
 
     const validateRequired = () => {
@@ -140,12 +141,14 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
             name: product.name,
             price: product.price,
             selectedOptions: selectedOptionsFormatted,
-            notes: notes.trim() || undefined
+            notes: notes.trim() || undefined,
+            quantity: quantity
         });
 
         onClose();
         setSelections({});
         setNotes("");
+        setQuantity(1);
     }
 
     return (
@@ -301,15 +304,34 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                             <div className="text-[10px] text-red-400 font-bold max-w-[120px] text-right leading-tight">Completa los campos requeridos</div>
                         )}
                     </div>
-                    
-                    <button
-                        onClick={handleAddToCart}
-                        className="w-full text-white font-black text-lg py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] hover:brightness-110 shadow-xl disabled:grayscale disabled:opacity-50"
-                        style={{ backgroundColor: themeColor || '#FF5630', color: '#fff' }}
-                    >
-                        <span>Añadir a la Orden</span>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </button>
+
+                    <div className="flex gap-4 items-center">
+                        {/* Selector de Cantidad */}
+                        <div className="flex items-center bg-white/5 rounded-2xl p-1 border border-white/10 shrink-0">
+                            <button
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="w-12 h-12 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-90"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M20 12H4" /></svg>
+                            </button>
+                            <span className="w-10 text-center font-black text-xl text-white font-epilogue">{quantity}</span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-12 h-12 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-90"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
+                            </button>
+                        </div>
+                        
+                        <button
+                            onClick={handleAddToCart}
+                            className="flex-1 text-white font-black text-lg py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] hover:brightness-110 shadow-xl disabled:grayscale disabled:opacity-50"
+                            style={{ backgroundColor: themeColor || '#FF5630', color: '#fff' }}
+                        >
+                            <span>Añadir</span>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
