@@ -17,6 +17,8 @@ interface Product {
     price: number
     categoryId: string
     imageUrl: string | null
+    isCombo?: boolean
+    comboBadge?: string | null
 }
 
 export function EditProductModal({ 

@@ -58,6 +58,16 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                                     + Extras
                                 </span>
                             )}
+                            {product.isCombo && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-orange-400 text-white uppercase tracking-tighter shrink-0 whitespace-nowrap">
+                                    🌟 Combo
+                                </span>
+                            )}
+                            {product.isCombo && product.comboBadge && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700 shrink-0 whitespace-nowrap">
+                                    {product.comboBadge}
+                                </span>
+                            )}
                         </div>
                         
                         {!optimisticAvailable ? (

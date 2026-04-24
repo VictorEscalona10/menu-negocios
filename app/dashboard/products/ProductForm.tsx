@@ -23,6 +23,8 @@ export function ProductForm({
         price: number
         categoryId: string
         imageUrl: string | null
+        isCombo?: boolean
+        comboBadge?: string | null
     },
     onSuccess?: () => void
 }) {
@@ -30,6 +32,10 @@ export function ProductForm({
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
     const [errorMessage, setErrorMessage] = useState("")
     const [isPending, setIsPending] = useState(false)
+
+    // Combo state
+    const [isCombo, setIsCombo] = useState(initialData?.isCombo ?? false)
+    const [comboBadge, setComboBadge] = useState(initialData?.comboBadge ?? "")
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -218,6 +224,51 @@ export function ProductForm({
                         />
                     </div>
                 </div>
+
+                {/* ── Sección Combo ── */}
+                <div className="space-y-3 pt-4 border-t border-zinc-100">
+                    <input type="hidden" name="isCombo" value={isCombo ? 'on' : 'off'} />
+                    <button
+                        type="button"
+                        onClick={() => setIsCombo(!isCombo)}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+                            isCombo
+                                ? 'border-amber-400 bg-amber-50'
+                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                        }`}
+                    >
+                        <span className="text-2xl shrink-0">🌟</span>
+                        <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-sm ${isCombo ? 'text-amber-900' : 'text-zinc-500'}`}>
+                                Este producto es un Combo
+                            </p>
+                            <p className="text-xs text-zinc-400 truncate">
+                                {isCombo ? 'Se mostrará con estilo destacado en el menú' : 'Se mostrará como producto regular'}
+                            </p>
+                        </div>
+                        <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${isCombo ? 'bg-amber-500' : 'bg-zinc-200'}`}>
+                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${isCombo ? 'translate-x-5' : 'translate-x-0'}`} />
+                        </div>
+                    </button>
+
+                    {isCombo && (
+                        <div className="space-y-1.5" style={{ animation: 'fadeIn 0.2s ease' }}>
+                            <label className="block text-sm font-bold text-zinc-800 ml-1">Etiqueta del Combo</label>
+                            <input
+                                type="text"
+                                name="comboBadge"
+                                value={comboBadge}
+                                onChange={(e) => setComboBadge(e.target.value)}
+                                placeholder='Ej: Ahorra $2, Familiar, 2x1'
+                                maxLength={30}
+                                className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-4 text-zinc-900 outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all font-medium placeholder-zinc-400"
+                            />
+                            <p className="text-[10px] text-zinc-400 ml-1">Opcional. Aparece como badge destacado en el menú público.</p>
+                        </div>
+                    )}
+                </div>
+
+                <style dangerouslySetInnerHTML={{ __html: `@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }` }} />
 
                 <button
                     type="submit"
