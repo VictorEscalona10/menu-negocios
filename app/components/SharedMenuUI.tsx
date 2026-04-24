@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useCartStore } from '@/src/store/cartStore'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
@@ -76,6 +77,23 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
         : null;
     const [activeIndex, setActiveIndex] = useState(0);
     const [activeConfigProduct, setActiveConfigProduct] = useState<any>(null);
+    const addItem = useCartStore((state) => state.addItem);
+
+    // ── Acción al tocar un producto (contenedor o botón) ──
+    const handleProductAction = useCallback((product: any) => {
+        if (isPreview) return;
+        
+        const hasModifiers = product.modifierGroups && product.modifierGroups.length > 0;
+        if (store.forceNotesModal || hasModifiers) {
+            setActiveConfigProduct(product);
+        } else {
+            addItem({
+                productId: product.id,
+                name: product.name,
+                price: product.price,
+            });
+        }
+    }, [isPreview, store.forceNotesModal, addItem]);
 
     // Refs para el slider y el nav
     const sliderRef = useRef<HTMLDivElement>(null);
@@ -297,7 +315,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                         return (
                                             <article
                                                 key={product.id}
-                                                className="relative rounded-2xl overflow-hidden mb-2 border"
+                                                onClick={() => handleProductAction(product)}
+                                                className="relative rounded-2xl overflow-hidden mb-2 border cursor-pointer transition-all duration-200 active:scale-[0.985] group"
                                                 style={{
                                                     boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
                                                     borderColor: `${accent}33`,
@@ -310,7 +329,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         <img
                                                             src={product.imageUrl!}
                                                             alt={product.name}
-                                                            className="w-full h-full object-cover"
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                         />
                                                         <div className="absolute inset-0 bg-black/60" />
                                                         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
@@ -363,7 +382,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                     return (
                                         <article
                                             key={product.id}
-                                            className="flex items-center gap-3 rounded-2xl p-3 transition-all duration-200"
+                                            onClick={() => handleProductAction(product)}
+                                            className="flex items-center gap-3 rounded-2xl p-3 transition-all duration-200 cursor-pointer active:scale-[0.97] hover:bg-white/[0.02]"
                                             style={{ backgroundColor: cardBg, border: `1px solid ${accent}22` }}
                                         >
                                             {/* Imagen */}

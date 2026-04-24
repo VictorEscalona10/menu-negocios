@@ -20,7 +20,7 @@ export type CartItem = {
 
 interface CartState {
     items: CartItem[];
-    addItem: (item: Omit<CartItem, 'quantity' | 'id'> & { id?: string }) => void;
+    addItem: (item: Omit<CartItem, 'quantity' | 'id'> & { id?: string; quantity?: number }) => void;
     removeItem: (id: string) => void;
     deleteItem: (id: string) => void;
     getTotal: () => number;
@@ -50,12 +50,12 @@ export const useCartStore = create<CartState>((set, get) => ({
         if (existingItem) {
             return {
                 items: state.items.map(i =>
-                    i.id === uniqueId ? { ...i, quantity: i.quantity + 1 } : i
+                    i.id === uniqueId ? { ...i, quantity: i.quantity + (newItem.quantity || 1) } : i
                 )
             };
         }
 
-        return { items: [...state.items, { ...newItem, id: uniqueId, quantity: 1 }] };
+        return { items: [...state.items, { ...newItem, id: uniqueId, quantity: newItem.quantity || 1 }] };
     }),
 
     // Resta 1 a la cantidad
