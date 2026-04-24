@@ -134,8 +134,8 @@ export default async function DashboardPage() {
     const menuUrl = `${proto}://${host}/menu/${store.slug}`
 
     return (
-        <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 bg-zinc-50/50">
-            <div className="w-full max-w-4xl bg-white p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
+        <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 md:p-6 bg-zinc-50/50">
+            <div className="w-full max-w-4xl bg-white p-5 md:p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
 
                 {/* BOTÓN DE CERRAR SESIÓN */}
                 <div className="absolute top-6 right-6">
@@ -147,25 +147,25 @@ export default async function DashboardPage() {
                     </form>
                 </div>
 
-                <div className="text-center mb-12 mt-4">
-                    <h1 className="text-4xl font-extrabold text-zinc-900 mb-3 tracking-tight">Resumen de {store.name}</h1>
-                    <p className="text-zinc-500 font-medium tracking-wide border-b border-zinc-100 pb-8 inline-block px-12">
+                <div className="text-center mb-8 md:mb-12 mt-4">
+                    <h1 className="text-2xl md:text-4xl font-extrabold text-zinc-900 mb-3 tracking-tight">Resumen de {store.name}</h1>
+                    <p className="text-zinc-500 font-medium tracking-wide border-b border-zinc-100 pb-8 inline-block px-4 md:px-12">
                         Panel de Administración
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-6 md:p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center min-w-0">
                         <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">Enlace del menú</h3>
-                        <a href={`/menu/${store.slug}`} className="text-lg font-bold text-zinc-900 truncate w-full hover:text-black transition-colors">
+                        <a href={`/menu/${store.slug}`} className="text-base md:text-lg font-bold text-zinc-900 truncate w-full hover:text-black transition-colors">
                             /menu/{store.slug}
                         </a>
                     </div>
-                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-6 md:p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center">
                         <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">WhatsApp</h3>
                         <p className="text-xl font-bold text-zinc-900">{store.whatsapp}</p>
                     </div>
-                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center relative overflow-hidden">
+                    <div className="bg-zinc-50 hover:bg-zinc-100 transition-colors p-6 md:p-8 rounded-2xl border border-zinc-200 flex flex-col items-center text-center relative overflow-hidden">
                         <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-3">Estado</h3>
                         <div className="flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* SECCIÓN QR */}
-                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 mb-8 flex flex-col items-center gap-2">
+                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 md:p-8 mb-8 flex flex-col items-center gap-2">
                     <h2 className="text-sm uppercase tracking-widest font-bold text-zinc-400 mb-4">Código QR del Menú</h2>
                     <QRGenerator menuUrl={menuUrl} storeName={store.name} />
                     <p className="text-xs text-zinc-400 mt-3 text-center">Imprime este QR y colócalo en tu local para que los clientes accedan al menú desde su celular.</p>

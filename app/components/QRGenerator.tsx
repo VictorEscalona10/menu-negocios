@@ -15,8 +15,9 @@ export default function QRGenerator({ menuUrl, storeName }: QRGeneratorProps) {
 
     useEffect(() => {
         if (!canvasRef.current) return
+        const width = window.innerWidth < 640 ? 200 : 240
         QRCode.toCanvas(canvasRef.current, menuUrl, {
-            width: 240,
+            width: width,
             margin: 2,
             color: {
                 dark: '#18181b',   // zinc-900
@@ -76,32 +77,36 @@ export default function QRGenerator({ menuUrl, storeName }: QRGeneratorProps) {
                 )}
             </div>
 
-            {/* URL del menú */}
-            <div className="flex items-center gap-2 bg-zinc-100 border border-zinc-200 rounded-xl px-3 py-2.5 w-full min-w-0 overflow-hidden">
-                <span className="text-xs text-zinc-600 overflow-hidden text-ellipsis whitespace-nowrap flex-1 font-mono">
-                    {menuUrl}
-                </span>
+            {/* Botones de acción */}
+            <div className="flex flex-col gap-3 w-full">
                 <button
                     onClick={handleCopy}
-                    title="Copiar enlace"
-                    className={`shrink-0 text-white rounded-lg px-3 py-1.5 text-[0.7rem] font-semibold transition-colors ${copied ? 'bg-green-500' : 'bg-zinc-900 hover:bg-zinc-800'}`}
+                    className={`flex items-center justify-center gap-2 rounded-xl py-3.5 px-6 text-sm font-bold w-full transition-all border ${copied ? 'bg-green-50 text-green-600 border-green-200' : 'bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50'}`}
                 >
-                    {copied ? '✓ Copiado' : 'Copiar'}
+                    {copied ? (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                            ¡Copiado con éxito!
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3" /></svg>
+                            Copiar Enlace del Menú
+                        </>
+                    )}
+                </button>
+
+                <button
+                    onClick={handleDownload}
+                    disabled={!ready}
+                    className={`flex items-center justify-center gap-2 bg-black text-white rounded-xl py-3.5 px-6 text-sm font-bold w-full transition-all ${ready ? 'cursor-pointer opacity-100 hover:bg-zinc-800' : 'cursor-not-allowed opacity-50'}`}
+                >
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 3v10m0 0l-3-3m3 3l3-3" />
+                    </svg>
+                    Descargar Imagen QR
                 </button>
             </div>
-
-            {/* Botón de descarga */}
-            <button
-                onClick={handleDownload}
-                disabled={!ready}
-                className={`flex items-center justify-center gap-2 bg-zinc-900 text-white rounded-xl py-3 px-6 text-sm font-semibold w-full transition-all ${ready ? 'cursor-pointer opacity-100 hover:-translate-y-0.5 hover:shadow-md' : 'cursor-not-allowed opacity-50'}`}
-            >
-                {/* Download icon */}
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 3v10m0 0l-3-3m3 3l3-3" />
-                </svg>
-                Descargar QR (PNG)
-            </button>
         </div>
     )
 }

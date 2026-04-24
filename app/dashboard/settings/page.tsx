@@ -34,11 +34,11 @@ export default async function SettingsPage() {
     const updateStoreWithId = updateStoreSettings.bind(null, store.id);
 
     return (
-        <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 lg:p-10 bg-zinc-50/50">
-            <div className="w-full max-w-5xl bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
-                
+        <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 md:p-6 lg:p-10 bg-zinc-50/50">
+            <div className="w-full max-w-5xl bg-white p-5 md:p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
+
                 {/* Botón Volver */}
-                <Link 
+                <Link
                     href="/dashboard"
                     className="absolute top-6 left-6 md:top-8 md:left-8 flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300"
                 >
@@ -53,7 +53,7 @@ export default async function SettingsPage() {
                     <p className="text-zinc-500 font-medium">Ajusta los detalles de tu tienda</p>
                 </div>
 
-                <SettingsForm 
+                <SettingsForm
                     store={{
                         name: store.name,
                         whatsapp: store.whatsapp,
@@ -62,22 +62,22 @@ export default async function SettingsPage() {
                         logoUrl: store.logoUrl || '',
                         whatsappHeader: store.whatsappHeader || '',
                         whatsappFooter: store.whatsappFooter || '',
-                        enableDelivery:    store.enableDelivery,
-                        enablePickup:      store.enablePickup,
-                        enableDineIn:      store.enableDineIn,
+                        enableDelivery: store.enableDelivery,
+                        enablePickup: store.enablePickup,
+                        enableDineIn: store.enableDineIn,
                         showProductImages: store.showProductImages,
-                        forceNotesModal:   store.forceNotesModal,
-                        textColor:    store.textColor    || '#e5e2e1',
+                        forceNotesModal: store.forceNotesModal,
+                        textColor: store.textColor || '#e5e2e1',
                         subtextColor: store.subtextColor || '#e4beb5',
-                        fontHeading:  store.fontHeading  || 'Epilogue',
-                        fontBody:     store.fontBody     || 'Manrope',
+                        fontHeading: store.fontHeading || 'Epilogue',
+                        fontBody: store.fontBody || 'Manrope',
                         upsellCategoryId: store.upsellCategoryId || '',
                         cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
                         requireCedula: store.requireCedula,
                         id: store.id,
-                    }} 
+                    }}
                     categories={store.categories}
-                    updateAction={updateStoreWithId} 
+                    updateAction={updateStoreWithId}
                 />
             </div>
         </div>
