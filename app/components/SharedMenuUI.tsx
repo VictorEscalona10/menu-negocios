@@ -38,6 +38,8 @@ interface SharedMenuUIProps {
                 description: string | null;
                 price: number;
                 imageUrl: string | null;
+                isCombo?: boolean;
+                comboBadge?: string | null;
                 modifierGroups?: Array<{
                     id: string;
                     name: string;
@@ -308,7 +310,12 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                 </p>
 
                                 {/* Productos */}
-                                {category.products.map((product, prodIndex) => {
+                                {(() => {
+                                    const combos = category.products.filter(p => p.isCombo);
+                                    const regularProducts = category.products.filter(p => !p.isCombo);
+                                    const allSorted = [...combos, ...regularProducts];
+
+                                    return allSorted.map((product, prodIndex) => {
                                     const isHero = catIndex === 0 && prodIndex === 0 && !isPreview && showImages && !!product.imageUrl;
 
                                     if (isHero) {
@@ -317,13 +324,23 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                             <article
                                                 key={product.id}
                                                 onClick={() => handleProductAction(product)}
-                                                className="relative rounded-2xl overflow-hidden mb-2 border cursor-pointer transition-all duration-200 active:scale-[0.985] group"
+                                                className={`relative rounded-2xl overflow-hidden mb-2 border cursor-pointer transition-all duration-200 active:scale-[0.985] group ${product.isCombo ? 'ring-1 ring-white/10 mt-3' : ''}`}
                                                 style={{
-                                                    boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
-                                                    borderColor: `${accent}33`,
-                                                    backgroundColor: cardBg
+                                                    boxShadow: product.isCombo ? `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}44` : `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
+                                                    borderColor: product.isCombo ? `${accent}66` : `${accent}33`,
+                                                    backgroundColor: cardBg,
+                                                    borderWidth: product.isCombo ? '2px' : '1px'
                                                 }}
                                             >
+                                                {/* Badge de combo para Hero Card */}
+                                                {product.isCombo && (
+                                                    <span
+                                                        className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-black text-white uppercase tracking-widest z-20"
+                                                        style={{ backgroundColor: accent, boxShadow: `0 4px 12px ${accent}66` }}
+                                                    >
+                                                        🌟 {product.comboBadge || 'Combo'}
+                                                    </span>
+                                                )}
                                                 {showImages && product.imageUrl ? (
                                                     <div className="relative h-52 overflow-hidden">
                                                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -384,9 +401,30 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                         <article
                                             key={product.id}
                                             onClick={() => handleProductAction(product)}
-                                            className="flex items-center gap-3 rounded-2xl p-3 transition-all duration-200 cursor-pointer active:scale-[0.97] hover:bg-white/[0.02]"
-                                            style={{ backgroundColor: cardBg, border: `1px solid ${accent}22` }}
+                                            className={`flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer active:scale-[0.97] hover:bg-white/[0.02] relative ${product.isCombo ? 'ring-1 ring-white/10 mt-3 p-4' : 'p-3'}`}
+                                            style={{
+                                                backgroundColor: cardBg,
+                                                border: product.isCombo ? `2px solid ${accent}66` : `1px solid ${accent}22`,
+                                                boxShadow: product.isCombo ? `0 4px 20px ${accent}22` : undefined,
+                                            }}
                                         >
+                                            {/* Badge de combo */}
+                                            {product.isCombo && product.comboBadge && (
+                                                <span
+                                                    className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
+                                                    style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
+                                                >
+                                                    ⭐ {product.comboBadge}
+                                                </span>
+                                            )}
+                                            {product.isCombo && !product.comboBadge && (
+                                                <span
+                                                    className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
+                                                    style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
+                                                >
+                                                    🌟 Combo
+                                                </span>
+                                            )}
                                             {/* Imagen */}
                                             {showImages && (
                                                 product.imageUrl ? (
@@ -445,7 +483,8 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                             </div>
                                         </article>
                                     );
-                                })}
+                                });
+                                })()}
 
                                 {/* Flechas de navegación entre categorías (solo si hay más de 1) */}
                                 {activeCategories.length > 1 && !isPreview && (

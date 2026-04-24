@@ -58,6 +58,10 @@ export async function createProduct(formData: FormData) {
 
     const { name, description, price, categoryId } = validatedData.data
 
+    // Campos de combo (opcionales)
+    const isCombo = formData.get('isCombo') === 'on'
+    const comboBadge = (formData.get('comboBadge') as string || '').trim() || null
+
     // Verificar que la categoría pertenece al local del usuario
     const category = await prisma.category.findFirst({
         where: {
@@ -107,7 +111,9 @@ export async function createProduct(formData: FormData) {
             description,
             price,
             categoryId,
-            imageUrl, // Se guarda la URL de la imagen aquí
+            imageUrl,
+            isCombo,
+            comboBadge,
         }
     })
 
@@ -132,6 +138,10 @@ export async function updateProduct(productId: string, formData: FormData) {
     }
 
     const { name, description, price, categoryId } = validatedData.data
+
+    // Campos de combo (opcionales)
+    const isCombo = formData.get('isCombo') === 'on'
+    const comboBadge = (formData.get('comboBadge') as string || '').trim() || null
 
     // 1. Obtener los datos actuales del producto y verificar propiedad
     const currentProduct = await prisma.product.findFirst({
@@ -201,6 +211,8 @@ export async function updateProduct(productId: string, formData: FormData) {
             price,
             categoryId,
             imageUrl,
+            isCombo,
+            comboBadge,
         }
     })
 

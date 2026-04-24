@@ -62,6 +62,8 @@ model Product {
   isAvailable Boolean @default(true) // ¡La magia para apagar productos agotados!
   imageUrl    String? // URL de la imagen en Supabase Storage
   order       Int     @default(0) // NUEVO: Para el orden visual manual
+  isCombo     Boolean @default(false) // Si true, se renderiza con estilo VIP en el menú
+  comboBadge  String? // Etiqueta promocional. Ej: "Ahorra 15%", "Familiar", "Promo"
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
