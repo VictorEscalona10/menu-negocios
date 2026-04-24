@@ -31,6 +31,7 @@ interface FloatingCartProps {
     enableDelivery?: boolean;
     enablePickup?: boolean;
     enableDineIn?: boolean;
+    requireCedula?: boolean;
     upsellCategory?: UpsellCategory | null;
     onConfigureUpsellProduct?: (product: any) => void;
 }
@@ -48,6 +49,7 @@ export default function FloatingCart({
     enableDelivery = true,
     enablePickup = true,
     enableDineIn = false,
+    requireCedula = true,
     upsellCategory = null,
     onConfigureUpsellProduct,
 }: FloatingCartProps) {
@@ -167,15 +169,18 @@ export default function FloatingCart({
             setFormError('⚠️ El nombre debe tener al menos 3 caracteres.');
             return;
         }
-        if (!customerCedula.trim()) {
-            setFormError('⚠️ La cédula de identidad es obligatoria.');
-            return;
-        }
-        // Verificar que la cédula tenga al menos algunos dígitos
-        const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
-        if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
-            setFormError('⚠️ La cédula debe tener entre 6 y 9 dígitos numéricos.');
-            return;
+        
+        if (requireCedula) {
+            if (!customerCedula.trim()) {
+                setFormError('⚠️ La cédula de identidad es obligatoria.');
+                return;
+            }
+            // Verificar que la cédula tenga al menos algunos dígitos
+            const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
+            if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
+                setFormError('⚠️ La cédula debe tener entre 6 y 9 dígitos numéricos.');
+                return;
+            }
         }
 
         const header = whatsappHeader || `🍔 *NUEVO PEDIDO - ${storeName}* 🍔`;
@@ -184,7 +189,9 @@ export default function FloatingCart({
         // Datos del cliente
         mensaje += `👤 *DATOS DEL CLIENTE*\n`;
         mensaje += `• Nombre: *${customerName.trim()}*\n`;
-        mensaje += `• Cédula: *${customerCedula.trim()}*\n`;
+        if (requireCedula) {
+            mensaje += `• Cédula: *${customerCedula.trim()}*\n`;
+        }
 
         // Tipo de entrega
         if (deliveryType === 'delivery') {
@@ -295,19 +302,21 @@ export default function FloatingCart({
                                     </div>
 
                                     {/* Cédula */}
-                                    <div>
-                                        <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
-                                            Cédula de identidad <span style={{ color: themeColor }}>*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={customerCedula}
-                                            onChange={e => handleCedulaChange(e.target.value)}
-                                            maxLength={15}
-                                            inputMode="text"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
-                                        />
-                                    </div>
+                                    {requireCedula && (
+                                        <div>
+                                            <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
+                                                Cédula de identidad <span style={{ color: themeColor }}>*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={customerCedula}
+                                                onChange={e => handleCedulaChange(e.target.value)}
+                                                maxLength={15}
+                                                inputMode="text"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Error de validación */}

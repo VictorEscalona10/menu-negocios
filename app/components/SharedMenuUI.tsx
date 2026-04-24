@@ -22,6 +22,7 @@ interface SharedMenuUIProps {
         enableDineIn?: boolean;
         showProductImages?: boolean;
         forceNotesModal?: boolean;
+        requireCedula?: boolean;
         textColor?: string;
         subtextColor?: string;
         fontHeading?: string;
@@ -503,6 +504,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                     enableDelivery={store.enableDelivery ?? true}
                     enablePickup={store.enablePickup ?? true}
                     enableDineIn={store.enableDineIn ?? false}
+                    requireCedula={store.requireCedula ?? true}
                     upsellCategory={upsellCategory}
                     onConfigureUpsellProduct={(product) => setActiveConfigProduct(product)}
                 />

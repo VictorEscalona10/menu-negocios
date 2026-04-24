@@ -29,6 +29,7 @@ model Store {
   enableDineIn      Boolean @default(false)
   showProductImages Boolean @default(true)
   forceNotesModal   Boolean @default(false)
+  requireCedula     Boolean @default(true)
 
   textColor    String @default("#e5e2e1")
   subtextColor String @default("#e4beb5")

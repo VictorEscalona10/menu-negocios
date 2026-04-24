@@ -34,6 +34,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const enableDineIn        = formData.get('enableDineIn')       === 'on'
     const showProductImages   = formData.get('showProductImages')  === 'on'
     const forceNotesModal     = formData.get('forceNotesModal')    === 'on'
+    const requireCedula       = formData.get('requireCedula')      === 'on'
 
     const textColor    = formData.get('textColor')    as string || '#e5e2e1'
     const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
@@ -106,6 +107,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         enableDineIn,
         showProductImages,
         forceNotesModal,
+        requireCedula,
         textColor,
         subtextColor,
         fontHeading,
