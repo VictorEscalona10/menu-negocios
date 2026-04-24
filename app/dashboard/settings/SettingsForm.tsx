@@ -279,7 +279,7 @@ export function SettingsForm({
 
                     {/* Identidad Visual (colores de fondo) */}
                     <div className="space-y-4 pt-4">
-                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">🎨 Identidad Visual</h2>
+                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual</h2>
 
                         <div className="grid grid-cols-2 gap-6">
                             <div>
@@ -332,7 +332,7 @@ export function SettingsForm({
                                 />
                                 <input type="hidden" name="cardBackgroundColor" value={localStore.cardBackgroundColor} />
                                 <div className="flex-1 flex flex-col">
-                                    <input 
+                                    <input
                                         type="text"
                                         value={localStore.cardBackgroundColor}
                                         onChange={(e) => setLocalStore({ ...localStore, cardBackgroundColor: e.target.value })}
@@ -353,7 +353,7 @@ export function SettingsForm({
                         <link rel="stylesheet" href={fontsUrl} />
 
                         <div>
-                            <h2 className="text-lg font-semibold text-zinc-800">🔤 Tipografía y Texto</h2>
+                            <h2 className="text-lg font-semibold text-zinc-800">Tipografía y Texto</h2>
                             <p className="text-xs text-zinc-400 mt-0.5">Personaliza las fuentes y colores del texto del menú.</p>
                         </div>
 
