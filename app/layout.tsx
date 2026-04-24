@@ -19,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Menu Negocios",
+  title: "Komy",
   description: "Menú digital para tu negocio",
 };
 

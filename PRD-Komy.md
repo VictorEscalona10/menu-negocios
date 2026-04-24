@@ -1,7 +1,7 @@
-# Product Requirements Document (PRD) - Menu SaaS
+# Product Requirements Document (PRD) - Komy
 
 ## 1. Executive Summary
-**Menu SaaS** is a specialized platform designed for restaurants and food businesses to create professional digital menus. It bridges the gap between traditional paper menus and complex POS systems by providing a high-end, mobile-first ordering experience that integrates directly with **WhatsApp** for order fulfillment.
+**Komy** is a specialized platform designed for restaurants and food businesses to create professional digital menus. It bridges the gap between traditional paper menus and complex POS systems by providing a high-end, mobile-first ordering experience that integrates directly with **WhatsApp** for order fulfillment.
 
 The platform focuses on the "Digital Sommelier" aesthetic—premium, clean, and highly functional.
 
@@ -9,7 +9,7 @@ The platform focuses on the "Digital Sommelier" aesthetic—premium, clean, and 
 
 ## 2. Goals & Objectives
 - **Modernize Ordering**: Replace static PDF menus with interactive, customizable digital experiences.
-- **Steamline Fulfillment**: Use WhatsApp as the primary communication channel to avoid high commission fees from third-party delivery apps.
+- **Streamline Fulfillment**: Use WhatsApp as the primary communication channel to avoid high commission fees from third-party delivery apps.
 - **Customization**: Allow businesses to tailor their menu to their brand (colors, logo, message headers/footers).
 - **Simplicity**: No app download required for customers; easy management for business owners.
 
@@ -58,7 +58,7 @@ The project follows a premium design philosophy:
 ---
 
 ## 6. Technical Stack
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
+- **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
 - **Frontend Logic**: React 19, TypeScript.
 - **Styling**: Tailwind CSS 4 with `@tailwindcss/postcss`.
 - **Database**: PostgreSQL hosted on Supabase, managed via **Prisma**.

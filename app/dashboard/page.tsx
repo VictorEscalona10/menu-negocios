@@ -91,7 +91,7 @@ export default async function DashboardPage() {
                     </form>
                 </div>
 
-                <h1 className="text-2xl font-bold text-zinc-900 mb-2 mt-2">¡Bienvenido a tu Menú!</h1>
+                <h1 className="text-2xl font-bold text-zinc-900 mb-2 mt-2">¡Bienvenido a Komy!</h1>
                 <p className="text-zinc-600 mb-6">Para empezar, necesitamos los datos básicos de tu negocio.</p>
 
                 {/* Pasamos el action ya vinculado con el ID */}

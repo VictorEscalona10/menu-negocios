@@ -4,8 +4,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4">
       <main className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-        <h1 className="text-3xl font-bold text-zinc-900 mb-4">
-          Plataforma de Menús
+        <h1 className="text-4xl font-black text-zinc-900 mb-4 tracking-tighter">
+          Komy
         </h1>
         <p className="text-zinc-600 mb-8">
           Crea tu menú digital interactivo y recibe pedidos directamente en WhatsApp.

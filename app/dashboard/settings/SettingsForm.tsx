@@ -47,6 +47,7 @@ interface Store {
     fontBody?: string;
     upsellCategoryId?: string;
     cardBackgroundColor?: string;
+    requireCedula?: boolean;
     id: string;
 }
 
@@ -225,6 +226,7 @@ export function SettingsForm({
         fontBody: store.fontBody || 'Manrope',
         upsellCategoryId: store.upsellCategoryId || '',
         cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
+        requireCedula: store.requireCedula ?? true,
     })
 
     // Cargar las fuentes seleccionadas en el panel de administración para vista previa
@@ -691,6 +693,31 @@ export function SettingsForm({
                             {/* Toggle pill */}
                             <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.forceNotesModal ? 'bg-black' : 'bg-zinc-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.forceNotesModal ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                        </button>
+
+                        {/* Switch Requerir Cédula */}
+                        <input type="hidden" name="requireCedula" value={localStore.requireCedula ? 'on' : 'off'} />
+                        <button
+                            type="button"
+                            onClick={() => setLocalStore({ ...localStore, requireCedula: !localStore.requireCedula })}
+                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${localStore.requireCedula
+                                ? 'border-black bg-black/5'
+                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                }`}
+                        >
+                            <span className="text-2xl shrink-0">🆔</span>
+                            <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-sm ${localStore.requireCedula ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                                    Pedir Cédula de Identidad
+                                </p>
+                                <p className="text-xs text-zinc-400 truncate">
+                                    {localStore.requireCedula ? 'El cliente debe ingresar su cédula al finalizar el pedido' : 'No se solicitará la cédula en el carrito'}
+                                </p>
+                            </div>
+                            {/* Toggle pill */}
+                            <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.requireCedula ? 'bg-black' : 'bg-zinc-200'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.requireCedula ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
                     </div>

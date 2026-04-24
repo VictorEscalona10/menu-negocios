@@ -73,6 +73,7 @@ export default async function SettingsPage() {
                         fontBody:     store.fontBody     || 'Manrope',
                         upsellCategoryId: store.upsellCategoryId || '',
                         cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
+                        requireCedula: store.requireCedula,
                         id: store.id,
                     }} 
                     categories={store.categories}
