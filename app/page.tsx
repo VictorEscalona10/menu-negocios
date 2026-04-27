@@ -32,16 +32,16 @@ export default function Home() {
 
       {/* Main Grid Layout to fill emptiness */}
       <main className="max-w-[1400px] mx-auto w-full px-4 pt-12 pb-32">
-        
+
         {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          
+
           {/* Left Column (Hero Text) */}
           <div className="lg:col-span-7 bg-white border border-carbon/10 rounded-2xl p-8 md:p-16 flex flex-col justify-center min-h-[550px]">
             <h1 className="text-5xl md:text-[4rem] font-black tracking-tight leading-[1.05] mb-6">
               El único enlace que tu local necesita
             </h1>
-            
+
             <p className="text-lg text-carbon/60 max-w-xl leading-relaxed mb-10 font-medium">
               Transforma tu operación con un menú digital instantáneo. Cero comisiones. Pedidos estructurados directamente a tu WhatsApp. Diseñado para alta velocidad.
             </p>
@@ -73,14 +73,14 @@ export default function Home() {
               {/* Fake UI Header */}
               <div className="flex gap-4 items-center mb-2">
                 <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
-                    <span className="text-white/50 text-xl font-black">B</span>
+                  <span className="text-white/50 text-xl font-black">B</span>
                 </div>
                 <div className="flex-1 space-y-1.5">
                   <div className="h-3 w-1/3 bg-white/20 rounded-md"></div>
                   <div className="h-2 w-1/4 bg-white/10 rounded-md"></div>
                 </div>
               </div>
-              
+
               {/* Fake UI Stats */}
               <div className="grid grid-cols-2 gap-3 mt-2">
                 <div className="bg-white/5 border border-white/10 p-4 rounded-xl space-y-3">
@@ -95,7 +95,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Fake UI Order Card */}
               <div className="mt-auto bg-white/10 rounded-xl p-4 border border-white/5 flex flex-col gap-3">
                 <div className="flex justify-between items-center border-b border-white/10 pb-3">
@@ -103,13 +103,13 @@ export default function Home() {
                   <div className="text-[10px] text-white/50 font-mono">hace 1 min</div>
                 </div>
                 <div className="space-y-2 py-1">
-                    <div className="h-2 w-3/4 bg-white/20 rounded-md"></div>
-                    <div className="h-2 w-1/2 bg-white/10 rounded-md"></div>
+                  <div className="h-2 w-3/4 bg-white/20 rounded-md"></div>
+                  <div className="h-2 w-1/2 bg-white/10 rounded-md"></div>
                 </div>
                 <div className="flex justify-end mt-2">
-                    <div className="bg-coral text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-wider">
+                  <div className="bg-coral text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-wider">
                     Confirmar
-                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -127,7 +127,7 @@ export default function Home() {
               Tus ventas son 100% tuyas. Komy no actúa como intermediario financiero ni cobra porcentajes por transacción.
             </p>
           </div>
-          
+
           <div className="bg-white border border-carbon/10 rounded-2xl p-8 group hover:border-carbon/30 transition-colors shadow-sm">
             <div className="w-10 h-10 bg-hueso border border-carbon/5 rounded-lg flex items-center justify-center mb-6 text-carbon group-hover:bg-coral group-hover:text-white transition-colors">
               <span className="material-symbols-outlined text-xl">smartphone</span>
@@ -166,14 +166,14 @@ export default function Home() {
                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-carbon/20 rounded-full"></span> Optimizado</span>
               </div>
             </div>
-            
+
             <div className="bg-hueso p-8 md:p-16 flex items-center justify-center relative">
               <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-carbon/10">
                 <div className="w-56 h-56 md:w-64 md:h-64 bg-carbon rounded-2xl flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 grid grid-cols-5 gap-1.5 p-4">
-                     {[...Array(25)].map((_, i) => (
-                        <div key={i} className={`rounded-sm ${i % 2 === 0 || i % 7 === 0 ? 'bg-white' : 'bg-transparent'}`}></div>
-                     ))}
+                    {[...Array(25)].map((_, i) => (
+                      <div key={i} className={`rounded-sm ${i % 2 === 0 || i % 7 === 0 ? 'bg-white' : 'bg-transparent'}`}></div>
+                    ))}
                   </div>
                   <div className="bg-white px-3 py-1.5 rounded-lg z-10 relative shadow-md">
                     <span className="text-xs font-black text-carbon uppercase tracking-widest">Scan</span>
@@ -190,10 +190,10 @@ export default function Home() {
       <footer className="border-t border-carbon/10 bg-white">
         <div className="max-w-[1400px] mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <span className="font-black text-base">komy.</span>
+            <span className="font-black text-base">komy</span>
             <span className="text-carbon/40 font-medium">© {new Date().getFullYear()}</span>
           </div>
-          
+
           <div className="flex items-center gap-6 text-carbon/50 font-medium">
             <Link href="/terminos" className="hover:text-carbon transition-colors">Términos</Link>
             <Link href="/privacidad" className="hover:text-carbon transition-colors">Privacidad</Link>
