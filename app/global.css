@@ -4,6 +4,10 @@
 @theme {
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
+    --color-hueso: #F3F3F1;
+    --color-carbon: #1A1A1A;
+    --color-coral: #FF4A3D;
+    --shadow-neo: 4px 4px 0px 0px #1A1A1A;
 }
 
 html,
