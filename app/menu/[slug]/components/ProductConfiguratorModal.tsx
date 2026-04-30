@@ -155,10 +155,10 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
         <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-xl sm:p-4 transition-opacity duration-300">
             {/* Backdrop click to close */}
             <div className="absolute inset-0" onClick={onClose} />
-            
+
             <div
                 className="bg-[#0a0a0a] w-full sm:max-w-xl sm:rounded-[2.5rem] rounded-t-[2.5rem] overflow-hidden flex flex-col max-h-[95vh] shadow-2xl relative border-t sm:border border-white/10"
-                style={{ 
+                style={{
                     animation: 'modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                     boxShadow: '0 -20px 50px rgba(0,0,0,0.5)'
                 }}
@@ -227,8 +227,8 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                         return (
                                             <label
                                                 key={option.id}
-                                                className={`group flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer active:scale-[0.98] ${isSelected 
-                                                    ? 'bg-white/10 border-white/20' 
+                                                className={`group flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer active:scale-[0.98] ${isSelected
+                                                    ? 'bg-white/10 border-white/20'
                                                     : 'bg-white/[0.03] border-transparent hover:border-white/10'} 
                                                     ${isDisabled ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
                                             >
@@ -252,7 +252,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                                         <span className={`font-bold transition-colors ${isSelected ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>{option.name}</span>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="flex items-center gap-2">
                                                     {option.price > 0 && (
                                                         <span className={`text-sm font-bold font-manrope transition-all ${isSelected ? 'text-white' : 'text-white/40'}`}>
@@ -322,7 +322,7 @@ export default function ProductConfiguratorModal({ product, themeColor, isOpen, 
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
                             </button>
                         </div>
-                        
+
                         <button
                             onClick={handleAddToCart}
                             className="flex-1 text-white font-black text-lg py-5 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-[0.96] hover:brightness-110 shadow-xl disabled:grayscale disabled:opacity-50"

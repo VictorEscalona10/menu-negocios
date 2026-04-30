@@ -7,12 +7,11 @@ import { ConfirmationModal } from "./ConfirmationModal"
 function CategorySubmitButton() {
     const { pending } = useFormStatus()
     return (
-        <button 
-            type="submit" 
+        <button
+            type="submit"
             disabled={pending}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                pending ? "bg-zinc-400 text-white cursor-not-allowed" : "bg-black text-white hover:bg-zinc-800"
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${pending ? "bg-zinc-400 text-white cursor-not-allowed" : "bg-black text-white hover:bg-zinc-800"
+                }`}
         >
             {pending && (
                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -35,10 +34,10 @@ export function CategoryForm({ createAction }: { createAction: (formData: FormDa
     const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        
+
         // Verificamos si tiene datos
         if (!formData.get("name")) return
-        
+
         setPendingFormData(formData)
         setCategoryName(formData.get("name") as string)
         setIsModalOpen(true) // Abrimos el modal
@@ -53,7 +52,7 @@ export function CategoryForm({ createAction }: { createAction: (formData: FormDa
             await createAction(pendingFormData)
             setStatus("success")
             setTimeout(() => setStatus("idle"), 3000)
-            
+
             // Limpiamos el input si queremos resetear visualmente
             const formElement = document.getElementById("category-form") as HTMLFormElement
             if (formElement) formElement.reset()
@@ -67,7 +66,7 @@ export function CategoryForm({ createAction }: { createAction: (formData: FormDa
 
     return (
         <div className="relative mb-8">
-            <ConfirmationModal 
+            <ConfirmationModal
                 isOpen={isModalOpen}
                 title="Nueva Categoría"
                 description={`¿Estás seguro que deseas crear la categoría "${categoryName}"? Podrás agregar productos dentro de ella luego.`}
@@ -93,8 +92,8 @@ export function CategoryForm({ createAction }: { createAction: (formData: FormDa
                     className="flex-1 bg-transparent border-none outline-none py-3 text-zinc-800 w-full font-medium placeholder-zinc-400"
                     required
                 />
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     className="w-full sm:w-auto bg-black text-white px-8 py-3 rounded-xl font-bold tracking-wide hover:bg-zinc-800 shadow-sm transition-transform active:scale-95"
                 >
                     + Añadir

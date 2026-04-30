@@ -56,7 +56,7 @@ export default async function ProductsPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 lg:p-10 relative">
             {/* Botón Volver al dashboard */}
-            <Link 
+            <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300 mb-2"
             >
@@ -73,7 +73,7 @@ export default async function ProductsPage() {
 
             {/* Inicia la Cuadrícula Responsiva */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start mt-8">
-                
+
                 {/* Panel Izquierdo: Formularios de Creación (Sticky en Desktop) */}
                 <div className="lg:col-span-5 flex flex-col gap-10 lg:sticky lg:top-8">
                     {/* Formulario de Categorías - Inline Simple */}
@@ -95,7 +95,7 @@ export default async function ProductsPage() {
                     {store.categories.length === 0 ? (
                         <p className="text-zinc-500 bg-zinc-50 p-6 rounded-2xl text-center border border-zinc-100">Tu menú está limpio. Comienza agregando categorías en el panel.</p>
                     ) : (
-                        <SortableCategoryList 
+                        <SortableCategoryList
                             initialCategories={store.categories}
                             deleteCategoryAction={deleteCategory}
                             deleteProductAction={deleteProduct}

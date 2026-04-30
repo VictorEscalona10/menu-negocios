@@ -85,7 +85,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
     // ── Acción al tocar un producto (contenedor o botón) ──
     const handleProductAction = useCallback((product: any) => {
         if (isPreview) return;
-        
+
         const hasModifiers = product.modifierGroups && product.modifierGroups.length > 0;
         if (store.forceNotesModal || hasModifiers) {
             setActiveConfigProduct(product);
@@ -316,48 +316,64 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                     const allSorted = [...combos, ...regularProducts];
 
                                     return allSorted.map((product, prodIndex) => {
-                                    const isHero = catIndex === 0 && prodIndex === 0 && !isPreview && showImages && !!product.imageUrl;
+                                        const isHero = product.isCombo && prodIndex === 0 && !isPreview && showImages && !!product.imageUrl;
 
-                                    if (isHero) {
-                                        // ── HERO CARD (primer producto de primera categoría) ──
-                                        return (
-                                            <article
-                                                key={product.id}
-                                                onClick={() => handleProductAction(product)}
-                                                className={`relative rounded-2xl overflow-hidden mb-2 border cursor-pointer transition-all duration-200 active:scale-[0.985] group ${product.isCombo ? 'ring-1 ring-white/10 mt-3' : ''}`}
-                                                style={{
-                                                    boxShadow: product.isCombo ? `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}44` : `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
-                                                    borderColor: product.isCombo ? `${accent}66` : `${accent}33`,
-                                                    backgroundColor: cardBg,
-                                                    borderWidth: product.isCombo ? '2px' : '1px'
-                                                }}
-                                            >
-                                                {/* Badge de combo para Hero Card */}
-                                                {product.isCombo && (
-                                                    <span
-                                                        className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-black text-white uppercase tracking-widest z-20"
-                                                        style={{ backgroundColor: accent, boxShadow: `0 4px 12px ${accent}66` }}
-                                                    >
-                                                        🌟 {product.comboBadge || 'Combo'}
-                                                    </span>
-                                                )}
-                                                {showImages && product.imageUrl ? (
-                                                    <div className="relative h-52 overflow-hidden">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={product.imageUrl!}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/60" />
-                                                        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                                                            <div>
-                                                                <h3 className="font-epilogue font-black text-white text-xl leading-tight">
-                                                                    {product.name}
-                                                                </h3>
-                                                                <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>
-                                                                    ${product.price.toFixed(2)}
-                                                                </p>
+                                        if (isHero) {
+                                            // ── HERO CARD (primer producto de primera categoría) ──
+                                            return (
+                                                <article
+                                                    key={product.id}
+                                                    onClick={() => handleProductAction(product)}
+                                                    className={`relative rounded-2xl overflow-hidden mb-2 border cursor-pointer transition-all duration-200 active:scale-[0.985] group ${product.isCombo ? 'ring-1 ring-white/10 mt-3' : ''}`}
+                                                    style={{
+                                                        boxShadow: product.isCombo ? `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}44` : `0 20px 60px rgba(0,0,0,0.6), 0 4px 20px ${accent}22`,
+                                                        borderColor: product.isCombo ? `${accent}66` : `${accent}33`,
+                                                        backgroundColor: cardBg,
+                                                        borderWidth: product.isCombo ? '2px' : '1px'
+                                                    }}
+                                                >
+                                                    {/* Badge de combo para Hero Card */}
+                                                    {product.isCombo && (
+                                                        <span
+                                                            className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-black text-white uppercase tracking-widest z-20"
+                                                            style={{ backgroundColor: accent, boxShadow: `0 4px 12px ${accent}66` }}
+                                                        >
+                                                            🌟 {product.comboBadge || 'Combo'}
+                                                        </span>
+                                                    )}
+                                                    {showImages && product.imageUrl ? (
+                                                        <div className="relative h-52 overflow-hidden">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={product.imageUrl!}
+                                                                alt={product.name}
+                                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/60" />
+                                                            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+                                                                <div>
+                                                                    <h3 className="font-epilogue font-black text-white text-xl leading-tight">
+                                                                        {product.name}
+                                                                    </h3>
+                                                                    <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>
+                                                                        ${product.price.toFixed(2)}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="shrink-0">
+                                                                    <AddToCartButton
+                                                                        product={product}
+                                                                        themeColor={accent}
+                                                                        onConfigure={() => setActiveConfigProduct(product)}
+                                                                        forceNotesModal={store.forceNotesModal}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-4 flex items-center justify-between gap-4" style={{ backgroundColor: cardBg, border: `1px solid ${accent}33` }}>
+                                                            <div className="flex-1 min-w-0">
+                                                                <h3 className="font-epilogue font-black text-xl leading-tight" style={{ color: textColor }}>{product.name}</h3>
+                                                                <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>${product.price.toFixed(2)}</p>
                                                             </div>
                                                             <div className="shrink-0">
                                                                 <AddToCartButton
@@ -368,122 +384,106 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                                 />
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="p-4 flex items-center justify-between gap-4" style={{ backgroundColor: cardBg, border: `1px solid ${accent}33` }}>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="font-epilogue font-black text-xl leading-tight" style={{ color: textColor }}>{product.name}</h3>
-                                                            <p className="font-manrope font-bold text-lg mt-0.5" style={{ color: accent }}>${product.price.toFixed(2)}</p>
+                                                    )}
+                                                    {product.description && (
+                                                        <div className="px-4 py-3" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                                                            <p className="font-manrope text-xs leading-relaxed line-clamp-2" style={{ color: subtextColor }}>
+                                                                {product.description}
+                                                            </p>
                                                         </div>
-                                                        <div className="shrink-0">
-                                                            <AddToCartButton
-                                                                product={product}
-                                                                themeColor={accent}
-                                                                onConfigure={() => setActiveConfigProduct(product)}
-                                                                forceNotesModal={store.forceNotesModal}
+                                                    )}
+                                                </article>
+                                            );
+                                        }
+
+                                        // ── COMPACT CARD ──
+                                        return (
+                                            <article
+                                                key={product.id}
+                                                onClick={() => handleProductAction(product)}
+                                                className={`flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer active:scale-[0.97] hover:bg-white/[0.02] relative ${product.isCombo ? 'ring-1 ring-white/10 mt-3 p-4' : 'p-3'}`}
+                                                style={{
+                                                    backgroundColor: cardBg,
+                                                    border: product.isCombo ? `2px solid ${accent}66` : `1px solid ${accent}22`,
+                                                    boxShadow: product.isCombo ? `0 4px 20px ${accent}22` : undefined,
+                                                }}
+                                            >
+                                                {/* Badge de combo */}
+                                                {product.isCombo && product.comboBadge && (
+                                                    <span
+                                                        className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
+                                                        style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
+                                                    >
+                                                        ⭐ {product.comboBadge}
+                                                    </span>
+                                                )}
+                                                {product.isCombo && !product.comboBadge && (
+                                                    <span
+                                                        className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
+                                                        style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
+                                                    >
+                                                        🌟 Combo
+                                                    </span>
+                                                )}
+                                                {/* Imagen */}
+                                                {showImages && (
+                                                    product.imageUrl ? (
+                                                        <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={product.imageUrl}
+                                                                alt={product.name}
+                                                                className="w-full h-full object-cover"
                                                             />
                                                         </div>
-                                                    </div>
+                                                    ) : (
+                                                        <div
+                                                            className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
+                                                            style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                                                        >
+                                                            🍽️
+                                                        </div>
+                                                    )
                                                 )}
-                                                {product.description && (
-                                                    <div className="px-4 py-3" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
-                                                        <p className="font-manrope text-xs leading-relaxed line-clamp-2" style={{ color: subtextColor }}>
+
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-epilogue font-bold text-sm leading-tight" style={{ color: textColor }}>
+                                                        {product.name}
+                                                    </h3>
+                                                    {product.description && (
+                                                        <p className="font-manrope text-xs mt-0.5 line-clamp-2 leading-relaxed" style={{ color: subtextColor }}>
                                                             {product.description}
                                                         </p>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                    <p className="font-manrope font-bold text-sm mt-1.5" style={{ color: accent }}>
+                                                        ${product.price.toFixed(2)}
+                                                    </p>
+                                                </div>
+
+                                                {/* Botón + */}
+                                                <div className="shrink-0">
+                                                    {isPreview ? (
+                                                        <div
+                                                            className="w-9 h-9 rounded-full flex items-center justify-center"
+                                                            style={{ backgroundColor: accent }}
+                                                        >
+                                                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                                            </svg>
+                                                        </div>
+                                                    ) : (
+                                                        <AddToCartButton
+                                                            product={product}
+                                                            themeColor={accent}
+                                                            onConfigure={() => setActiveConfigProduct(product)}
+                                                            forceNotesModal={store.forceNotesModal}
+                                                        />
+                                                    )}
+                                                </div>
                                             </article>
                                         );
-                                    }
-
-                                    // ── COMPACT CARD ──
-                                    return (
-                                        <article
-                                            key={product.id}
-                                            onClick={() => handleProductAction(product)}
-                                            className={`flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer active:scale-[0.97] hover:bg-white/[0.02] relative ${product.isCombo ? 'ring-1 ring-white/10 mt-3 p-4' : 'p-3'}`}
-                                            style={{
-                                                backgroundColor: cardBg,
-                                                border: product.isCombo ? `2px solid ${accent}66` : `1px solid ${accent}22`,
-                                                boxShadow: product.isCombo ? `0 4px 20px ${accent}22` : undefined,
-                                            }}
-                                        >
-                                            {/* Badge de combo */}
-                                            {product.isCombo && product.comboBadge && (
-                                                <span
-                                                    className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
-                                                    style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
-                                                >
-                                                    ⭐ {product.comboBadge}
-                                                </span>
-                                            )}
-                                            {product.isCombo && !product.comboBadge && (
-                                                <span
-                                                    className="absolute -top-2.5 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10"
-                                                    style={{ backgroundColor: accent, boxShadow: `0 2px 8px ${accent}55` }}
-                                                >
-                                                    🌟 Combo
-                                                </span>
-                                            )}
-                                            {/* Imagen */}
-                                            {showImages && (
-                                                product.imageUrl ? (
-                                                    <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
-                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img
-                                                            src={product.imageUrl}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div
-                                                        className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
-                                                        style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-                                                    >
-                                                        🍽️
-                                                    </div>
-                                                )
-                                            )}
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-epilogue font-bold text-sm leading-tight" style={{ color: textColor }}>
-                                                    {product.name}
-                                                </h3>
-                                                {product.description && (
-                                                    <p className="font-manrope text-xs mt-0.5 line-clamp-2 leading-relaxed" style={{ color: subtextColor }}>
-                                                        {product.description}
-                                                    </p>
-                                                )}
-                                                <p className="font-manrope font-bold text-sm mt-1.5" style={{ color: accent }}>
-                                                    ${product.price.toFixed(2)}
-                                                </p>
-                                            </div>
-
-                                            {/* Botón + */}
-                                            <div className="shrink-0">
-                                                {isPreview ? (
-                                                    <div
-                                                        className="w-9 h-9 rounded-full flex items-center justify-center"
-                                                        style={{ backgroundColor: accent }}
-                                                    >
-                                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                                                        </svg>
-                                                    </div>
-                                                ) : (
-                                                    <AddToCartButton
-                                                        product={product}
-                                                        themeColor={accent}
-                                                        onConfigure={() => setActiveConfigProduct(product)}
-                                                        forceNotesModal={store.forceNotesModal}
-                                                    />
-                                                )}
-                                            </div>
-                                        </article>
-                                    );
-                                });
+                                    });
                                 })()}
 
                                 {/* Flechas de navegación entre categorías (solo si hay más de 1) */}

@@ -63,7 +63,7 @@ export function ProductForm({
         setErrorMessage("")
         try {
             const res = await action(pendingFormData)
-            
+
             // Si la acción devuelve explícitamente un objeto con { error: string }
             if (res && res.error) {
                 setErrorMessage(res.error)
@@ -231,11 +231,10 @@ export function ProductForm({
                     <button
                         type="button"
                         onClick={() => setIsCombo(!isCombo)}
-                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
-                            isCombo
-                                ? 'border-amber-400 bg-amber-50'
-                                : 'border-zinc-200 bg-white hover:border-zinc-300'
-                        }`}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${isCombo
+                            ? 'border-amber-400 bg-amber-50'
+                            : 'border-zinc-200 bg-white hover:border-zinc-300'
+                            }`}
                     >
                         <span className="text-2xl shrink-0">🌟</span>
                         <div className="flex-1 min-w-0">

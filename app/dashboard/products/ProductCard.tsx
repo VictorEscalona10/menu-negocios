@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, categories, deleteAction }: ProductCardProps) {
     const [isPending, startTransition] = useTransition()
-    
+
     // Optimistic state for visual feedback
     const [optimisticAvailable, setOptimisticAvailable] = useOptimistic(
         product.isAvailable,
@@ -23,11 +23,11 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
 
     const handleToggle = async () => {
         const nextValue = !optimisticAvailable
-        
+
         startTransition(async () => {
             // 1. Update UI immediately
             setOptimisticAvailable(nextValue)
-            
+
             try {
                 // 2. Call server action
                 await toggleProductAvailability(product.id, optimisticAvailable)
@@ -40,11 +40,10 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
     }
 
     return (
-        <div className={`group bg-white border p-3 sm:p-4 md:p-6 rounded-[1.5rem] sm:rounded-[2rem] transition-all shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] overflow-hidden ${
-            optimisticAvailable
-                 ? 'border-zinc-100 hover:border-zinc-200'
-                 : 'border-zinc-200 bg-zinc-50/60 opacity-60'
-        }`}>
+        <div className={`group bg-white border p-3 sm:p-4 md:p-6 rounded-[1.5rem] sm:rounded-[2rem] transition-all shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] overflow-hidden ${optimisticAvailable
+            ? 'border-zinc-100 hover:border-zinc-200'
+            : 'border-zinc-200 bg-zinc-50/60 opacity-60'
+            }`}>
             <div className="flex flex-col gap-3 sm:gap-5 min-w-0">
                 {/* Top Section: Info and Quick Controls */}
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 min-w-0">
@@ -69,7 +68,7 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                                 </span>
                             )}
                         </div>
-                        
+
                         {!optimisticAvailable ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-red-50 text-red-500 uppercase tracking-wider border border-red-100/50">
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -81,7 +80,7 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                             </p>
                         )}
                     </div>
-                    
+
                     {/* Action Row: Price & Tools */}
                     <div className="flex items-center justify-between w-full sm:justify-end sm:w-auto gap-2 sm:gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -90,14 +89,12 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                                 onClick={handleToggle}
                                 disabled={isPending}
                                 title={optimisticAvailable ? `Desactivar "${product.name}"` : `Activar "${product.name}"`}
-                                className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 focus:outline-none shrink-0 ${
-                                    optimisticAvailable ? 'bg-emerald-500' : 'bg-zinc-200'
-                                }`}
+                                className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 focus:outline-none shrink-0 ${optimisticAvailable ? 'bg-emerald-500' : 'bg-zinc-200'
+                                    }`}
                             >
                                 <span
-                                    className={`inline-block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${
-                                        optimisticAvailable ? 'translate-x-6' : 'translate-x-1'
-                                    }`}
+                                    className={`inline-block w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${optimisticAvailable ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
                                 />
                             </button>
 
@@ -105,13 +102,13 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                                 ${product.price.toFixed(2)}
                             </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-zinc-50 border border-zinc-100 rounded-xl flex gap-1">
                                 <EditProductModal product={product} categories={categories} />
-                                <DeleteButton 
-                                    deleteAction={deleteAction} 
-                                    itemName={product.name} 
+                                <DeleteButton
+                                    deleteAction={deleteAction}
+                                    itemName={product.name}
                                 />
                             </div>
                         </div>
