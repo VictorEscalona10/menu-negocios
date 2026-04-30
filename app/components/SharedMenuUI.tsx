@@ -425,25 +425,16 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                                                         🌟 Combo
                                                     </span>
                                                 )}
-                                                {/* Imagen */}
-                                                {showImages && (
-                                                    product.imageUrl ? (
-                                                        <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
-                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                            <img
-                                                                src={product.imageUrl}
-                                                                alt={product.name}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <div
-                                                            className="w-[72px] h-[72px] shrink-0 rounded-xl flex items-center justify-center text-2xl"
-                                                            style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-                                                        >
-                                                            🍽️
-                                                        </div>
-                                                    )
+                                                {/* Imagen: solo si showImages está activo Y el producto tiene foto */}
+                                                {showImages && product.imageUrl && (
+                                                    <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={product.imageUrl}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
                                                 )}
 
                                                 {/* Info */}
