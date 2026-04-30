@@ -48,10 +48,10 @@ model Category {
   name      String
   storeId   String
   store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  products   Product[]
-  order      Int       @default(0) // NUEVO: Para el orden visual manual de categorías
-  isActive   Boolean   @default(true) // Para activar/desactivar categorías completas
-  createdAt  DateTime  @default(now())
+  products  Product[]
+  order     Int       @default(0) // NUEVO: Para el orden visual manual de categorías
+  isActive  Boolean   @default(true) // Para activar/desactivar categorías completas
+  createdAt DateTime  @default(now())
 }
 
 model Product {

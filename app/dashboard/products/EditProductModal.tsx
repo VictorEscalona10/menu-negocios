@@ -21,12 +21,12 @@ interface Product {
     comboBadge?: string | null
 }
 
-export function EditProductModal({ 
-    product, 
-    categories 
-}: { 
-    product: Product, 
-    categories: Category[] 
+export function EditProductModal({
+    product,
+    categories
+}: {
+    product: Product,
+    categories: Category[]
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -52,7 +52,7 @@ export function EditProductModal({
 
             {isOpen && mounted && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div 
+                    <div
                         className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-zinc-100 animate-in zoom-in-95 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -62,7 +62,7 @@ export function EditProductModal({
                                     <h2 className="text-2xl font-black text-zinc-900 tracking-tight">Editar Producto</h2>
                                     <p className="text-sm text-zinc-500 font-medium">Actualiza los detalles de tu platillo</p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => setIsOpen(false)}
                                     className="p-2 hover:bg-zinc-100 rounded-full transition-colors"
                                 >
@@ -73,8 +73,8 @@ export function EditProductModal({
                             </div>
 
                             <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                                <ProductForm 
-                                    categories={categories} 
+                                <ProductForm
+                                    categories={categories}
                                     action={boundUpdateAction}
                                     initialData={product}
                                     onSuccess={() => setIsOpen(false)}

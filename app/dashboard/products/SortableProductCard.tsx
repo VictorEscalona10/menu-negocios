@@ -28,13 +28,13 @@ export function SortableProductCard({ product, categories, deleteAction }: Sorta
   }
 
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
+    <div
+      ref={setNodeRef}
+      style={style}
       className={`relative group ${isDragging ? 'opacity-70 shadow-2xl scale-[1.02]' : ''} transition-shadow duration-200`}
     >
-      <div 
-        {...attributes} 
+      <div
+        {...attributes}
         {...listeners}
         className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing text-zinc-300 hover:text-zinc-500 transition-colors z-10 touch-none"
         title="Arrastrar para ordenar"
@@ -45,10 +45,10 @@ export function SortableProductCard({ product, categories, deleteAction }: Sorta
       </div>
 
       <div className="pl-6 sm:pl-8">
-        <ProductCard 
-            product={product}
-            categories={categories}
-            deleteAction={deleteAction}
+        <ProductCard
+          product={product}
+          categories={categories}
+          deleteAction={deleteAction}
         />
       </div>
     </div>

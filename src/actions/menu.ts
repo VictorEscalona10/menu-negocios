@@ -149,7 +149,7 @@ export async function updateProduct(productId: string, formData: FormData) {
             id: productId,
             category: { store: { userId: user.id } }
         },
-        select: { 
+        select: {
             imageUrl: true,
             category: { select: { store: { select: { slug: true } } } }
         }
@@ -253,7 +253,7 @@ export async function deleteProduct(productId: string) {
             id: productId,
             category: { store: { userId: user.id } }
         },
-        select: { 
+        select: {
             imageUrl: true,
             category: { select: { store: { select: { slug: true } } } }
         }

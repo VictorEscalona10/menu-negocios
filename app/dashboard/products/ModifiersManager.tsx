@@ -141,7 +141,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                     <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
 
                     <div 
-                        className="bg-white w-full sm:max-w-2xl h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl relative animate-in slide-in-from-bottom duration-300 ease-out"
+                        className="bg-white w-full sm:max-w-2xl h-[92vh] sm:h-auto sm:max-h-[85vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-xl sm:border sm:border-zinc-200 relative animate-in slide-in-from-bottom duration-300 ease-out"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Drag Indicator (Mobile) */}
@@ -183,17 +183,17 @@ export function ModifiersManager({ product }: { product: Product }) {
                             )}
 
                             {/* Section: Grupo Nuevo */}
-                            <div className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                            <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm">
                                 <h4 className="font-bold text-zinc-900 mb-6 text-lg">Añadir Categoría de Extras</h4>
                                 <form onSubmit={handleCreateGroup} className="space-y-5">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Nombre del grupo</label>
-                                            <input type="text" name="name" placeholder="Ej: Proteínas, Salsas..." required className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black" />
+                                            <input type="text" name="name" placeholder="Ej: Proteínas, Salsas..." required className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all text-black" />
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-black text-zinc-500 uppercase tracking-widest ml-1">Límite (Opcional)</label>
-                                            <input type="number" name="maxSelect" placeholder="Ej: Máximo 2" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all text-black" />
+                                            <input type="number" name="maxSelect" placeholder="Ej: Máximo 2" className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all text-black" />
                                         </div>
                                     </div>
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
@@ -208,7 +208,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                                         <button 
                                             type="submit" 
                                             disabled={isPending}
-                                            className="w-full sm:w-auto bg-black hover:bg-zinc-800 text-white font-bold px-8 py-3.5 rounded-2xl transition-all disabled:opacity-50 shadow-md active:scale-95"
+                                            className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-white font-bold px-8 py-3.5 rounded-xl transition-all disabled:opacity-50 shadow-sm active:scale-95"
                                         >
                                             Crear Grupo
                                         </button>
@@ -232,7 +232,7 @@ export function ModifiersManager({ product }: { product: Product }) {
                                     </div>
                                 ) : (
                                     product.modifierGroups.map((group) => (
-                                        <div key={group.id} className="bg-white border border-zinc-200 rounded-[2rem] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                        <div key={group.id} className="bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                             {/* Group Header */}
                                             <div className="bg-zinc-50/50 p-6 border-b border-zinc-100 flex justify-between items-center">
                                                 <div>
@@ -314,18 +314,18 @@ export function ModifiersManager({ product }: { product: Product }) {
                                                         <div className="space-y-3">
                                                             <div className="space-y-1">
                                                                 <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Nombre de la opción</label>
-                                                                <input type="text" name="name" placeholder="Ej: Bacon, Sin cebolla..." required className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" />
+                                                                <input type="text" name="name" placeholder="Ej: Bacon, Sin cebolla..." required className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all text-black" />
                                                             </div>
                                                             <div className="space-y-1">
                                                                 <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Precio Adicional ($)</label>
-                                                                <input type="number" step="0.01" name="price" placeholder="0.00" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-1 focus:ring-black outline-none transition-all text-black" />
+                                                                <input type="number" step="0.01" name="price" placeholder="0.00" className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-1 focus:ring-zinc-900/10 focus:border-zinc-900 outline-none transition-all text-black" />
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2 pt-2">
                                                             <button 
                                                                 type="submit" 
                                                                 disabled={isPending}
-                                                                className="flex-1 bg-black text-white hover:bg-zinc-800 py-3 rounded-xl text-sm font-black transition-all disabled:opacity-50 active:scale-[0.98]"
+                                                                className="flex-1 bg-zinc-900 text-white hover:bg-zinc-800 py-3 rounded-xl text-sm font-black transition-all disabled:opacity-50 active:scale-[0.98]"
                                                             >
                                                                 Guardar Opción
                                                             </button>

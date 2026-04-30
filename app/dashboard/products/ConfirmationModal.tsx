@@ -19,7 +19,7 @@ export function ConfirmationModal({ isOpen, title, description, onConfirm, onCan
     useEffect(() => {
         setMounted(true)
     }, [])
-    
+
     // Bloquear scroll cuando está abierto
     useEffect(() => {
         if (!mounted) return
@@ -38,11 +38,11 @@ export function ConfirmationModal({ isOpen, title, description, onConfirm, onCan
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop con desenfoque */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
                 onClick={onCancel}
             ></div>
-            
+
             {/* Modal Box */}
             <div className="relative bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 <div className="p-6">
@@ -54,15 +54,15 @@ export function ConfirmationModal({ isOpen, title, description, onConfirm, onCan
                     <h3 className="text-xl font-bold text-zinc-900 mb-2">{title}</h3>
                     <p className="text-zinc-600 text-sm leading-relaxed">{description}</p>
                 </div>
-                
+
                 <div className="bg-zinc-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-zinc-100">
-                    <button 
+                    <button
                         onClick={onCancel}
                         className="px-4 py-2 text-sm font-medium text-zinc-600 hover:text-black hover:bg-zinc-100 rounded-lg transition-colors"
                     >
                         {cancelText}
                     </button>
-                    <button 
+                    <button
                         onClick={onConfirm}
                         className="px-4 py-2 text-sm font-medium text-white bg-black hover:bg-zinc-800 rounded-lg transition-colors"
                     >
