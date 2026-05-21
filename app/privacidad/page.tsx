@@ -33,7 +33,7 @@ export default function PrivacidadPage() {
             Esta Política de Privacidad describe cómo{" "}
             <strong>Komy</strong> ("La Plataforma",
             "nosotros", "nuestro"), cuyo titular es{" "}
-            <strong>[Tu Nombre Completo]</strong>, con domicilio en Cagua, Estado
+            <strong>Victor Escalona</strong>, con domicilio en Cagua, Estado
             Aragua, Venezuela, recopila, utiliza, almacena y protege la
             información personal de los establecimientos comerciales que
             utilizan el servicio ("El Cliente", "usted", "su"). Al registrarse
@@ -245,7 +245,7 @@ export default function PrivacidadPage() {
             </p>
             <ul className="mt-4 space-y-1 text-zinc-600">
               <li>
-                <strong>Correo electrónico:</strong> [correo de contacto]
+                <strong>Correo electrónico:</strong> victorescalona2006@gmail.com
               </li>
               <li>
                 <strong>Domicilio:</strong> Cagua, Estado Aragua, Venezuela.
