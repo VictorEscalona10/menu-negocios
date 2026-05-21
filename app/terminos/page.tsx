@@ -33,7 +33,7 @@ export default function TerminosPage() {
             El presente documento establece los Términos y Condiciones (en
             adelante, “los Términos”) que regulan el acceso y uso del software
             ofrecido por <strong>Komy</strong>, en adelante
-            “La Plataforma”, cuyo titular es <strong>[Tu Nombre Completo]</strong>,
+            “La Plataforma”, cuyo titular es <strong>Victor Escalona</strong>,
             con domicilio en Cagua, Estado Aragua, Venezuela. Al registrarse,
             acceder o utilizar cualquiera de los servicios proporcionados, el
             cliente o establecimiento comercial, en adelante “El Cliente”,
@@ -193,16 +193,19 @@ export default function TerminosPage() {
               prepagada. El acceso al panel de administración y la visibilidad
               pública del menú están condicionados al pago oportuno de la
               suscripción. En caso de no registrarse el pago en la fecha de
-              vencimiento, el sistema podrá suspender automáticamente el acceso
-              del Cliente y despublicar el menú sin necesidad de notificación
-              adicional.
+              vencimiento, el Cliente contará con un período de gracia de cinco (5) 
+              días calendario para regularizar su situación. Vencido este plazo 
+              sin que se haya confirmado el pago, el sistema podrá suspender 
+              automáticamente el acceso del Cliente y despublicar el menú sin 
+              necesidad de notificación adicional.
             </p>
             <p className="mt-4">
               No se otorgarán reembolsos ni prorrateos por períodos no
               utilizados, cancelaciones anticipadas o cierres temporales del
               establecimiento. Si el impago se extiende por más de treinta (30)
-              días calendario, La Plataforma podrá eliminar definitivamente la
-              cuenta y su contenido sin responsabilidad alguna.
+              días calendario contados a partir de la fecha de vencimiento original, 
+              La Plataforma podrá eliminar definitivamente la cuenta y su contenido 
+              sin responsabilidad alguna.
             </p>
           </section>
 

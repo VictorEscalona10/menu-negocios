@@ -169,7 +169,7 @@ export default function FloatingCart({
             setFormError('⚠️ El nombre debe tener al menos 3 caracteres.');
             return;
         }
-        
+
         if (requireCedula) {
             if (!customerCedula.trim()) {
                 setFormError('⚠️ La cédula de identidad es obligatoria.');
