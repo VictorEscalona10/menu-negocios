@@ -29,6 +29,7 @@ interface SharedMenuUIProps {
         fontBody?: string;
         upsellCategoryId?: string | null;
         cardBackgroundColor?: string;
+        deliveryZones?: Array<{ id: string; name: string; price: number }>;
         categories: Array<{
             id: string;
             name: string;
@@ -537,6 +538,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
                     requireCedula={store.requireCedula ?? true}
                     upsellCategory={upsellCategory}
                     onConfigureUpsellProduct={(product) => setActiveConfigProduct(product)}
+                    deliveryZones={store.deliveryZones ?? []}
                 />
             )}
 

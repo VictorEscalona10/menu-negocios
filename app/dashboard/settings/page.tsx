@@ -5,6 +5,7 @@ import { updateStoreSettings } from "@/src/actions/store"
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { SettingsForm } from './SettingsForm'
+import DeliveryZonesManager from './DeliveryZonesManager'
 
 export default async function SettingsPage() {
     // 1. Validamos al usuario actual
@@ -21,6 +22,9 @@ export default async function SettingsPage() {
         include: {
             categories: {
                 select: { id: true, name: true },
+                orderBy: { name: 'asc' }
+            },
+            deliveryZones: {
                 orderBy: { name: 'asc' }
             }
         }
@@ -79,6 +83,16 @@ export default async function SettingsPage() {
                     categories={store.categories}
                     updateAction={updateStoreWithId}
                 />
+
+                {/* Gestor de Zonas de Delivery */}
+                {store.enableDelivery && (
+                    <div className="mt-10 pt-6 border-t border-zinc-200">
+                        <DeliveryZonesManager
+                            storeId={store.id}
+                            initialZones={store.deliveryZones}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
