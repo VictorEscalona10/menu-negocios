@@ -20,6 +20,12 @@ interface UpsellCategory {
     products: UpsellProduct[];
 }
 
+interface DeliveryZone {
+    id: string;
+    name: string;
+    price: number;
+}
+
 interface FloatingCartProps {
     storeId: string;
     storeName: string;
@@ -34,6 +40,7 @@ interface FloatingCartProps {
     requireCedula?: boolean;
     upsellCategory?: UpsellCategory | null;
     onConfigureUpsellProduct?: (product: any) => void;
+    deliveryZones?: DeliveryZone[];
 }
 
 type DeliveryType = 'delivery' | 'pickup' | 'dinein';
@@ -52,6 +59,7 @@ export default function FloatingCart({
     requireCedula = true,
     upsellCategory = null,
     onConfigureUpsellProduct,
+    deliveryZones = [],
 }: FloatingCartProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isProductsExpanded, setIsProductsExpanded] = useState(false);
@@ -60,9 +68,14 @@ export default function FloatingCart({
     // Datos del cliente
     const [customerName, setCustomerName] = useState('');
     const [customerCedula, setCustomerCedula] = useState('');
-    const [customerAddress, setCustomerAddress] = useState('');
     const [orderNotes, setOrderNotes] = useState('');
     const [formError, setFormError] = useState('');
+
+    // Zona de delivery seleccionada
+    const [selectedZoneId, setSelectedZoneId] = useState<string>('');
+    const [isZoneDropdownOpen, setIsZoneDropdownOpen] = useState(false);
+
+    const selectedZone = deliveryZones.find(z => z.id === selectedZoneId) ?? null;
 
     // Handlers con sanitización en tiempo real
     const handleNameChange = (value: string) => {
@@ -131,7 +144,11 @@ export default function FloatingCart({
 
     const { items, getTotal, getTotalItems, deleteItem, addItem } = useCartStore();
     const totalItems = getTotalItems();
-    const totalPrice = getTotal();
+    const productTotal = getTotal();
+
+    // Total final = productos + precio de la zona de delivery (si aplica)
+    const deliveryFee = (deliveryType === 'delivery' && selectedZone) ? selectedZone.price : 0;
+    const totalPrice = productTotal + deliveryFee;
 
     useEffect(() => {
         if (totalItems === 0) {
@@ -142,7 +159,7 @@ export default function FloatingCart({
     // Reset error cuando el usuario tipea
     useEffect(() => {
         setFormError('');
-    }, [customerName, customerCedula]);
+    }, [customerName, customerCedula, selectedZoneId]);
 
     if (totalItems === 0) return null;
 
@@ -153,6 +170,7 @@ export default function FloatingCart({
     if (enableDineIn) activeModes.push({ id: 'dinein', label: 'En el Local', emoji: '🍽️' });
 
     const hasMultipleModes = activeModes.length > 1;
+    const hasZones = deliveryZones.length > 0;
 
     const handleWhatsAppOrder = () => {
         if (isPreview) {
@@ -183,6 +201,18 @@ export default function FloatingCart({
             }
         }
 
+        // Validar zona de delivery
+        if (deliveryType === 'delivery') {
+            if (hasZones && !selectedZoneId) {
+                setFormError('⚠️ Por favor selecciona tu zona de delivery.');
+                return;
+            }
+            if (!locationUrl && !selectedZoneId && !hasZones) {
+                setFormError('⚠️ Comparte tu ubicación GPS para el delivery.');
+                return;
+            }
+        }
+
         const header = whatsappHeader || `🍔 *NUEVO PEDIDO - ${storeName}* 🍔`;
         let mensaje = `${header}\n\n`;
 
@@ -195,13 +225,10 @@ export default function FloatingCart({
 
         // Tipo de entrega
         if (deliveryType === 'delivery') {
-            if (!customerAddress.trim() && !locationUrl) {
-                setFormError('⚠️ Ingresa una dirección o comparte tu ubicación GPS para el delivery.');
-                return;
-            }
             mensaje += `• Tipo: *🚗 Delivery*\n`;
-            if (customerAddress.trim()) {
-                mensaje += `• Dirección: *${customerAddress.trim()}*\n`;
+            if (selectedZone) {
+                mensaje += `• Zona: *${selectedZone.name}*\n`;
+                mensaje += `• Precio delivery: *$${selectedZone.price.toFixed(2)}*\n`;
             }
             if (locationUrl) {
                 mensaje += `• Link GPS: ${locationUrl}\n`;
@@ -233,6 +260,11 @@ export default function FloatingCart({
             }
         });
 
+        // Desglose del total
+        if (deliveryFee > 0) {
+            mensaje += `\n🛒 Subtotal productos: $${Number(productTotal).toFixed(2)}\n`;
+            mensaje += `🚗 Delivery (${selectedZone?.name}): $${deliveryFee.toFixed(2)}\n`;
+        }
         mensaje += `\n💰 *TOTAL A PAGAR:* $${Number(totalPrice).toFixed(2)}\n`;
 
         // Notas adicionales
@@ -369,27 +401,84 @@ export default function FloatingCart({
                                     </div>
                                 )}
 
-                                {/* GPS y Dirección manual solo para delivery */}
+                                {/* Selector de zona + GPS solo para delivery */}
                                 {deliveryType === 'delivery' && (
                                     <div className="mt-4 space-y-4" style={{ animation: 'fadeIn 0.25s ease' }}>
-                                        {/* Input manual */}
-                                        <div>
-                                            <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
-                                                Dirección manual <span style={{ color: themeColor }}>*</span>
-                                            </label>
-                                            <textarea
-                                                value={customerAddress}
-                                                onChange={e => setCustomerAddress(e.target.value)}
-                                                placeholder="Ej: Calle 3, Casa #45, cerca de..."
-                                                rows={2}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08] resize-none"
-                                            />
-                                        </div>
+
+                                        {/* Selector de zona desplegable */}
+                                        {hasZones && (
+                                            <div>
+                                                <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
+                                                    Zona de delivery <span style={{ color: themeColor }}>*</span>
+                                                </label>
+                                                <div className="relative">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsZoneDropdownOpen(!isZoneDropdownOpen)}
+                                                        className={`w-full flex items-center justify-between gap-3 bg-white/5 border rounded-xl px-4 py-3.5 text-sm text-left transition-all focus:outline-none ${isZoneDropdownOpen ? 'border-white/30 bg-white/[0.08]' : 'border-white/10 hover:border-white/20'}`}
+                                                    >
+                                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                            <span className="text-base shrink-0">📍</span>
+                                                            {selectedZone ? (
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-white font-bold text-sm truncate">{selectedZone.name}</p>
+                                                                    <p className="text-xs font-bold" style={{ color: themeColor }}>
+                                                                        +${selectedZone.price.toFixed(2)} delivery
+                                                                    </p>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-zinc-600 text-sm">Selecciona tu zona...</p>
+                                                            )}
+                                                        </div>
+                                                        <svg
+                                                            className={`w-4 h-4 text-zinc-400 transition-transform duration-200 shrink-0 ${isZoneDropdownOpen ? 'rotate-180' : ''}`}
+                                                            fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"
+                                                        >
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    </button>
+
+                                                    {/* Lista desplegable */}
+                                                    {isZoneDropdownOpen && (
+                                                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#232222] border border-white/15 rounded-2xl overflow-hidden shadow-2xl z-20">
+                                                            {deliveryZones.map((zone, idx) => (
+                                                                <button
+                                                                    key={zone.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setSelectedZoneId(zone.id);
+                                                                        setIsZoneDropdownOpen(false);
+                                                                    }}
+                                                                    className={`w-full flex items-center justify-between px-4 py-3.5 text-left transition-colors ${idx > 0 ? 'border-t border-white/5' : ''} ${selectedZoneId === zone.id ? 'bg-white/10' : 'hover:bg-white/5'}`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="text-base">📍</span>
+                                                                        <span className="text-white font-medium text-sm">{zone.name}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-sm font-black" style={{ color: themeColor }}>
+                                                                            {zone.price === 0 ? 'Gratis' : `+$${zone.price.toFixed(2)}`}
+                                                                        </span>
+                                                                        {selectedZoneId === zone.id && (
+                                                                            <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: themeColor }}>
+                                                                                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                                                </svg>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Botón GPS */}
                                         <div>
                                             <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
-                                                Opcional: Ubicación GPS exacta
+                                                {hasZones ? 'Opcional: Ubicación GPS exacta' : 'Ubicación GPS'}
                                             </label>
                                             {locationStatus !== 'success' ? (
                                                 <>
@@ -409,7 +498,7 @@ export default function FloatingCart({
                                                     </button>
                                                     {(locationStatus === 'denied' || locationStatus === 'error') && (
                                                         <p className="text-[10px] text-red-500 font-bold mt-1.5 text-center">
-                                                            No se pudo obtener el GPS. Por favor escribe tu dirección manual arriba.
+                                                            No se pudo obtener el GPS. Asegúrate de tener la zona seleccionada.
                                                         </p>
                                                     )}
                                                 </>
@@ -602,7 +691,7 @@ export default function FloatingCart({
                                 </div>
                             )}
 
-                            {/* ── Sección 4 (anterior): Notas adicionales ── */}
+                            {/* ── Sección 5: Notas adicionales ── */}
                             <div className="p-5 pb-8">
                                 <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-1">📝 Notas para el local</p>
                                 <textarea
@@ -618,6 +707,22 @@ export default function FloatingCart({
 
                         {/* Pie: Total + Botón de envío */}
                         <div className="p-5 border-t border-white/10 bg-[#131313] shrink-0">
+                            {/* Desglose del precio */}
+                            {deliveryType === 'delivery' && selectedZone && (
+                                <div className="mb-3 space-y-1.5 px-1">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-zinc-500">Productos</span>
+                                        <span className="text-zinc-300 font-medium">${Number(productTotal).toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-zinc-500">Delivery — {selectedZone.name}</span>
+                                        <span className="font-bold" style={{ color: themeColor }}>
+                                            {selectedZone.price === 0 ? 'Gratis' : `+$${selectedZone.price.toFixed(2)}`}
+                                        </span>
+                                    </div>
+                                    <div className="h-px bg-white/10 mt-2" />
+                                </div>
+                            )}
                             <div className="flex justify-between items-center mb-4 px-1">
                                 <span className="text-zinc-400 font-medium">Total a pagar</span>
                                 <span className="text-2xl font-black text-white">${Number(totalPrice).toFixed(2)}</span>

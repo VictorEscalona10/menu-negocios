@@ -38,6 +38,9 @@ export default async function MenuPage({
                         }
                     }
                 }
+            },
+            deliveryZones: {
+                orderBy: { name: 'asc' }
             }
         }
     });

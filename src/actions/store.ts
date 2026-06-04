@@ -128,3 +128,68 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     revalidatePath('/dashboard/settings')
     revalidatePath(`/menu`)
 }
+
+export async function createDeliveryZone(storeId: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("No autenticado");
+
+    const store = await prisma.store.findFirst({ where: { id: storeId, userId: user.id } });
+    if (!store) throw new Error("No autorizado");
+
+    const name = (formData.get('name') as string || '').trim();
+    const price = parseFloat(formData.get('price') as string || '0');
+
+    if (!name) throw new Error("El nombre de la zona es obligatorio");
+    if (isNaN(price) || price < 0) throw new Error("El precio debe ser un número válido");
+
+    await prisma.deliveryZone.create({
+        data: { name, price, storeId }
+    });
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath(`/menu/${store.slug}`);
+}
+
+export async function updateDeliveryZone(zoneId: string, formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("No autenticado");
+
+    const zone = await prisma.deliveryZone.findFirst({
+        where: { id: zoneId, store: { userId: user.id } },
+        include: { store: true }
+    });
+    if (!zone) throw new Error("No autorizado");
+
+    const name = (formData.get('name') as string || '').trim();
+    const price = parseFloat(formData.get('price') as string || '0');
+
+    if (!name) throw new Error("El nombre de la zona es obligatorio");
+    if (isNaN(price) || price < 0) throw new Error("El precio debe ser un número válido");
+
+    await prisma.deliveryZone.update({
+        where: { id: zoneId },
+        data: { name, price }
+    });
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath(`/menu/${zone.store.slug}`);
+}
+
+export async function deleteDeliveryZone(zoneId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("No autenticado");
+
+    const zone = await prisma.deliveryZone.findFirst({
+        where: { id: zoneId, store: { userId: user.id } },
+        include: { store: true }
+    });
+    if (!zone) throw new Error("No autorizado");
+
+    await prisma.deliveryZone.delete({ where: { id: zoneId } });
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath(`/menu/${zone.store.slug}`);
+}
