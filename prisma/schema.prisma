@@ -39,7 +39,8 @@ model Store {
   upsellCategoryId String? // Categoría estrella para el carrito
 
   // Relación: Un local tiene muchas categorías
-  categories Category[]
+  categories    Category[]
+  deliveryZones DeliveryZone[]
 }
 
 // 2. La tabla de Categorías (Para ordenar el menú)
@@ -100,4 +101,12 @@ model OrderIntentLog {
   total        Float
   deliveryType String // Ej: "delivery", "pickup", "dinein"
   createdAt    DateTime @default(now())
+}
+
+model DeliveryZone {
+  id      String @id @default(uuid())
+  name    String // Ej: "Turmero", "Cagua", "Centro"
+  price   Float // Ej: 2.50
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
