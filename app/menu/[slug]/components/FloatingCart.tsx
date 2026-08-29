@@ -38,6 +38,7 @@ interface FloatingCartProps {
     enablePickup?: boolean;
     enableDineIn?: boolean;
     requireCedula?: boolean;
+    buttonTextColor?: string;
     upsellCategory?: UpsellCategory | null;
     onConfigureUpsellProduct?: (product: any) => void;
     deliveryZones?: DeliveryZone[];
@@ -57,6 +58,7 @@ export default function FloatingCart({
     enablePickup = true,
     enableDineIn = false,
     requireCedula = true,
+    buttonTextColor = '#ffffff',
     upsellCategory = null,
     onConfigureUpsellProduct,
     deliveryZones = [],

@@ -28,70 +28,91 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const whatsappFooter = formData.get('whatsappFooter') as string
     const cardBackgroundColor = formData.get('cardBackgroundColor') as string
 
-    // Delivery modes (checkboxes send 'on' when checked, null when unchecked)
-    const enableDelivery      = formData.get('enableDelivery')     === 'on'
-    const enablePickup        = formData.get('enablePickup')       === 'on'
-    const enableDineIn        = formData.get('enableDineIn')       === 'on'
-    const showProductImages   = formData.get('showProductImages')  === 'on'
-    const forceNotesModal     = formData.get('forceNotesModal')    === 'on'
-    const requireCedula       = formData.get('requireCedula')      === 'on'
+    // Nuevos campos de personalización visual y layout
+    const buttonTextColor = formData.get('buttonTextColor') as string || '#ffffff'
+    const menuLayout = formData.get('menuLayout') as string || 'LIST'
+    const instagramUrl = formData.get('instagramUrl') as string || null
+    const tiktokUrl = formData.get('tiktokUrl') as string || null
+    const googleMapsUrl = formData.get('googleMapsUrl') as string || null
 
-    const textColor    = formData.get('textColor')    as string || '#e5e2e1'
+    // Delivery modes
+    const enableDelivery = formData.get('enableDelivery') === 'on'
+    const enablePickup = formData.get('enablePickup') === 'on'
+    const enableDineIn = formData.get('enableDineIn') === 'on'
+    const showProductImages = formData.get('showProductImages') === 'on'
+    const forceNotesModal = formData.get('forceNotesModal') === 'on'
+    const requireCedula = formData.get('requireCedula') === 'on'
+
+    const textColor = formData.get('textColor') as string || '#e5e2e1'
     const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
-    const fontHeading  = formData.get('fontHeading')  as string || 'Epilogue'
-    const fontBody     = formData.get('fontBody')     as string || 'Manrope'
+    const fontHeading = formData.get('fontHeading') as string || 'Epilogue'
+    const fontBody = formData.get('fontBody') as string || 'Manrope'
     const upsellCategoryId = (formData.get('upsellCategoryId') as string || '').trim() || null
 
-    // At least one mode must remain active
     if (!enableDelivery && !enablePickup && !enableDineIn) {
         throw new Error('Debes tener al menos un modo de entrega activo.')
     }
 
-    const logo = formData.get('logo') as File | null;
     let logoUrl = undefined;
+    let bannerUrl = undefined;
+
+    // --- LÓGICA DE SUBIDA DE LOGO ---
+    const logo = formData.get('logo') as File | null;
 
     if (logo && logo.size > 0) {
-        if (logo.size > 2 * 1024 * 1024) {
-            throw new Error("El logotipo excede el tamaño máximo permitido (2MB).");
-        }
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(logo.type)) {
-            throw new Error("Formato de logotipo no válido. Solo se permiten JPEG, PNG o WEBP.");
-        }
+        if (logo.size > 2 * 1024 * 1024) throw new Error("El logotipo excede el tamaño máximo permitido (2MB).");
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(logo.type)) throw new Error("Formato de logotipo no válido. Solo se permiten JPEG, PNG o WEBP.");
 
-        const supabase = await createClient();
-
-        // 1. ELIMINACIÓN INTELIGENTE: Buscamos si el local ya tenía un logo
         const existingStore = await prisma.store.findUnique({
             where: { id: storeId },
             select: { logoUrl: true }
         });
 
-        // Si ya tenía uno, le decimos a Supabase que lo borre de su servidor
         if (existingStore?.logoUrl) {
-            // El truco del .pop() extrae el nombre final del archivo de la URL pública
             const oldFileName = existingStore.logoUrl.split('/').pop();
-
-            if (oldFileName) {
-                await supabase.storage.from('logos').remove([oldFileName]);
-            }
+            if (oldFileName) await supabase.storage.from('logos').remove([oldFileName]);
         }
 
-        // 2. Subimos el logo nuevo (tu código original)
         const fileExt = logo.name.split('.').pop();
         const fileName = `${storeId}-${Date.now()}.${fileExt}`;
 
-        const { data, error } = await supabase.storage
-            .from('logos')
-            .upload(fileName, logo, { upsert: true });
+        const { data, error } = await supabase.storage.from('logos').upload(fileName, logo, { upsert: true });
 
         if (error) {
-            console.error("Error subiendo imagen:", error);
+            console.error("Error subiendo logotipo:", error);
         } else if (data) {
-            const { data: { publicUrl } } = supabase.storage
-                .from('logos')
-                .getPublicUrl(fileName);
-
+            const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName);
             logoUrl = publicUrl;
+        }
+    }
+
+    // --- LÓGICA DE SUBIDA DE BANNER ---
+    const banner = formData.get('banner') as File | null;
+
+    if (banner && banner.size > 0) {
+        if (banner.size > 2 * 1024 * 1024) throw new Error("El banner excede el tamaño máximo permitido (2MB).");
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(banner.type)) throw new Error("Formato de banner no válido. Solo se permiten JPEG, PNG o WEBP.");
+
+        const existingStore = await prisma.store.findUnique({
+            where: { id: storeId },
+            select: { bannerUrl: true }
+        });
+
+        if (existingStore?.bannerUrl) {
+            const oldFileName = existingStore.bannerUrl.split('/').pop();
+            if (oldFileName) await supabase.storage.from('logos').remove([oldFileName]); // Usamos el mismo bucket 'logos' para no romper nada
+        }
+
+        const fileExt = banner.name.split('.').pop();
+        const fileName = `banner-${storeId}-${Date.now()}.${fileExt}`;
+
+        const { data, error } = await supabase.storage.from('logos').upload(fileName, banner, { upsert: true });
+
+        if (error) {
+            console.error("Error subiendo banner:", error);
+        } else if (data) {
+            const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName);
+            bannerUrl = publicUrl;
         }
     }
 
@@ -114,11 +135,16 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         fontBody,
         upsellCategoryId,
         cardBackgroundColor,
+        // Nuevos campos
+        buttonTextColor,
+        menuLayout,
+        instagramUrl,
+        tiktokUrl,
+        googleMapsUrl,
     };
 
-    if (logoUrl) {
-        updateData.logoUrl = logoUrl;
-    }
+    if (logoUrl) updateData.logoUrl = logoUrl;
+    if (bannerUrl) updateData.bannerUrl = bannerUrl;
 
     await prisma.store.update({
         where: { id: storeId },

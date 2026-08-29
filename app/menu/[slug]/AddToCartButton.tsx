@@ -27,11 +27,12 @@ interface AddToCartButtonProps {
         modifierGroups?: ModifierGroup[];
     };
     themeColor: string;
+    buttonTextColor?: string;
     onConfigure?: () => void;
     forceNotesModal?: boolean;
 }
 
-export default function AddToCartButton({ product, themeColor, onConfigure, forceNotesModal }: AddToCartButtonProps) {
+export default function AddToCartButton({ product, themeColor, buttonTextColor = '#ffffff', onConfigure, forceNotesModal }: AddToCartButtonProps) {
     const addItem = useCartStore((state) => state.addItem);
     const items = useCartStore((state) => state.items);
 
@@ -51,8 +52,8 @@ export default function AddToCartButton({ product, themeColor, onConfigure, forc
         <div className="flex flex-col items-center justify-center relative">
             <button
                 onClick={handleButtonClick}
-                className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-white font-medium text-xl shadow-sm transition-transform active:scale-90 hover:brightness-110"
-                style={{ backgroundColor: themeColor || '#FF5630' }}
+                className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center font-medium text-xl shadow-sm transition-transform active:scale-90 hover:brightness-110"
+                style={{ backgroundColor: themeColor || '#FF5630', color: buttonTextColor }}
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
