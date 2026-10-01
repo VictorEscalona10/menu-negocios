@@ -30,11 +30,12 @@ interface Product {
 interface ProductConfiguratorModalProps {
     product: Product;
     themeColor: string;
+    buttonTextColor?: string;
     isOpen: boolean;
     onClose: () => void;
 }
 
-export default function ProductConfiguratorModal({ product, themeColor, isOpen, onClose }: ProductConfiguratorModalProps) {
+export default function ProductConfiguratorModal({ product, themeColor, buttonTextColor = '#ffffff', isOpen, onClose }: ProductConfiguratorModalProps) {
     const addItem = useCartStore((state) => state.addItem)
 
     // El estado guarda un map de groupId -> array de option IDs seleccionados

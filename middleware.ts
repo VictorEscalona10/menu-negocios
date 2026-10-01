@@ -38,8 +38,8 @@ export async function middleware(request: NextRequest) {
     // Obtenemos el usuario actual
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Proteger todas las rutas que empiecen con /dashboard
-    if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    // Proteger todas las rutas que empiecen con /dashboard o /onboarding
+    if ((request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/onboarding')) && !user) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
@@ -58,6 +58,7 @@ export const config = {
          * protección o redirección de autenticación.
          */
         '/dashboard/:path*',
+        '/onboarding/:path*',
         '/login'
     ],
 }

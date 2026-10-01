@@ -2,6 +2,7 @@
 
 import { useFormStatus } from "react-dom"
 import { useState } from "react"
+import SharedMenuUI from '../../components/SharedMenuUI'
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -34,6 +35,7 @@ interface Store {
     backgroundColor: string;
     themeColor: string;
     logoUrl?: string;
+    bannerUrl?: string;
     whatsappHeader?: string;
     whatsappFooter?: string;
     enableDelivery?: boolean;
@@ -43,11 +45,16 @@ interface Store {
     forceNotesModal?: boolean;
     textColor?: string;
     subtextColor?: string;
+    buttonTextColor?: string;
     fontHeading?: string;
     fontBody?: string;
     upsellCategoryId?: string;
     cardBackgroundColor?: string;
     requireCedula?: boolean;
+    menuLayout?: string;
+    instagramUrl?: string;
+    tiktokUrl?: string;
+    googleMapsUrl?: string;
     id: string;
 }
 
@@ -61,23 +68,129 @@ const BODY_FONTS = [
     'DM Sans', 'Nunito', 'Outfit', 'Source Sans 3', 'Work Sans',
 ];
 
+export interface MenuTemplate {
+    id: string;
+    name: string;
+    description: string;
+    emoji: string;
+    backgroundColor: string;
+    cardBackgroundColor: string;
+    themeColor: string;
+    textColor: string;
+    subtextColor: string;
+    buttonTextColor: string;
+    fontHeading: string;
+    fontBody: string;
+    menuLayout: 'LINKTREE' | 'GRID' | 'LIST';
+}
+
+export const MENU_TEMPLATES: MenuTemplate[] = [
+    {
+        id: 'tokyo-dark',
+        name: 'Tokyo Dark',
+        description: 'Urbano & Street Food',
+        emoji: '🔥',
+        backgroundColor: '#0e0e10',
+        cardBackgroundColor: 'rgba(255,255,255,0.06)',
+        themeColor: '#FF5630',
+        textColor: '#ffffff',
+        subtextColor: '#a1a1aa',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Epilogue',
+        fontBody: 'Manrope',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'neon-smash',
+        name: 'Neon Smash',
+        description: 'Alto Contraste & Smash',
+        emoji: '⚡',
+        backgroundColor: '#09090b',
+        cardBackgroundColor: '#18181b',
+        themeColor: '#84cc16',
+        textColor: '#fafafa',
+        subtextColor: '#a1a1aa',
+        buttonTextColor: '#000000',
+        fontHeading: 'Bebas Neue',
+        fontBody: 'Outfit',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'cafe-bakery',
+        name: 'Café & Bakery',
+        description: 'Tonalidades Cálidas & Panadería',
+        emoji: '☕',
+        backgroundColor: '#fdfbf7',
+        cardBackgroundColor: '#ffffff',
+        themeColor: '#92400e',
+        textColor: '#292524',
+        subtextColor: '#78716c',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Playfair Display',
+        fontBody: 'DM Sans',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'bistro-gourmet',
+        name: 'Bistro Gourmet',
+        category: 'Restaurante & Vinos',
+        description: 'Sofisticado & Acento Dorado',
+        emoji: '🍷',
+        backgroundColor: '#18181b',
+        cardBackgroundColor: '#27272a',
+        themeColor: '#f59e0b',
+        textColor: '#f4f4f5',
+        subtextColor: '#d4d4d8',
+        buttonTextColor: '#000000',
+        fontHeading: 'Cinzel',
+        fontBody: 'Manrope',
+        menuLayout: 'GRID',
+    } as any,
+    {
+        id: 'matcha-fresh',
+        name: 'Matcha & Fresh',
+        description: 'Orgánico, Bowls & Sushi',
+        emoji: '🥑',
+        backgroundColor: '#062e24',
+        cardBackgroundColor: 'rgba(255,255,255,0.08)',
+        themeColor: '#10b981',
+        textColor: '#ecfdf5',
+        subtextColor: '#a7f3d0',
+        buttonTextColor: '#062e24',
+        fontHeading: 'Montserrat',
+        fontBody: 'Inter',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'clean-slate',
+        name: 'Clean Minimal',
+        description: 'Blanco Puro & Minimalista',
+        emoji: '✨',
+        backgroundColor: '#ffffff',
+        cardBackgroundColor: '#f4f4f5',
+        themeColor: '#000000',
+        textColor: '#09090b',
+        subtextColor: '#71717a',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Epilogue',
+        fontBody: 'Manrope',
+        menuLayout: 'LINKTREE',
+    },
+];
+
 function buildGoogleFontsUrl(fonts: string[]) {
     const unique = [...new Set(fonts.filter(Boolean))];
     const params = unique.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;800;900`).join('&');
     return `https://fonts.googleapis.com/css2?${params}&display=swap`;
 }
 
-import SharedMenuUI from '../../components/SharedMenuUI';
-
 // COMPONENTE WHATSAPP PREVIEW (Simula un chat de WhatsApp)
 function WhatsAppPreview({ localStore }: { localStore: any }) {
     const header = localStore.whatsappHeader || `🍔 *NUEVO PEDIDO - ${localStore.name}* 🍔`;
     const footer = localStore.whatsappFooter || "¡Hola! Quisiera realizar este pedido, quedo atento a su confirmación.";
 
-    // Función simple para formatear *negrita* de WhatsApp en HTML
     const formatWhatsAppText = (text: string) => {
         return text.split('\n').map((line, i) => {
-            // Reemplazar *texto* con <strong>texto</strong>
             const formatted = line.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
             return <div key={i}>{formatted ? <span dangerouslySetInnerHTML={{ __html: formatted }} /> : <br />}</div>;
         });
@@ -85,7 +198,6 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
 
     return (
         <div className="relative mx-auto w-[320px] h-[640px] bg-[#efe7de] rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
-            {/* Cabecera de WhatsApp */}
             <div className="bg-[#075e54] pt-8 pb-3 px-4 flex items-center gap-3 text-white">
                 <div className="w-8 h-8 rounded-full bg-zinc-200/20 flex items-center justify-center overflow-hidden">
                     {localStore.logoUrl ? (
@@ -100,10 +212,8 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                 </div>
             </div>
 
-            {/* Cuerpo del Chat */}
             <div className="flex-1 p-4 overflow-y-auto space-y-4" style={{ backgroundImage: "url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')", backgroundSize: 'contain' }}>
                 <div className="bg-white rounded-lg rounded-tr-none p-3 shadow-sm relative ml-auto max-w-[85%] text-zinc-800 text-[13px] leading-relaxed">
-                    {/* Triángulo del mensaje */}
                     <div className="absolute top-0 -right-2 w-0 h-0 border-t-[10px] border-t-white border-r-[10px] border-r-transparent"></div>
 
                     <div className="space-y-1">
@@ -128,7 +238,6 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                 </div>
             </div>
 
-            {/* Barra de Entrada (Simulada) */}
             <div className="bg-[#f0f0f0] p-2 flex items-center gap-2">
                 <div className="flex-1 bg-white rounded-full px-4 py-2 text-xs text-zinc-400">Escribe un mensaje</div>
                 <div className="w-10 h-10 rounded-full bg-[#075e54] flex items-center justify-center text-white">
@@ -139,25 +248,29 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
     )
 }
 
-// COMPONENTE WRAPPER DEL TELÉFONO (Inyecta la UI única con datos de demostración)
+// COMPONENTE WRAPPER DEL TELÉFONO
 function MenuPreviewWrapper({ localStore }: { localStore: any }) {
-    // Creamos un dataset de demostración fusionado con los colores vivos del administrador
     const mockStore = {
         id: "demo-id",
         name: localStore.name,
         backgroundColor: localStore.backgroundColor,
         themeColor: localStore.themeColor,
         logoUrl: localStore.logoUrl,
+        bannerUrl: localStore.bannerUrl,
         whatsapp: localStore.whatsapp || "",
         whatsappHeader: localStore.whatsappHeader,
         whatsappFooter: localStore.whatsappFooter,
-        // Tipografía y colores de texto
         textColor: localStore.textColor,
         subtextColor: localStore.subtextColor,
+        buttonTextColor: localStore.buttonTextColor,
         fontHeading: localStore.fontHeading,
         fontBody: localStore.fontBody,
         showProductImages: localStore.showProductImages,
         cardBackgroundColor: localStore.cardBackgroundColor,
+        menuLayout: localStore.menuLayout,
+        instagramUrl: localStore.instagramUrl,
+        tiktokUrl: localStore.tiktokUrl,
+        googleMapsUrl: localStore.googleMapsUrl,
         categories: [
             {
                 id: "demo-cat",
@@ -184,10 +297,7 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
 
     return (
         <div className="relative mx-auto w-[320px] h-[640px] bg-black rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
-            {/* Notch del Teléfono simulado */}
             <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50 pointer-events-none"></div>
-
-            {/* Invocación del Single Source of Truth */}
             <div className="w-full h-full relative">
                 <SharedMenuUI store={mockStore} isPreview={true} />
             </div>
@@ -206,13 +316,14 @@ export function SettingsForm({
 }) {
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
-    // ESTADO CONTROLADO LOCALMENTE (Para la Vista Previa)
     const [localStore, setLocalStore] = useState({
         name: store.name || "",
         whatsapp: store.whatsapp || "",
         backgroundColor: store.backgroundColor || "#131313",
         themeColor: store.themeColor || "#FF5630",
+        buttonTextColor: store.buttonTextColor || "#ffffff",
         logoUrl: store.logoUrl || "",
+        bannerUrl: store.bannerUrl || "",
         whatsappHeader: store.whatsappHeader || "",
         whatsappFooter: store.whatsappFooter || "",
         enableDelivery: store.enableDelivery ?? true,
@@ -227,25 +338,28 @@ export function SettingsForm({
         upsellCategoryId: store.upsellCategoryId || '',
         cardBackgroundColor: store.cardBackgroundColor || 'rgba(255,255,255,0.05)',
         requireCedula: store.requireCedula ?? true,
+        menuLayout: store.menuLayout || 'LIST',
+        instagramUrl: store.instagramUrl || '',
+        tiktokUrl: store.tiktokUrl || '',
+        googleMapsUrl: store.googleMapsUrl || '',
     })
 
-    // Cargar las fuentes seleccionadas en el panel de administración para vista previa
     const fontsUrl = buildGoogleFontsUrl([localStore.fontHeading, localStore.fontBody]);
 
-    // Guard: at least one delivery mode must remain active
     const handleDeliveryToggle = (mode: 'enableDelivery' | 'enablePickup' | 'enableDineIn') => {
         const next = { ...localStore, [mode]: !localStore[mode] };
         const anyActive = next.enableDelivery || next.enablePickup || next.enableDineIn;
-        if (!anyActive) return; // silently prevent disabling the last one
+        if (!anyActive) return;
         setLocalStore(next);
     };
 
     const [previewMode, setPreviewMode] = useState<"menu" | "whatsapp">("menu")
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Manejador para el Logo
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl') => {
         const file = e.target.files?.[0];
         if (file) {
-            setLocalStore({ ...localStore, logoUrl: URL.createObjectURL(file) });
+            setLocalStore({ ...localStore, [field]: URL.createObjectURL(file) });
         }
     };
 
@@ -279,13 +393,79 @@ export function SettingsForm({
                         </div>
                     )}
 
-                    {/* Identidad Visual (colores de fondo) */}
-                    <div className="space-y-4 pt-4">
-                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual</h2>
-
-                        <div className="grid grid-cols-2 gap-6">
+                    {/* Plantillas Rápidas (Estilo Linktree) */}
+                    <div className="bg-gradient-to-br from-zinc-50 to-zinc-100/80 p-5 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Color de Fondo</label>
+                                <h2 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
+                                    <span>✨</span> Plantillas Estilo Linktree
+                                </h2>
+                                <p className="text-xs text-zinc-500 mt-0.5">Aplica paletas de colores, fuentes y layout con un solo toque y mira la vista previa en vivo.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                            {MENU_TEMPLATES.map((tmpl) => {
+                                const isCurrent = localStore.backgroundColor === tmpl.backgroundColor && localStore.themeColor === tmpl.themeColor;
+                                return (
+                                    <button
+                                        key={tmpl.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setLocalStore(prev => ({
+                                                ...prev,
+                                                backgroundColor: tmpl.backgroundColor,
+                                                cardBackgroundColor: tmpl.cardBackgroundColor,
+                                                themeColor: tmpl.themeColor,
+                                                textColor: tmpl.textColor,
+                                                subtextColor: tmpl.subtextColor,
+                                                buttonTextColor: tmpl.buttonTextColor,
+                                                fontHeading: tmpl.fontHeading,
+                                                fontBody: tmpl.fontBody,
+                                                menuLayout: tmpl.menuLayout,
+                                            }));
+                                        }}
+                                        className={`p-3 rounded-xl border-2 text-left transition-all relative flex flex-col justify-between group hover:scale-[1.02] active:scale-[0.98] ${isCurrent
+                                            ? 'border-black bg-white shadow-md ring-2 ring-black/5'
+                                            : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
+                                            }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className="text-xl">{tmpl.emoji}</span>
+                                                {/* Mini paleta de colores */}
+                                                <div className="flex -space-x-1">
+                                                    <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.backgroundColor }} />
+                                                    <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.themeColor }} />
+                                                </div>
+                                            </div>
+                                            <p className="font-bold text-xs text-zinc-900 leading-tight">{tmpl.name}</p>
+                                            <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">{tmpl.description}</p>
+                                        </div>
+
+                                        <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between">
+                                            <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">
+                                                {tmpl.menuLayout}
+                                            </span>
+                                            {isCurrent && (
+                                                <span className="text-[10px] text-black font-extrabold flex items-center gap-0.5">
+                                                    ✓ Activo
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Identidad Visual */}
+                    <div className="space-y-4 pt-2">
+                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual Personalizada</h2>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Fondo Principal</label>
                                 <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
                                     <input
                                         type="color"
@@ -309,6 +489,20 @@ export function SettingsForm({
                                         className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
                                     />
                                     <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.themeColor}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-zinc-700 mb-2">Texto en Botón</label>
+                                <div className="flex gap-3 items-center border border-zinc-200 p-2 rounded-lg bg-zinc-50">
+                                    <input
+                                        type="color"
+                                        name="buttonTextColor"
+                                        value={localStore.buttonTextColor}
+                                        onChange={(e) => setLocalStore({ ...localStore, buttonTextColor: e.target.value })}
+                                        className="h-10 w-10 rounded cursor-pointer border-0 p-0 shadow-sm"
+                                    />
+                                    <span className="text-xs text-zinc-600 font-mono font-medium">{localStore.buttonTextColor}</span>
                                 </div>
                             </div>
                         </div>
@@ -351,7 +545,6 @@ export function SettingsForm({
 
                     {/* Tipografía y Texto */}
                     <div className="space-y-5 pt-4 border-t border-zinc-100">
-                        {/* Inyectar fuentes para previsualizar en el panel */}
                         <link rel="stylesheet" href={fontsUrl} />
 
                         <div>
@@ -359,7 +552,6 @@ export function SettingsForm({
                             <p className="text-xs text-zinc-400 mt-0.5">Personaliza las fuentes y colores del texto del menú.</p>
                         </div>
 
-                        {/* Colores de texto */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-semibold text-zinc-600 mb-2">Color Principal</label>
@@ -391,7 +583,6 @@ export function SettingsForm({
                             </div>
                         </div>
 
-                        {/* Fuente de Títulos */}
                         <div>
                             <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Títulos</label>
                             <input type="hidden" name="fontHeading" value={localStore.fontHeading} />
@@ -412,7 +603,6 @@ export function SettingsForm({
                             </p>
                         </div>
 
-                        {/* Fuente de Cuerpo */}
                         <div>
                             <label className="block text-xs font-semibold text-zinc-600 mb-1">Fuente de Texto / Descripción</label>
                             <input type="hidden" name="fontBody" value={localStore.fontBody} />
@@ -434,7 +624,7 @@ export function SettingsForm({
                         </div>
                     </div>
 
-                    {/* Datos Básicos */}
+                    {/* Información del Negocio */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Información del Negocio</h2>
 
@@ -451,23 +641,24 @@ export function SettingsForm({
                         </div>
 
                         <div className="pt-4 border-t border-zinc-100">
-                            <label className="block text-sm font-medium text-zinc-700 mb-1">Logo del Local</label>
-                            <input
-                                type="file"
-                                name="logo"
-                                accept="image/*" // Solo permite seleccionar imágenes
-                                onChange={handleFileChange}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50"
-                            />
-                            {localStore.logoUrl && (
-                                <div className="mt-4">
-                                    <p className="text-sm font-medium text-zinc-500 mb-2">Logo actual (o vista previa):</p>
-                                    <div className="w-20 h-20 rounded-xl border border-zinc-200 overflow-hidden shadow-sm bg-zinc-50">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={localStore.logoUrl} alt="Logo actual" className="w-full h-full object-cover" />
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-700 mb-1">Logotipo del Negocio</label>
+                                <input
+                                    type="file"
+                                    name="logo"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageChange(e, 'logoUrl')}
+                                    className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50"
+                                />
+                                {localStore.logoUrl && (
+                                    <div className="mt-4">
+                                        <p className="text-sm font-medium text-zinc-500 mb-2">Logo actual:</p>
+                                        <div className="w-20 h-20 rounded-xl border border-zinc-200 overflow-hidden shadow-sm bg-zinc-50">
+                                            <img src={localStore.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
                         <div>
@@ -484,7 +675,7 @@ export function SettingsForm({
                         </div>
                     </div>
 
-                    {/* Configuración de WhatsApp */}
+                    {/* Mensajes de WhatsApp */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <h2 className="text-lg font-semibold text-zinc-800">Mensajes de WhatsApp</h2>
 
@@ -495,7 +686,7 @@ export function SettingsForm({
                                 value={localStore.whatsappHeader}
                                 onChange={(e) => {
                                     setLocalStore({ ...localStore, whatsappHeader: e.target.value })
-                                    setPreviewMode("whatsapp") // Cambiar a vista previa de WhatsApp automáticamente
+                                    setPreviewMode("whatsapp")
                                 }}
                                 className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none font-mono text-xs"
                                 rows={2}
@@ -510,7 +701,7 @@ export function SettingsForm({
                                 value={localStore.whatsappFooter}
                                 onChange={(e) => {
                                     setLocalStore({ ...localStore, whatsappFooter: e.target.value })
-                                    setPreviewMode("whatsapp") // Cambiar a vista previa de WhatsApp automáticamente
+                                    setPreviewMode("whatsapp")
                                 }}
                                 className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50 resize-none font-mono text-xs"
                                 rows={3}
@@ -526,8 +717,6 @@ export function SettingsForm({
                             <p className="text-xs text-zinc-400 mt-0.5">Activa los modos que ofrece tu negocio. Debe haber al menos uno activo.</p>
                         </div>
 
-                        {/* Hidden inputs para enviar false cuando el checkbox está desmarcado */}
-                        {/* Los checkboxes HTML solo envían valor cuando están marcados, así que usamos el estado local */}
                         <input type="hidden" name="enableDelivery" value={localStore.enableDelivery ? 'on' : 'off'} />
                         <input type="hidden" name="enablePickup" value={localStore.enablePickup ? 'on' : 'off'} />
                         <input type="hidden" name="enableDineIn" value={localStore.enableDineIn ? 'on' : 'off'} />
@@ -558,7 +747,6 @@ export function SettingsForm({
                                             <p className={`font-bold text-sm ${isOn ? 'text-zinc-900' : 'text-zinc-500'}`}>{label}</p>
                                             <p className="text-xs text-zinc-400 truncate">{sub}</p>
                                         </div>
-                                        {/* Toggle pill */}
                                         <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${isOn ? 'bg-black' : 'bg-zinc-200'}`}>
                                             <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
                                         </div>
@@ -567,7 +755,8 @@ export function SettingsForm({
                             })}
                         </div>
                     </div>
-                    {/* ─── Categoría Estrella del Carrito ─── */}
+
+                    {/* Categoría Estrella del Carrito */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <div>
                             <h2 className="text-lg font-semibold text-zinc-800">🔥 Categoría Estrella del Carrito</h2>
@@ -578,7 +767,6 @@ export function SettingsForm({
 
                         <input type="hidden" name="upsellCategoryId" value={localStore.upsellCategoryId} />
 
-                        {/* Opción: Ninguna */}
                         <div className="space-y-2">
                             <button
                                 type="button"
@@ -638,16 +826,66 @@ export function SettingsForm({
                         </div>
                     </div>
 
-                    {/* Imágenes de Productos */}
+                    {/* Apariencia del Menú */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <div>
                             <h2 className="text-lg font-semibold text-zinc-800">Apariencia del Menú</h2>
                             <p className="text-xs text-zinc-400 mt-0.5">Personaliza cómo se muestran los productos a tus clientes.</p>
                         </div>
 
-                        {/* Hidden input para enviar el estado del toggle */}
-                        <input type="hidden" name="showProductImages" value={localStore.showProductImages ? 'on' : 'off'} />
+                        <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-zinc-700">Estructura Visual (Layout)</label>
+                            <input type="hidden" name="menuLayout" value={localStore.menuLayout} />
 
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'LINKTREE' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'LINKTREE'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">🌿</span>
+                                        <span className="font-bold text-xs text-zinc-900">Estilo Linktree</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">Botones táctiles anchos optimizados para bio de Instagram o TikTok.</p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'GRID' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'GRID'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">📱</span>
+                                        <span className="font-bold text-xs text-zinc-900">Cuadrícula</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">2 columnas tipo feed con fotos grandes de productos.</p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'LIST' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'LIST'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">📋</span>
+                                        <span className="font-bold text-xs text-zinc-900">Lista Clásica</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">Slider horizontal con deslizamiento entre categorías.</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="showProductImages" value={localStore.showProductImages ? 'on' : 'off'} />
                         <button
                             type="button"
                             onClick={() => setLocalStore({ ...localStore, showProductImages: !localStore.showProductImages })}
@@ -665,13 +903,11 @@ export function SettingsForm({
                                     {localStore.showProductImages ? 'Las fotos de cada producto son visibles en el menú' : 'El menú se muestra solo con texto, sin imágenes'}
                                 </p>
                             </div>
-                            {/* Toggle pill */}
                             <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.showProductImages ? 'bg-black' : 'bg-zinc-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.showProductImages ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
 
-                        {/* Switch Forzar Modal de Notas */}
                         <input type="hidden" name="forceNotesModal" value={localStore.forceNotesModal ? 'on' : 'off'} />
                         <button
                             type="button"
@@ -690,13 +926,11 @@ export function SettingsForm({
                                     {localStore.forceNotesModal ? 'El modal de opciones se abre siempre al añadir un plato' : 'Solo se abre si el plato tiene extras o modificadores'}
                                 </p>
                             </div>
-                            {/* Toggle pill */}
                             <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.forceNotesModal ? 'bg-black' : 'bg-zinc-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.forceNotesModal ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
 
-                        {/* Switch Requerir Cédula */}
                         <input type="hidden" name="requireCedula" value={localStore.requireCedula ? 'on' : 'off'} />
                         <button
                             type="button"
@@ -715,13 +949,30 @@ export function SettingsForm({
                                     {localStore.requireCedula ? 'El cliente debe ingresar su cédula al finalizar el pedido' : 'No se solicitará la cédula en el carrito'}
                                 </p>
                             </div>
-                            {/* Toggle pill */}
                             <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.requireCedula ? 'bg-black' : 'bg-zinc-200'}`}>
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.requireCedula ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
                     </div>
 
+                    {/* Redes Sociales */}
+                    <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Redes Sociales y Ubicación</h2>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-700 mb-1">Instagram URL</label>
+                                <input type="url" name="instagramUrl" value={localStore.instagramUrl} onChange={e => setLocalStore({ ...localStore, instagramUrl: e.target.value })} placeholder="https://instagram.com/..." className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none text-sm" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-700 mb-1">TikTok URL</label>
+                                <input type="url" name="tiktokUrl" value={localStore.tiktokUrl} onChange={e => setLocalStore({ ...localStore, tiktokUrl: e.target.value })} placeholder="https://tiktok.com/@..." className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none text-sm" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-zinc-700 mb-1">Google Maps URL</label>
+                                <input type="url" name="googleMapsUrl" value={localStore.googleMapsUrl} onChange={e => setLocalStore({ ...localStore, googleMapsUrl: e.target.value })} placeholder="Enlace de la ubicación" className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none text-sm" />
+                            </div>
+                        </div>
+                    </div>
 
                     <SubmitButton />
                 </form>
@@ -732,7 +983,6 @@ export function SettingsForm({
                 <div className="flex flex-col items-center mb-6 w-full">
                     <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4 text-center shrink-0">Vista Previa en Vivo</h3>
 
-                    {/* Toggles de Vista Previa */}
                     <div className="flex p-1 bg-zinc-100 rounded-xl w-full max-w-[280px]">
                         <button
                             onClick={() => setPreviewMode("menu")}
