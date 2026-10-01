@@ -150,9 +150,10 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         where: { id: storeId },
         data: updateData,
     })
-
     revalidatePath('/dashboard/settings')
-    revalidatePath(`/menu`)
+    revalidatePath('/dashboard')
+    revalidatePath(`/menu/${storeExists.slug}`)
+    revalidatePath('/menu/[slug]', 'page')
 }
 
 export async function createDeliveryZone(storeId: string, formData: FormData) {

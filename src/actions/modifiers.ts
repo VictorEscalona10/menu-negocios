@@ -12,7 +12,8 @@ export async function createModifierGroup(productId: string, formData: FormData)
 
     // Verificar propiedad del producto
     const product = await prisma.product.findFirst({
-        where: { id: productId, category: { store: { userId: user.id } } }
+        where: { id: productId, category: { store: { userId: user.id } } },
+        include: { category: { include: { store: true } } }
     })
     if (!product) throw new Error("No autorizado")
 
@@ -28,6 +29,9 @@ export async function createModifierGroup(productId: string, formData: FormData)
     });
 
     revalidatePath(`/dashboard/products`);
+    if (product?.category?.store?.slug) {
+        revalidatePath(`/menu/${product.category.store.slug}`);
+    }
 }
 
 export async function createModifierOption(modifierGroupId: string, formData: FormData) {
@@ -40,6 +44,17 @@ export async function createModifierOption(modifierGroupId: string, formData: Fo
         where: { 
             id: modifierGroupId,
             product: { category: { store: { userId: user.id } } }
+        },
+        include: {
+            product: {
+                include: {
+                    category: {
+                        include: {
+                            store: true
+                        }
+                    }
+                }
+            }
         }
     })
     if (!group) throw new Error("No autorizado")
@@ -52,6 +67,10 @@ export async function createModifierOption(modifierGroupId: string, formData: Fo
     });
 
     revalidatePath(`/dashboard/products`);
+    const slug = group.product.category.store.slug;
+    if (slug) {
+        revalidatePath(`/menu/${slug}`);
+    }
 }
 
 export async function deleteModifierGroup(id: string) {
@@ -82,8 +101,13 @@ export async function deleteModifierGroup(id: string) {
         throw new Error("No tienes permiso para eliminar este grupo.")
     }
 
+    const slug = group.product.category.store.slug;
+
     await prisma.modifierGroup.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
+    if (slug) {
+        revalidatePath(`/menu/${slug}`);
+    }
 }
 
 export async function deleteModifierOption(id: string) {
@@ -118,8 +142,13 @@ export async function deleteModifierOption(id: string) {
         throw new Error("No tienes permiso para eliminar esta opción.")
     }
 
+    const slug = option.modifierGroup.product.category.store.slug;
+
     await prisma.modifierOption.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
+    if (slug) {
+        revalidatePath(`/menu/${slug}`);
+    }
 }
 
 export async function toggleModifierOptionAvailability(id: string, isAvailable: boolean) {
@@ -152,10 +181,15 @@ export async function toggleModifierOptionAvailability(id: string, isAvailable: 
         throw new Error("No autorizado")
     }
 
+    const slug = option.modifierGroup.product.category.store.slug;
+
     await prisma.modifierOption.update({
         where: { id },
         data: { isAvailable }
     })
 
     revalidatePath(`/dashboard/products`)
+    if (slug) {
+        revalidatePath(`/menu/${slug}`);
+    }
 }

@@ -68,6 +68,116 @@ const BODY_FONTS = [
     'DM Sans', 'Nunito', 'Outfit', 'Source Sans 3', 'Work Sans',
 ];
 
+export interface MenuTemplate {
+    id: string;
+    name: string;
+    description: string;
+    emoji: string;
+    backgroundColor: string;
+    cardBackgroundColor: string;
+    themeColor: string;
+    textColor: string;
+    subtextColor: string;
+    buttonTextColor: string;
+    fontHeading: string;
+    fontBody: string;
+    menuLayout: 'LINKTREE' | 'GRID' | 'LIST';
+}
+
+export const MENU_TEMPLATES: MenuTemplate[] = [
+    {
+        id: 'tokyo-dark',
+        name: 'Tokyo Dark',
+        description: 'Urbano & Street Food',
+        emoji: '🔥',
+        backgroundColor: '#0e0e10',
+        cardBackgroundColor: 'rgba(255,255,255,0.06)',
+        themeColor: '#FF5630',
+        textColor: '#ffffff',
+        subtextColor: '#a1a1aa',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Epilogue',
+        fontBody: 'Manrope',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'neon-smash',
+        name: 'Neon Smash',
+        description: 'Alto Contraste & Smash',
+        emoji: '⚡',
+        backgroundColor: '#09090b',
+        cardBackgroundColor: '#18181b',
+        themeColor: '#84cc16',
+        textColor: '#fafafa',
+        subtextColor: '#a1a1aa',
+        buttonTextColor: '#000000',
+        fontHeading: 'Bebas Neue',
+        fontBody: 'Outfit',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'cafe-bakery',
+        name: 'Café & Bakery',
+        description: 'Tonalidades Cálidas & Panadería',
+        emoji: '☕',
+        backgroundColor: '#fdfbf7',
+        cardBackgroundColor: '#ffffff',
+        themeColor: '#92400e',
+        textColor: '#292524',
+        subtextColor: '#78716c',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Playfair Display',
+        fontBody: 'DM Sans',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'bistro-gourmet',
+        name: 'Bistro Gourmet',
+        category: 'Restaurante & Vinos',
+        description: 'Sofisticado & Acento Dorado',
+        emoji: '🍷',
+        backgroundColor: '#18181b',
+        cardBackgroundColor: '#27272a',
+        themeColor: '#f59e0b',
+        textColor: '#f4f4f5',
+        subtextColor: '#d4d4d8',
+        buttonTextColor: '#000000',
+        fontHeading: 'Cinzel',
+        fontBody: 'Manrope',
+        menuLayout: 'GRID',
+    } as any,
+    {
+        id: 'matcha-fresh',
+        name: 'Matcha & Fresh',
+        description: 'Orgánico, Bowls & Sushi',
+        emoji: '🥑',
+        backgroundColor: '#062e24',
+        cardBackgroundColor: 'rgba(255,255,255,0.08)',
+        themeColor: '#10b981',
+        textColor: '#ecfdf5',
+        subtextColor: '#a7f3d0',
+        buttonTextColor: '#062e24',
+        fontHeading: 'Montserrat',
+        fontBody: 'Inter',
+        menuLayout: 'LINKTREE',
+    },
+    {
+        id: 'clean-slate',
+        name: 'Clean Minimal',
+        description: 'Blanco Puro & Minimalista',
+        emoji: '✨',
+        backgroundColor: '#ffffff',
+        cardBackgroundColor: '#f4f4f5',
+        themeColor: '#000000',
+        textColor: '#09090b',
+        subtextColor: '#71717a',
+        buttonTextColor: '#ffffff',
+        fontHeading: 'Epilogue',
+        fontBody: 'Manrope',
+        menuLayout: 'LINKTREE',
+    },
+];
+
 function buildGoogleFontsUrl(fonts: string[]) {
     const unique = [...new Set(fonts.filter(Boolean))];
     const params = unique.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;800;900`).join('&');
@@ -245,8 +355,8 @@ export function SettingsForm({
 
     const [previewMode, setPreviewMode] = useState<"menu" | "whatsapp">("menu")
 
-    // Manejador actualizado para soportar tanto Logo como Banner
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'bannerUrl') => {
+    // Manejador para el Logo
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl') => {
         const file = e.target.files?.[0];
         if (file) {
             setLocalStore({ ...localStore, [field]: URL.createObjectURL(file) });
@@ -283,9 +393,75 @@ export function SettingsForm({
                         </div>
                     )}
 
+                    {/* Plantillas Rápidas (Estilo Linktree) */}
+                    <div className="bg-gradient-to-br from-zinc-50 to-zinc-100/80 p-5 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
+                                    <span>✨</span> Plantillas Estilo Linktree
+                                </h2>
+                                <p className="text-xs text-zinc-500 mt-0.5">Aplica paletas de colores, fuentes y layout con un solo toque y mira la vista previa en vivo.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                            {MENU_TEMPLATES.map((tmpl) => {
+                                const isCurrent = localStore.backgroundColor === tmpl.backgroundColor && localStore.themeColor === tmpl.themeColor;
+                                return (
+                                    <button
+                                        key={tmpl.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setLocalStore(prev => ({
+                                                ...prev,
+                                                backgroundColor: tmpl.backgroundColor,
+                                                cardBackgroundColor: tmpl.cardBackgroundColor,
+                                                themeColor: tmpl.themeColor,
+                                                textColor: tmpl.textColor,
+                                                subtextColor: tmpl.subtextColor,
+                                                buttonTextColor: tmpl.buttonTextColor,
+                                                fontHeading: tmpl.fontHeading,
+                                                fontBody: tmpl.fontBody,
+                                                menuLayout: tmpl.menuLayout,
+                                            }));
+                                        }}
+                                        className={`p-3 rounded-xl border-2 text-left transition-all relative flex flex-col justify-between group hover:scale-[1.02] active:scale-[0.98] ${isCurrent
+                                            ? 'border-black bg-white shadow-md ring-2 ring-black/5'
+                                            : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
+                                            }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className="text-xl">{tmpl.emoji}</span>
+                                                {/* Mini paleta de colores */}
+                                                <div className="flex -space-x-1">
+                                                    <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.backgroundColor }} />
+                                                    <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.themeColor }} />
+                                                </div>
+                                            </div>
+                                            <p className="font-bold text-xs text-zinc-900 leading-tight">{tmpl.name}</p>
+                                            <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">{tmpl.description}</p>
+                                        </div>
+
+                                        <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between">
+                                            <span className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">
+                                                {tmpl.menuLayout}
+                                            </span>
+                                            {isCurrent && (
+                                                <span className="text-[10px] text-black font-extrabold flex items-center gap-0.5">
+                                                    ✓ Activo
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Identidad Visual */}
-                    <div className="space-y-4 pt-4">
-                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual</h2>
+                    <div className="space-y-4 pt-2">
+                        <h2 className="text-lg font-bold text-zinc-800 border-b pb-2">Identidad Visual Personalizada</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
@@ -464,9 +640,9 @@ export function SettingsForm({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
+                        <div className="pt-4 border-t border-zinc-100">
                             <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Logo del Local</label>
+                                <label className="block text-sm font-medium text-zinc-700 mb-1">Logotipo del Negocio</label>
                                 <input
                                     type="file"
                                     name="logo"
@@ -479,25 +655,6 @@ export function SettingsForm({
                                         <p className="text-sm font-medium text-zinc-500 mb-2">Logo actual:</p>
                                         <div className="w-20 h-20 rounded-xl border border-zinc-200 overflow-hidden shadow-sm bg-zinc-50">
                                             <img src={localStore.logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-zinc-700 mb-1">Banner de Portada</label>
-                                <input
-                                    type="file"
-                                    name="banner"
-                                    accept="image/*"
-                                    onChange={(e) => handleImageChange(e, 'bannerUrl')}
-                                    className="w-full border border-zinc-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-black outline-none bg-zinc-50"
-                                />
-                                {localStore.bannerUrl && (
-                                    <div className="mt-4">
-                                        <p className="text-sm font-medium text-zinc-500 mb-2">Banner actual:</p>
-                                        <div className="w-full h-20 rounded-xl border border-zinc-200 overflow-hidden shadow-sm bg-zinc-50">
-                                            <img src={localStore.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
                                         </div>
                                     </div>
                                 )}
@@ -676,18 +833,56 @@ export function SettingsForm({
                             <p className="text-xs text-zinc-400 mt-0.5">Personaliza cómo se muestran los productos a tus clientes.</p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-zinc-700 mb-1.5">Estructura Visual (Layout)</label>
-                            <select
-                                name="menuLayout"
-                                value={localStore.menuLayout}
-                                onChange={(e) => setLocalStore({ ...localStore, menuLayout: e.target.value })}
-                                className="w-full border border-zinc-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-black outline-none bg-zinc-50 text-sm mb-2"
-                            >
-                                <option value="LIST">Lista Clásica (Fotos miniatura)</option>
-                                <option value="GRID">Cuadrícula (Estilo Instagram)</option>
-                                <option value="LINKTREE">Estilo Linktree (Botones anchos)</option>
-                            </select>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-semibold text-zinc-700">Estructura Visual (Layout)</label>
+                            <input type="hidden" name="menuLayout" value={localStore.menuLayout} />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'LINKTREE' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'LINKTREE'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">🌿</span>
+                                        <span className="font-bold text-xs text-zinc-900">Estilo Linktree</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">Botones táctiles anchos optimizados para bio de Instagram o TikTok.</p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'GRID' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'GRID'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">📱</span>
+                                        <span className="font-bold text-xs text-zinc-900">Cuadrícula</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">2 columnas tipo feed con fotos grandes de productos.</p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setLocalStore({ ...localStore, menuLayout: 'LIST' })}
+                                    className={`p-3 rounded-xl border-2 text-left transition-all flex flex-col justify-between ${localStore.menuLayout === 'LIST'
+                                        ? 'border-black bg-black/5 shadow-xs ring-1 ring-black/10'
+                                        : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xl">📋</span>
+                                        <span className="font-bold text-xs text-zinc-900">Lista Clásica</span>
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500">Slider horizontal con deslizamiento entre categorías.</p>
+                                </button>
+                            </div>
                         </div>
 
                         <input type="hidden" name="showProductImages" value={localStore.showProductImages ? 'on' : 'off'} />

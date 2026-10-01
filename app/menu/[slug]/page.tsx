@@ -1,5 +1,6 @@
 // app/menu/[slug]/page.tsx
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import SharedMenuUI from '@/app/components/SharedMenuUI'
