@@ -224,6 +224,35 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
+                    {/* TARJETA 4: PERSONALIZACIÓN AVANZADA */}
+                    {store.customizationMode !== 'AVANCED' && (
+                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-xl">
+                                        🎨
+                                    </div>
+                                    <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
+                                        AVANCED
+                                    </span>
+                                </div>
+
+                                <h2 className="text-base font-bold text-zinc-900 mb-1">Personalización Avanzada</h2>
+                                <p className="text-xs text-zinc-500 leading-relaxed mb-6">
+                                    Configura el diseño completo de tu menú con layouts personalizados.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/dashboard/customization"
+                                className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
+                            >
+                                <span>Empezar</span>
+                                <span>→</span>
+                            </Link>
+                        </div>
+                    )}
+
                     {/* TARJETA 3: CÓDIGO QR PARA MESAS */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-sm">
                         <div className="w-full">

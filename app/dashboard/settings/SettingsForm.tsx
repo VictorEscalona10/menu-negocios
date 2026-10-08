@@ -2,7 +2,12 @@
 
 import { useFormStatus } from "react-dom"
 import { useState } from "react"
+import Link from "next/link"
 import SharedMenuUI from '../../components/SharedMenuUI'
+import AdvancedMenuUI from '../../components/AdvancedMenuUI'
+import { toggleCustomizationMode } from '@/src/actions/customization'
+import type { AdvancedCustomization, CustomizationMode } from '@/src/types/customization'
+import { buildGoogleFontsUrl } from "@/src/styles/fonts"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -178,12 +183,6 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
     },
 ];
 
-function buildGoogleFontsUrl(fonts: string[]) {
-    const unique = [...new Set(fonts.filter(Boolean))];
-    const params = unique.map(f => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;800;900`).join('&');
-    return `https://fonts.googleapis.com/css2?${params}&display=swap`;
-}
-
 // COMPONENTE WHATSAPP PREVIEW (Simula un chat de WhatsApp)
 function WhatsAppPreview({ localStore }: { localStore: any }) {
     const header = localStore.whatsappHeader || `🍔 *NUEVO PEDIDO - ${localStore.name}* 🍔`;
@@ -249,7 +248,17 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
 }
 
 // COMPONENTE WRAPPER DEL TELÉFONO
-function MenuPreviewWrapper({ localStore }: { localStore: any }) {
+function MenuPreviewWrapper({
+    localStore,
+    mode,
+    layout,
+    loading,
+}: {
+    localStore: any;
+    mode: CustomizationMode;
+    layout: AdvancedCustomization | null;
+    loading: boolean;
+}) {
     const mockStore = {
         id: "demo-id",
         name: localStore.name,
@@ -298,9 +307,41 @@ function MenuPreviewWrapper({ localStore }: { localStore: any }) {
     return (
         <div className="relative mx-auto w-[320px] h-[640px] bg-black rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
             <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50 pointer-events-none"></div>
-            <div className="w-full h-full relative">
-                <SharedMenuUI store={mockStore} isPreview={true} />
+            <div key={mode} className="w-full h-full relative animate-in fade-in duration-300">
+                {mode === 'AVANCED' ? (
+                    layout ? (
+                        <AdvancedMenuUI
+                            store={{ ...mockStore, customizationMode: 'AVANCED' }}
+                            layoutJson={layout}
+                            isPreview
+                        />
+                    ) : (
+                        <div className="w-full h-full overflow-hidden bg-zinc-50 flex flex-col items-center justify-center text-center px-8 gap-3">
+                            <span className="text-4xl">🛠️</span>
+                            <p className="text-sm font-bold text-zinc-800">Aún no has creado tu diseño avanzado</p>
+                            <p className="text-xs text-zinc-500 leading-relaxed">Abre el editor para crearlo sección por sección y verlo aquí.</p>
+                            <Link
+                                href="/dashboard/customization"
+                                className="inline-flex items-center gap-2 text-xs font-bold text-white bg-zinc-900 hover:bg-zinc-700 rounded-full px-4 py-2 transition-colors"
+                            >
+                                Abrir editor <span>→</span>
+                            </Link>
+                        </div>
+                    )
+                ) : (
+                    <SharedMenuUI store={mockStore} isPreview={true} scrollable={false} />
+                )}
             </div>
+
+            {loading && (
+                <div className="absolute inset-0 z-40 bg-black/45 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
+                    <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-xs font-bold text-white">Aplicando diseño…</span>
+                </div>
+            )}
         </div>
     )
 }
@@ -309,10 +350,14 @@ export function SettingsForm({
     store,
     categories = [],
     updateAction,
+    customizationMode = 'THEME',
+    layout = null,
 }: {
     store: Store;
     categories?: { id: string; name: string }[];
     updateAction: (formData: FormData) => Promise<{ success: boolean; message: string } | any>;
+    customizationMode?: CustomizationMode;
+    layout?: AdvancedCustomization | null;
 }) {
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
 
@@ -355,6 +400,22 @@ export function SettingsForm({
 
     const [previewMode, setPreviewMode] = useState<"menu" | "whatsapp">("menu")
 
+    const [mode, setMode] = useState<CustomizationMode>(customizationMode)
+    const [isModePending, setIsModePending] = useState(false)
+
+    const handleModeChange = async (next: CustomizationMode) => {
+        if (isModePending || next === mode) return
+        setIsModePending(true)
+        try {
+            await toggleCustomizationMode(store.id, next)
+            setMode(next)
+        } catch {
+            // Si falla la accion, el modo local queda como estaba
+        } finally {
+            setIsModePending(false)
+        }
+    }
+
     // Manejador para el Logo
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl') => {
         const file = e.target.files?.[0];
@@ -392,6 +453,56 @@ export function SettingsForm({
                             <span className="font-medium text-sm">¡Configuración guardada! Se visualizarán los cambios al visitar tu menú.</span>
                         </div>
                     )}
+
+                    {/* Diseño del menú (THEME vs AVANCED) */}
+                    <div className="bg-gradient-to-br from-zinc-50 to-zinc-100/80 p-5 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
+                        <div>
+                            <h2 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
+                                <span>🎨</span> Diseño del menú
+                            </h2>
+                            <p className="text-xs text-zinc-500 mt-0.5">Elige qué diseño se muestra en tu menú público y en la vista previa.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => handleModeChange('THEME')}
+                                disabled={isModePending}
+                                className={`p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${mode === 'THEME'
+                                    ? 'border-black bg-white shadow-md ring-2 ring-black/5'
+                                    : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
+                                    }`}
+                            >
+                                <p className="font-bold text-xs text-zinc-900">✨ Plantillas del sistema</p>
+                                <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">
+                                    Paletas, fuentes y layout clásico configurados en esta página.
+                                </p>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => handleModeChange('AVANCED')}
+                                disabled={isModePending}
+                                className={`p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 ${mode === 'AVANCED'
+                                    ? 'border-black bg-white shadow-md ring-2 ring-black/5'
+                                    : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
+                                    }`}
+                            >
+                                <p className="font-bold text-xs text-zinc-900">🛠️ Diseño avanzado</p>
+                                <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">
+                                    Editor sección por sección con plantillas propias.
+                                </p>
+                            </button>
+                        </div>
+
+                        <Link
+                            href="/dashboard/customization"
+                            className="flex items-center justify-between w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold py-3 px-4 rounded-xl transition-all shadow-sm"
+                        >
+                            <span>Ir a diseño avanzado</span>
+                            <span>→</span>
+                        </Link>
+                    </div>
 
                     {/* Plantillas Rápidas (Estilo Linktree) */}
                     <div className="bg-gradient-to-br from-zinc-50 to-zinc-100/80 p-5 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
@@ -1001,7 +1112,7 @@ export function SettingsForm({
 
                 <div className="relative animate-in fade-in zoom-in duration-500">
                     {previewMode === "menu" ? (
-                        <MenuPreviewWrapper localStore={localStore} />
+                        <MenuPreviewWrapper localStore={localStore} mode={mode} layout={layout} loading={isModePending} />
                     ) : (
                         <WhatsAppPreview localStore={localStore} />
                     )}
