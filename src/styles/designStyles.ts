@@ -143,7 +143,7 @@ export function cardSurface(
     const tint = withAlpha(g.accentColor, dark ? 0.2 : 0.12);
     if (style === 'glassmorphism' || style === 'liquidGlass') {
       const base = cardSurface(style, g, 'default');
-      return { ...base, background: tint, backgroundColor: tint, color: g.textColor };
+      return { ...base, backgroundColor: tint, color: g.textColor };
     }
     if (style === 'neumorphism') {
       const pair = neuShadowPair(g.backgroundColor);
@@ -191,7 +191,7 @@ export function cardSurface(
         const glass = glassTint(g, style === 'liquidGlass');
         return {
           ...backdropStyleFor(style),
-          background: withAlpha(g.accentColor, dark ? 0.08 : 0.04),
+          backgroundColor: withAlpha(g.accentColor, dark ? 0.08 : 0.04),
           border: glass.border,
           borderRadius: style === 'liquidGlass' ? '22px' : '16px',
           boxShadow: 'none',
@@ -233,7 +233,7 @@ export function cardSurface(
       const glass = glassTint(g, style === 'liquidGlass');
       return {
         ...backdropStyleFor(style),
-        background: glass.background,
+        backgroundColor: glass.background,
         border: glass.border,
         borderRadius: style === 'liquidGlass' ? '22px' : '16px',
         boxShadow:
@@ -349,7 +349,7 @@ export function navPillStyle(
       const glass = glassTint(g, style === 'liquidGlass');
       return {
         ...backdropStyleFor(style),
-        background: glass.background,
+        backgroundColor: glass.background,
         color: g.subtextColor,
         border: glass.border,
         borderRadius: '999px',
@@ -391,7 +391,7 @@ export function chipStyle(style: DesignStyle, g: GlobalStyle): CSSProperties {
     const glass = glassTint(g, style === 'liquidGlass');
     return {
       ...backdropStyleFor(style),
-      background: glass.background,
+      backgroundColor: glass.background,
       border: glass.border,
       color: g.textColor,
       boxShadow: style === 'liquidGlass' ? `inset 0 1px 0 ${withAlpha('#ffffff', 0.4)}` : undefined,

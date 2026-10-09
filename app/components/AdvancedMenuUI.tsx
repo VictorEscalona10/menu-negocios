@@ -480,62 +480,66 @@ function AdvancedLayout({
                 return (
                     <div
                         key={product.id}
-                        onClick={() => handleProductAction(product)}
-                        className="relative flex cursor-pointer items-center gap-3 rounded-2xl p-2.5 transition-all duration-200 active:scale-[0.98]"
-                        style={{
-                            ...cardStyle(c),
-                            ...(span ? { gridColumn: 'span 2' } : null),
-                            ...(product.isCombo
-                                ? { boxShadow: `0 0 0 2px ${accent}` }
-                                : null),
-                        }}
+                        className="@container min-w-0"
+                        style={span ? { gridColumn: 'span 2' } : undefined}
                     >
-                        {c.showImages && product.imageUrl && (
-                            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-sm">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
-                        )}
-
-                        <div className="min-w-0 flex-1">
-                            <h3
-                                className="line-clamp-2 text-sm font-bold leading-snug"
-                                style={{ ...headingFont, color: isFilled ? undefined : textColor }}
-                            >
-                                {product.name}
-                            </h3>
-                            {c.showDescriptions && product.description && (
-                                <p
-                                    className="mt-0.5 line-clamp-2 text-xs leading-relaxed"
-                                    style={{ color: descColor, opacity: isFilled ? 0.85 : 1 }}
-                                >
-                                    {product.description}
-                                </p>
-                            )}
-                            <div className="mt-1.5 flex items-center justify-between gap-2">
-                                {c.showPrices && (
-                                    <span
-                                        className="text-sm font-extrabold"
-                                        style={{ color: priceColor }}
-                                    >
-                                        ${product.price.toFixed(2)}
-                                    </span>
-                                )}
-                                <div
-                                    className="ml-auto shrink-0"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <AddToCartButton
-                                        product={product}
-                                        themeColor={accent}
-                                        buttonTextColor={buttonTextColor}
-                                        onConfigure={() => setActiveConfigProduct(product)}
-                                        forceNotesModal={store.forceNotesModal}
+                        <div
+                            onClick={() => handleProductAction(product)}
+                            className="relative flex h-full cursor-pointer items-center gap-2 overflow-hidden rounded-2xl p-2.5 transition-all duration-200 active:scale-[0.98] @max-[150px]:gap-1 @max-[150px]:p-2 @min-[210px]:gap-3"
+                            style={{
+                                ...cardStyle(c),
+                                ...(product.isCombo
+                                    ? { boxShadow: `0 0 0 2px ${accent}` }
+                                    : null),
+                            }}
+                        >
+                            {c.showImages && product.imageUrl && (
+                                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm @max-[150px]:h-10 @max-[150px]:w-10 @min-[210px]:h-20 @min-[210px]:w-20">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        className="h-full w-full object-cover"
                                     />
+                                </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                                <h3
+                                    className="line-clamp-2 break-words text-sm font-bold leading-snug"
+                                    style={{ ...headingFont, color: isFilled ? undefined : textColor }}
+                                >
+                                    {product.name}
+                                </h3>
+                                {c.showDescriptions && product.description && (
+                                    <p
+                                        className="mt-0.5 line-clamp-2 break-words text-xs leading-relaxed"
+                                        style={{ color: descColor, opacity: isFilled ? 0.85 : 1 }}
+                                    >
+                                        {product.description}
+                                    </p>
+                                )}
+                                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                                    {c.showPrices && (
+                                        <span
+                                            className="min-w-0 truncate text-sm font-extrabold"
+                                            style={{ color: priceColor }}
+                                        >
+                                            ${product.price.toFixed(2)}
+                                        </span>
+                                    )}
+                                    <div
+                                        className="ml-auto shrink-0"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <AddToCartButton
+                                            product={product}
+                                            themeColor={accent}
+                                            buttonTextColor={buttonTextColor}
+                                            onConfigure={() => setActiveConfigProduct(product)}
+                                            forceNotesModal={store.forceNotesModal}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

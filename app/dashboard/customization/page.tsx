@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCustomizationLayout } from '@/src/actions/customization'
 import { CustomizationEditor } from './CustomizationEditor'
-import SharedMenuUI from '@/app/components/SharedMenuUI'
 
 export default async function CustomizationPage() {
     // 1. Verificamos la sesión
@@ -16,33 +15,9 @@ export default async function CustomizationPage() {
         return redirect('/login')
     }
 
-    // 2. Buscamos el local asociado a este usuario (con datos para SharedMenuUI)
+    // 2. Buscamos el local asociado a este usuario
     const store = await prisma.store.findUnique({
         where: { userId: user.id },
-        include: {
-            categories: {
-                where: { isActive: true },
-                orderBy: { order: 'asc' },
-                include: {
-                    products: {
-                        where: { isAvailable: true },
-                        orderBy: [
-                            { order: 'asc' },
-                            { name: 'asc' },
-                        ],
-                        include: {
-                            modifierGroups: {
-                                include: { options: true },
-                                orderBy: { name: 'asc' },
-                            },
-                        },
-                    },
-                },
-            },
-            deliveryZones: {
-                orderBy: { name: 'asc' },
-            },
-        },
     })
 
     if (!store) {
@@ -71,17 +46,10 @@ export default async function CustomizationPage() {
                 <p className="text-zinc-500 font-medium mt-1">Diseña el menú de tu local sección por sección</p>
             </div>
 
-            {store.customizationMode === 'AVANCED' ? (
-                layout ? (
-                    <CustomizationEditor layout={layout} store={store} />
-                ) : (
-                    // Modo AVANCED pero sin layout: mostrar menú real
-                    <SharedMenuUI store={store} />
-                )
-            ) : (
-                // Modo THEME: mostrar menú real con CTA para activar modo avanzado
-                <SharedMenuUI store={store} />
-            )}
+            {/* El editor monta siempre: en THEME muestra la tarjeta de activación
+                y en AVANCED sin layout arranca con el layout por defecto
+                (el primer "Guardar" crea la fila CustomizationLayout). */}
+            <CustomizationEditor layout={layout} store={store} />
         </div>
     )
 }
