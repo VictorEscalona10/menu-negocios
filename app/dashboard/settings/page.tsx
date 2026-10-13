@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { SettingsForm } from './SettingsForm'
 import DeliveryZonesManager from './DeliveryZonesManager'
+import type { AdvancedCustomization } from '@/src/types/customization'
 
 export default async function SettingsPage() {
     // 1. Validamos al usuario actual
@@ -33,6 +34,12 @@ export default async function SettingsPage() {
     if (!store) {
         return redirect('/dashboard') // Si de casualidad entró aquí sin local, lo regresamos al form inicial
     }
+
+    const layoutRow = await prisma.customizationLayout.findUnique({
+        where: { storeId: store.id },
+        select: { layoutJson: true },
+    })
+    const layout = (layoutRow?.layoutJson ?? null) as AdvancedCustomization | null
 
     // 3. Preparamos la Server Action (que ya tienes creada) inyectando el ID del local
     const updateStoreWithId = updateStoreSettings.bind(null, store.id);
@@ -88,6 +95,8 @@ export default async function SettingsPage() {
                     }}
                     categories={store.categories}
                     updateAction={updateStoreWithId}
+                    customizationMode={store.customizationMode}
+                    layout={layout}
                 />
 
                 {/* Gestor de Zonas de Delivery */}

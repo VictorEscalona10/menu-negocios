@@ -19,10 +19,13 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body {
+html {
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+body {
+  max-width: 100vw;
 }
 
 body {
@@ -77,4 +80,29 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Entrada del modal de plantillas */
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Grid del menú (AVANCED): columnas configuradas, pero en pantallas
+   angostas (celulares reales) máximo 2 para que las tarjetas no se
+   aplasten aunque el layout se haya guardado en modo Escritorio. */
+.menu-grid {
+  grid-template-columns: repeat(var(--menu-cols, 2), minmax(0, 1fr));
+}
+
+@media (max-width: 767px) {
+  .menu-grid {
+    grid-template-columns: repeat(var(--menu-cols-narrow, 2), minmax(0, 1fr));
+  }
 }

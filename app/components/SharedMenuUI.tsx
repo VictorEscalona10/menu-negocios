@@ -62,9 +62,10 @@ interface SharedMenuUIProps {
         }>;
     };
     isPreview?: boolean;
+    scrollable?: boolean;
 }
 
-export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIProps) {
+export default function SharedMenuUI({ store, isPreview = false, scrollable = true }: SharedMenuUIProps) {
     const bg = store.backgroundColor || '#131313';
     const accent = store.themeColor || '#FF5630';
     const buttonTextColor = store.buttonTextColor || '#ffffff';
@@ -181,7 +182,7 @@ export default function SharedMenuUI({ store, isPreview = false }: SharedMenuUIP
 
     return (
         <div
-            className={`relative font-sans selection:bg-white/20 flex flex-col ${isPreview ? 'w-full h-full overflow-y-auto' : 'h-screen overflow-hidden'}`}
+            className={`relative font-sans selection:bg-white/20 flex flex-col ${isPreview ? `w-full h-full ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}` : 'h-screen overflow-hidden'}`}
             style={{ backgroundColor: bg }}
         >
             {/* Google Fonts */}

@@ -40,6 +40,9 @@ model Store {
   // Diseño del Menú
   menuLayout String @default("LIST") // NUEVO: Permite alternar entre "LINKTREE", "LIST" (clásico), y "GRID" (cuadrícula)
 
+  // Modo de personalización (ENUM en DB, default THEME)
+  customizationMode CustomizationMode @default(THEME)
+
   // Redes Sociales y Enlaces (NUEVO: Para colocar iconos debajo del logo como en Linktree)
   instagramUrl  String?
   tiktokUrl     String?
@@ -60,6 +63,9 @@ model Store {
   // Relación: Un local tiene muchas categorías
   categories    Category[]
   deliveryZones DeliveryZone[]
+  customizationLayout CustomizationLayout? // 1:1 con Store
+  customizationTemplates CustomizationTemplate[]
+  customizationImages CustomizationImage[]
 }
 
 // 2. La tabla de Categorías (Para ordenar el menú)
@@ -88,6 +94,14 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+
+  // Conversión de fotos a modelo 3D (Tripo API)
+  model3dStatus   String?   // null | PROCESSING | SUCCEEDED | FAILED
+  model3dTaskId   String?   // task_id en Tripo (para polling)
+  model3dUrl      String?   // URL pública del .glb en el bucket models-3d
+  model3dThumbUrl String?   // URL pública del preview.png
+  model3dError    String?   // Mensaje de error si falló
+  model3dSources  String[]  @default([]) // URLs de las fotos de origen
 
   // NUEVO: Relación para conectar los extras y remociones
   modifierGroups ModifierGroup[]
@@ -128,4 +142,57 @@ model DeliveryZone {
   price   Float // Ej: 2.50
   storeId String
   store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+// Configuración completa del editor avanzado (1 layout por store)
+model CustomizationLayout {
+  id         String   @id @default(uuid())
+  storeId    String   @unique // 1 layout por store (obligatorio)
+  layoutJson Json // El JSON completo del diseño avanzado
+  version    Int      @default(1) // Versión para historial de cambios
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+// Plantillas reutilizables de diseño
+model CustomizationTemplate {
+  id          String        @id @default(uuid())
+  name        String // Nombre de la plantilla (ej: "Moderna Oscura")
+  description String? // Descripción opcional
+  scope       TemplateScope // FULL_PAGE o SECTION
+  sectionType String? // Si scope=SECTION: type de sección
+  previewUrl  String // URL de imagen preview para el selector
+  configJson  Json // Configuración a inyectar
+  isPublic    Boolean       @default(true) // Si true, disponible para todos los stores
+  storeId     String? // Null = plantilla global; propietario = plantilla privada
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+// Referencias de imágenes del bucket advanced-customization
+model CustomizationImage {
+  id         String   @id @default(uuid())
+  storeId    String // A qué empresa pertenece (FK → Store)
+  url        String // URL pública de Supabase (generada al upload)
+  bucketPath String // Path interno para poder borrar después (advanced-customization/{storeId}/{filename})
+  altText    String? // Texto alternativo
+  sectionId  String? // Sección que la usa (opcional, para limpieza)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+enum CustomizationMode {
+  THEME
+  AVANCED
+}
+
+enum TemplateScope {
+  FULL_PAGE
+  SECTION
 }
