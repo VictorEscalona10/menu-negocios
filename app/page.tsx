@@ -29,7 +29,7 @@ export default function HomePage() {
   const [cartItems, setCartItems] = useState<{ id: string; name: string; price: number; qty: number }[]>([
     { id: "1", name: "Truffle Smash Burger", price: 9.5, qty: 1 }
   ]);
-  const [orderStatus, setOrderStatus] = useState<"recibido" | "cocina" | "en_camino">("cocina");
+  const [orderStatus, setOrderStatus] = useState<"recibido" | "confirmado" | "en_camino">("confirmado");
   const [claimedSlug, setClaimedSlug] = useState("");
 
   // --- States for Interactive ROI Calculator ---
@@ -197,15 +197,6 @@ export default function HomePage() {
       {/* ─── Hero Section ─── */}
       <section className="relative z-10 pt-16 pb-20 md:pt-24 md:pb-28 max-w-6xl mx-auto px-4 sm:px-6">
         
-        {/* Eyebrow Pill */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E5E5EA] shadow-xs text-xs font-medium text-[#515154] hover:border-[#D1D1D6] transition-colors">
-            <span className="flex h-2 w-2 rounded-full bg-[#34C759] animate-pulse" />
-            <span className="font-semibold text-[#1D1D1F]">Komy 2.0</span>
-            <span className="text-[#86868B]">•</span>
-            <span>El menú digital con 0% comisiones</span>
-          </div>
-        </div>
 
         {/* Display Headline */}
         <div className="text-center max-w-4xl mx-auto space-y-6">
@@ -289,7 +280,7 @@ export default function HomePage() {
                 }`}
               >
                 <MessageCircle className="w-4 h-4 text-[#34C759]" />
-                <span>Vista Negocio (WhatsApp & Cocina)</span>
+                <span>Vista Negocio (WhatsApp)</span>
               </button>
             </div>
           </div>
@@ -304,15 +295,10 @@ export default function HomePage() {
                 <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-black/10" />
                 <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-black/10" />
                 <span className="ml-3 text-xs font-mono text-[#86868B] tracking-wide">
-                  {activeDeviceTab === "client" ? "komy.app/smash-burger-house" : "WhatsApp Business + Panel Cocina"}
+                  {activeDeviceTab === "client" ? "komy.app/smash-burger-house" : "WhatsApp Business • Pedidos Directos"}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#34C759]/10 text-[#288E44]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34C759]" /> En vivo
-                </span>
-              </div>
             </div>
 
             {/* TAB 1: CLIENT EXPERIENCE (Interactive Phone Simulator) */}
@@ -491,7 +477,7 @@ export default function HomePage() {
                       onClick={() => setActiveDeviceTab("business")}
                       className="inline-flex items-center gap-2 text-xs font-bold text-[#007AFF] hover:underline"
                     >
-                      <span>Ver cómo llega el pedido a la cocina y WhatsApp</span>
+                      <span>Ver cómo llega el pedido a tu WhatsApp</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -499,7 +485,7 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* TAB 2: BUSINESS EXPERIENCE (WhatsApp & Kitchen Ticket) */}
+            {/* TAB 2: BUSINESS EXPERIENCE (WhatsApp & Pedido Directo) */}
             {activeDeviceTab === "business" && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 
@@ -538,12 +524,12 @@ export default function HomePage() {
 
                   <div className="flex items-center justify-end gap-2">
                     <span className="text-[11px] font-semibold text-[#008069] bg-[#D9FDD3] px-3 py-1 rounded-full">
-                      Listo para imprimir o enviar a cocina
+                      Listo para confirmar y despachar
                     </span>
                   </div>
                 </div>
 
-                {/* Kitchen Live Order Manager */}
+                {/* Business Live Order Manager */}
                 <div className="md:col-span-6 space-y-6 text-left">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#34C759]/10 text-[#288E44] text-xs font-bold">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Pedidos 100% Claros y Estructurados
@@ -574,14 +560,14 @@ export default function HomePage() {
                         Recibido
                       </button>
                       <button
-                        onClick={() => setOrderStatus("cocina")}
+                        onClick={() => setOrderStatus("confirmado")}
                         className={`py-2 px-3 rounded-xl text-xs font-bold transition-all ${
-                          orderStatus === "cocina"
+                          orderStatus === "confirmado"
                             ? "bg-[#007AFF] text-white shadow-xs"
                             : "bg-[#F2F2F7] text-[#6E6E73] hover:bg-[#E5E5EA]"
                         }`}
                       >
-                        En Cocina 👨‍🍳
+                        Confirmado ✅
                       </button>
                       <button
                         onClick={() => setOrderStatus("en_camino")}
