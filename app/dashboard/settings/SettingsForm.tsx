@@ -5,6 +5,7 @@ import { useState } from "react"
 import Link from "next/link"
 import SharedMenuUI from '../../components/SharedMenuUI'
 import AdvancedMenuUI from '../../components/AdvancedMenuUI'
+import DollarRateInfo from '../../components/DollarRateInfo'
 import { toggleCustomizationMode } from '@/src/actions/customization'
 import type { AdvancedCustomization, CustomizationMode } from '@/src/types/customization'
 import { buildGoogleFontsUrl } from "@/src/styles/fonts"
@@ -48,6 +49,7 @@ interface Store {
     enableDineIn?: boolean;
     showProductImages?: boolean;
     forceNotesModal?: boolean;
+    showBsPrice?: boolean;
     textColor?: string;
     subtextColor?: string;
     buttonTextColor?: string;
@@ -277,6 +279,7 @@ function MenuPreviewWrapper({
         showProductImages: localStore.showProductImages,
         cardBackgroundColor: localStore.cardBackgroundColor,
         menuLayout: localStore.menuLayout,
+        showBsPrice: localStore.showBsPrice,
         instagramUrl: localStore.instagramUrl,
         tiktokUrl: localStore.tiktokUrl,
         googleMapsUrl: localStore.googleMapsUrl,
@@ -376,6 +379,7 @@ export function SettingsForm({
         enableDineIn: store.enableDineIn ?? false,
         showProductImages: store.showProductImages ?? true,
         forceNotesModal: store.forceNotesModal ?? false,
+        showBsPrice: store.showBsPrice ?? true,
         textColor: store.textColor || '#e5e2e1',
         subtextColor: store.subtextColor || '#e4beb5',
         fontHeading: store.fontHeading || 'Epilogue',
@@ -1064,6 +1068,30 @@ export function SettingsForm({
                                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.requireCedula ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
+
+                        <input type="hidden" name="showBsPrice" value={localStore.showBsPrice ? 'on' : 'off'} />
+                        <button
+                            type="button"
+                            onClick={() => setLocalStore({ ...localStore, showBsPrice: !localStore.showBsPrice })}
+                            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${localStore.showBsPrice
+                                ? 'border-black bg-black/5'
+                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                }`}
+                        >
+                            <span className="text-2xl shrink-0">💱</span>
+                            <div className="flex-1 min-w-0">
+                                <p className={`font-bold text-sm ${localStore.showBsPrice ? 'text-zinc-900' : 'text-zinc-500'}`}>
+                                    Mostrar precio en Bolívares (Bs)
+                                </p>
+                                <p className="text-xs text-zinc-400 truncate">
+                                    {localStore.showBsPrice ? 'Debajo de cada precio en USD aparece el equivalente en Bs (tasa oficial)' : 'Los precios se muestran solo en dólares'}
+                                </p>
+                            </div>
+                            <div className={`shrink-0 relative w-11 h-6 rounded-full transition-colors duration-200 ${localStore.showBsPrice ? 'bg-black' : 'bg-zinc-200'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${localStore.showBsPrice ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                        </button>
+                        <DollarRateInfo />
                     </div>
 
                     {/* Redes Sociales */}

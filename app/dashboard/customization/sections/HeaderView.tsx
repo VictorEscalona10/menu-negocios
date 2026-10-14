@@ -10,9 +10,11 @@ type HeaderViewProps = {
     c: HeaderSectionConfig
     g: GlobalStyle
     alignment: Alignment
-    /** Nombre del negocio (la preview pasa un mock). */
+    /** Nombre del negocio (la preview pasa un mock; si c.title está seteado tiene prioridad). */
     name: string
     logoUrl?: string | null
+    /** Subtítulo propio de la sección (fallback: el de la marca). */
+    subtitle?: string
 }
 
 const SUBTITLE = 'Menú Digital · Pedido Online'
@@ -37,7 +39,7 @@ const logoFallbackBox = (style: HeaderStyle) => {
  * Encabezado compartido: lo usan la preview del editor (SectionRenderer) y el
  * menú público (AdvancedMenuUI) para que se vean idénticos.
  */
-export function HeaderView({ c, g, alignment, name, logoUrl }: HeaderViewProps) {
+export function HeaderView({ c, g, alignment, name, logoUrl, subtitle }: HeaderViewProps) {
     const style: HeaderStyle = c.style ?? 'classic'
     const editorial = style === 'editorial'
     const centered = editorial ? false : c.layout === 'centered' || alignment === 'center'
@@ -81,10 +83,10 @@ export function HeaderView({ c, g, alignment, name, logoUrl }: HeaderViewProps) 
     const block = (
         <div className={centered ? 'text-center' : 'text-left'}>
             <h1 className={titleClass} style={{ ...headingFont, color: g.textColor }}>
-                {name}
+                {c.title || name}
             </h1>
             <p className={subtitleClass} style={{ ...bodyFont, color: g.subtextColor }}>
-                {SUBTITLE}
+                {subtitle || SUBTITLE}
             </p>
         </div>
     )

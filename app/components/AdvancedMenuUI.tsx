@@ -6,6 +6,8 @@ import { Camera, Globe, MapPin, MessageCircle, Music2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCartStore } from '@/src/store/cartStore'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
+import BsPrice from './BsPrice'
+import ComboCard from './ComboCard'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
 import SharedMenuUI from './SharedMenuUI'
@@ -31,6 +33,7 @@ import {
     isDarkColor,
     navPillStyle,
     pageBackdrop,
+    scopedGlobalStyle,
     withAlpha,
 } from '@/src/styles/designStyles'
 
@@ -120,8 +123,6 @@ function AdvancedLayout({
     const isTablet = device === 'tablet'
 
     const accent = g.accentColor
-    const textColor = g.textColor
-    const subtextColor = g.subtextColor
     const buttonTextColor = g.buttonTextColor
     const design = designStyleOf(g)
     const backdrop = pageBackdrop(design, g)
@@ -179,19 +180,21 @@ function AdvancedLayout({
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     `
 
-    const cardStyle = (c: MenuSectionConfig): CSSProperties =>
-        cardSurface(design, g, c.cardStyle)
+    const cardStyle = (c: MenuSectionConfig, gs: GlobalStyle = g): CSSProperties =>
+        cardSurface(design, gs, c.cardStyle)
 
     const renderHeader = (section: Section): ReactNode => {
         const c = section.config as HeaderSectionConfig
+        const gs = scopedGlobalStyle(g, c)
 
         return (
             <HeaderView
                 c={c}
-                g={g}
+                g={gs}
                 alignment={section.alignment}
-                name={store.name || 'Tu Negocio'}
+                name={c.title || store.name || 'Tu Negocio'}
                 logoUrl={store.logoUrl}
+                subtitle={c.subtitle}
             />
         )
     }
@@ -200,11 +203,21 @@ function AdvancedLayout({
         const c = section.config as CategoryNavSectionConfig
         if (activeCategories.length === 0) return null
 
+        const gs = scopedGlobalStyle(g, c)
+
         return (
             <div
                 className={`z-30 shrink-0 ${c.sticky ? 'sticky top-0' : ''}`}
-                style={{ backgroundColor: `${g.backgroundColor}f0`, backdropFilter: 'blur(16px)' }}
+                style={{ backgroundColor: `${gs.backgroundColor}f0`, backdropFilter: 'blur(16px)' }}
             >
+                {c.heading && (
+                    <p
+                        className="px-4 pt-2 text-sm font-black"
+                        style={{ ...headingFont, color: gs.textColor }}
+                    >
+                        {c.heading}
+                    </p>
+                )}
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar px-4 py-2.5">
                     {activeCategories.map((cat, idx) => {
                         const isActive = idx === safeIndex
@@ -225,12 +238,14 @@ function AdvancedLayout({
                                 }`}
                                 style={{
                                     ...(isPill
-                                        ? navPillStyle(design, g, isActive)
+                                        ? navPillStyle(design, gs, isActive)
                                         : {
-                                              color: isActive ? accent : subtextColor,
+                                              color: isActive
+                                                  ? gs.accentColor
+                                                  : gs.subtextColor,
                                               borderBottomColor:
                                                   c.style === 'tabs' && isActive
-                                                      ? accent
+                                                      ? gs.accentColor
                                                       : undefined,
                                           }),
                                     ...bodyFont,
@@ -251,11 +266,45 @@ function AdvancedLayout({
         c: MenuSectionConfig,
         span = false,
         isLast = false,
+        gs: GlobalStyle = g,
     ): ReactNode => {
+        // Colores con alcance de sección: overrides opcionales vs globales
+        const accent = gs.accentColor
+        const textColor = gs.textColor
+        const subtextColor = gs.subtextColor
+        const buttonTextColor = gs.buttonTextColor
         const isFilled = c.cardStyle === 'filled'
         const descColor = isFilled ? textColor : subtextColor
         const priceColor = accent
         const style = c.layoutStyle ?? 'CLASSIC'
+
+        // ── Combo: card destacada (imagen arriba full-width, info abajo,
+        //    etiqueta "COMBO" arriba a la derecha). En GRID/BENTO ocupa
+        //    todo el ancho de la cuadrícula (1 / -1). ──
+        if (product.isCombo) {
+            return (
+                <ComboCard
+                    key={product.id}
+                    product={product}
+                    accent={accent}
+                    buttonTextColor={buttonTextColor}
+                    textColor={textColor}
+                    subtextColor={subtextColor}
+                    span={c.layout === 'GRID' || c.layout === 'BENTO'}
+                    showImages={c.showImages}
+                    showDescriptions={c.showDescriptions}
+                    showPrices={c.showPrices}
+                    bsEnabled={c.showBsPrice ?? true}
+                    surfaceStyle={cardStyle(c, gs)}
+                    headingStyle={headingFont}
+                    bodyStyle={bodyFont}
+                    isPreview={isPreview}
+                    forceNotesModal={store.forceNotesModal}
+                    onClick={() => handleProductAction(product)}
+                    onConfigure={() => setActiveConfigProduct(product)}
+                />
+            )
+        }
 
         if (c.layout === 'LIST') {
             if (style === 'DIVIDER') {
@@ -312,12 +361,15 @@ function AdvancedLayout({
 
                         <div className="flex shrink-0 items-center gap-2">
                             {c.showPrices && (
-                                <span
-                                    className="text-sm font-extrabold"
-                                    style={{ color: priceColor }}
-                                >
-                                    ${product.price.toFixed(2)}
-                                </span>
+                                <div className="flex flex-col">
+                                    <span
+                                        className="text-sm font-extrabold"
+                                        style={{ color: priceColor }}
+                                    >
+                                        ${product.price.toFixed(2)}
+                                    </span>
+                                    <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
+                                </div>
                             )}
                             <div onClick={(e) => e.stopPropagation()}>
                                 <AddToCartButton
@@ -340,10 +392,10 @@ function AdvancedLayout({
                         onClick={() => handleProductAction(product)}
                         className="relative flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-all duration-200 active:scale-[0.98]"
                         style={{
-                            ...cardStyle(c),
+                            ...cardStyle(c, gs),
                             backgroundColor: withAlpha(
                                 accent,
-                                isDarkColor(g.backgroundColor) ? 0.18 : 0.12,
+                                isDarkColor(gs.backgroundColor) ? 0.18 : 0.12,
                             ),
                             ...(product.isCombo
                                 ? { boxShadow: `0 0 0 2px ${accent}` }
@@ -389,12 +441,15 @@ function AdvancedLayout({
 
                         <div className="flex shrink-0 flex-col items-end gap-1.5">
                             {c.showPrices && (
-                                <span
-                                    className="rounded-full px-2.5 py-1 text-xs font-black"
-                                    style={{ backgroundColor: accent, color: buttonTextColor }}
-                                >
-                                    ${product.price.toFixed(2)}
-                                </span>
+                                <div className="flex flex-col items-end">
+                                    <span
+                                        className="rounded-full px-2.5 py-1 text-xs font-black"
+                                        style={{ backgroundColor: accent, color: buttonTextColor }}
+                                    >
+                                        ${product.price.toFixed(2)}
+                                    </span>
+                                    <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} className="text-right" />
+                                </div>
                             )}
                             <div onClick={(e) => e.stopPropagation()}>
                                 <AddToCartButton
@@ -416,7 +471,7 @@ function AdvancedLayout({
                     onClick={() => handleProductAction(product)}
                     className="relative flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-all duration-200 active:scale-[0.98]"
                     style={{
-                        ...cardStyle(c),
+                        ...cardStyle(c, gs),
                         ...(product.isCombo ? { boxShadow: `0 0 0 2px ${accent}` } : null),
                     }}
                 >
@@ -456,9 +511,12 @@ function AdvancedLayout({
                             </p>
                         )}
                         {c.showPrices && (
-                            <p className="mt-1 text-sm font-extrabold" style={{ color: priceColor }}>
-                                ${product.price.toFixed(2)}
-                            </p>
+                            <div className="mt-1">
+                                <p className="text-sm font-extrabold" style={{ color: priceColor }}>
+                                    ${product.price.toFixed(2)}
+                                </p>
+                                <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
+                            </div>
                         )}
                     </div>
 
@@ -487,7 +545,7 @@ function AdvancedLayout({
                             onClick={() => handleProductAction(product)}
                             className="relative flex h-full cursor-pointer items-center gap-2 overflow-hidden rounded-2xl p-2.5 transition-all duration-200 active:scale-[0.98] @max-[150px]:gap-1 @max-[150px]:p-2 @min-[210px]:gap-3"
                             style={{
-                                ...cardStyle(c),
+                                ...cardStyle(c, gs),
                                 ...(product.isCombo
                                     ? { boxShadow: `0 0 0 2px ${accent}` }
                                     : null),
@@ -521,12 +579,15 @@ function AdvancedLayout({
                                 )}
                                 <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                                     {c.showPrices && (
-                                        <span
-                                            className="min-w-0 truncate text-sm font-extrabold"
-                                            style={{ color: priceColor }}
-                                        >
-                                            ${product.price.toFixed(2)}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span
+                                                className="min-w-0 truncate text-sm font-extrabold"
+                                                style={{ color: priceColor }}
+                                            >
+                                                ${product.price.toFixed(2)}
+                                            </span>
+                                            <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
+                                        </div>
                                     )}
                                     <div
                                         className="ml-auto shrink-0"
@@ -602,12 +663,15 @@ function AdvancedLayout({
 
                             <div className="flex w-full items-center justify-center gap-2 pt-1">
                                 {c.showPrices && (
-                                    <span
-                                        className="text-sm font-extrabold"
-                                        style={{ color: priceColor }}
-                                    >
-                                        ${product.price.toFixed(2)}
-                                    </span>
+                                    <div className="flex flex-col items-center">
+                                        <span
+                                            className="text-sm font-extrabold"
+                                            style={{ color: priceColor }}
+                                        >
+                                            ${product.price.toFixed(2)}
+                                        </span>
+                                        <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
+                                    </div>
                                 )}
                                 <div onClick={(e) => e.stopPropagation()}>
                                     <AddToCartButton
@@ -630,7 +694,7 @@ function AdvancedLayout({
                     onClick={() => handleProductAction(product)}
                     className="relative flex cursor-pointer flex-col overflow-hidden rounded-2xl transition-all duration-200 active:scale-[0.98]"
                     style={{
-                        ...cardStyle(c),
+                        ...cardStyle(c, gs),
                         ...(span ? { gridColumn: 'span 2' } : null),
                         ...(product.isCombo ? { boxShadow: `0 0 0 2px ${accent}` } : null),
                     }}
@@ -675,12 +739,15 @@ function AdvancedLayout({
 
                         <div className="mt-3 flex items-center justify-between gap-2 pt-2">
                             {c.showPrices && (
-                                <span
-                                    className="text-sm font-extrabold"
-                                    style={{ color: priceColor }}
-                                >
-                                    ${product.price.toFixed(2)}
-                                </span>
+                                <div className="flex flex-col">
+                                    <span
+                                        className="text-sm font-extrabold"
+                                        style={{ color: priceColor }}
+                                    >
+                                        ${product.price.toFixed(2)}
+                                    </span>
+                                    <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
+                                </div>
                             )}
                             <div
                                 className="ml-auto shrink-0"
@@ -707,7 +774,7 @@ function AdvancedLayout({
                     onClick={() => handleProductAction(product)}
                     className="relative flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition-all duration-200 active:scale-[0.98]"
                     style={{
-                        ...cardStyle(c),
+                        ...cardStyle(c, gs),
                         ...(product.isCombo ? { boxShadow: `0 0 0 2px ${accent}` } : null),
                     }}
                 >
@@ -750,12 +817,15 @@ function AdvancedLayout({
 
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                         {c.showPrices && (
-                            <span
-                                className="text-sm font-extrabold"
-                                style={{ color: priceColor }}
-                            >
-                                ${product.price.toFixed(2)}
-                            </span>
+                            <div className="flex flex-col items-end">
+                                <span
+                                    className="text-sm font-extrabold"
+                                    style={{ color: priceColor }}
+                                >
+                                    ${product.price.toFixed(2)}
+                                </span>
+                                <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} className="text-right" />
+                            </div>
                         )}
                         <div onClick={(e) => e.stopPropagation()}>
                             <AddToCartButton
@@ -779,14 +849,17 @@ function AdvancedLayout({
                 className="flex items-center justify-between gap-3 rounded-full px-5 py-3 text-left transition-all duration-200 active:scale-[0.98]"
                 style={{
                     ...headingFont,
-                    ...navPillStyle(design, g, true),
+                    ...navPillStyle(design, gs, true),
                 }}
             >
                 <span className="truncate text-sm font-black">{product.name}</span>
                 {c.showPrices && (
-                    <span className="shrink-0 text-sm font-bold opacity-90">
-                        ${product.price.toFixed(2)}
-                    </span>
+                    <div className="flex shrink-0 flex-col items-end">
+                        <span className="text-sm font-bold opacity-90">
+                            ${product.price.toFixed(2)}
+                        </span>
+                        <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} className="text-right" />
+                    </div>
                 )}
             </button>
         )
@@ -794,12 +867,13 @@ function AdvancedLayout({
 
     const renderMenu = (section: Section): ReactNode => {
         const c = section.config as MenuSectionConfig
+        const gs = scopedGlobalStyle(g, c)
 
         if (activeCategories.length === 0) {
             return (
                 <div
                     className="px-4 py-12 text-center text-sm"
-                    style={{ ...bodyFont, color: subtextColor }}
+                    style={{ ...bodyFont, color: gs.subtextColor }}
                 >
                     No hay productos disponibles por el momento.
                 </div>
@@ -814,20 +888,44 @@ function AdvancedLayout({
             : activeCategories
 
         return (
-            <div ref={menuRef} className={`scroll-mt-20 px-4 pb-4 ${isPreview ? '' : 'sm:px-6'}`}>
+            <div
+                ref={menuRef}
+                className={`scroll-mt-20 px-4 pb-4 ${isPreview ? '' : 'sm:px-6'}`}
+                style={{ backgroundColor: c.bgColor }}
+            >
+                {(c.heading || c.subheading) && (
+                    <div className="pb-1 pt-3">
+                        {c.heading && (
+                            <h2
+                                className="text-base font-black"
+                                style={{ ...headingFont, color: gs.textColor }}
+                            >
+                                {c.heading}
+                            </h2>
+                        )}
+                        {c.subheading && (
+                            <p
+                                className="mt-0.5 text-xs"
+                                style={{ ...bodyFont, color: gs.subtextColor }}
+                            >
+                                {c.subheading}
+                            </p>
+                        )}
+                    </div>
+                )}
                 <div className="space-y-5">
                     {categoriesToShow.map((cat) => (
                         <div key={cat.id} className="space-y-3">
                             <div className="flex items-center justify-between px-1">
                                 <h2
                                     className="text-base font-black uppercase tracking-wider"
-                                    style={{ ...headingFont, color: textColor }}
+                                    style={{ ...headingFont, color: gs.textColor }}
                                 >
                                     {cat.name}
                                 </h2>
                                 <span
                                     className="text-xs font-semibold opacity-70"
-                                    style={{ ...bodyFont, color: subtextColor }}
+                                    style={{ ...bodyFont, color: gs.subtextColor }}
                                 >
                                     {cat.products.length}{' '}
                                     {cat.products.length === 1 ? 'ítem' : 'ítems'}
@@ -851,6 +949,8 @@ function AdvancedLayout({
                                             product,
                                             c,
                                             c.layout === 'BENTO' && columns > 1 && bentoSpan(index),
+                                            false,
+                                            gs,
                                         ),
                                     )}
                                 </div>
@@ -862,6 +962,7 @@ function AdvancedLayout({
                                             c,
                                             false,
                                             index === cat.products.length - 1,
+                                            gs,
                                         ),
                                     )}
                                 </div>
@@ -877,12 +978,28 @@ function AdvancedLayout({
         const c = section.config as SocialSectionConfig
         if (c.platforms.length === 0) return null
 
+        const gs = scopedGlobalStyle(g, c)
+
+        const align = c.align ?? 'center'
+        const justifyClass =
+            c.layout === 'grid'
+                ? align === 'left'
+                    ? 'justify-items-start'
+                    : align === 'right'
+                      ? 'justify-items-end'
+                      : 'justify-items-center'
+                : align === 'left'
+                  ? 'justify-start'
+                  : align === 'right'
+                    ? 'justify-end'
+                    : 'justify-center'
+
         return (
             <div
                 className={`px-4 py-3 ${isPreview ? '' : 'sm:px-6'} ${
                     c.layout === 'grid'
-                        ? 'grid grid-cols-2 gap-2'
-                        : 'flex flex-wrap items-center gap-3'
+                        ? `grid grid-cols-2 gap-2 ${justifyClass}`
+                        : `flex flex-wrap items-center gap-3 ${justifyClass}`
                 }`}
                 style={{
                     backgroundColor: c.bgColor,
@@ -898,11 +1015,11 @@ function AdvancedLayout({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 transition-transform hover:scale-105"
-                            style={{ color: subtextColor, ...bodyFont }}
+                            style={{ color: c.textColor ?? gs.subtextColor, ...bodyFont }}
                         >
                             <span
                                 className={`flex ${SOCIAL_ICON_CLASS[c.iconSize]} items-center justify-center rounded-full`}
-                                style={chipStyle(design, g)}
+                                style={chipStyle(design, gs)}
                             >
                                 <Icon className="h-1/2 w-1/2" />
                             </span>

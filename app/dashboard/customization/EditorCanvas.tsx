@@ -136,7 +136,13 @@ export function EditorCanvas() {
                                             activeId !== section.id
                                         }
                                     >
-                                        <div className="rounded-xl bg-zinc-50">
+                                        <div
+                                            className="rounded-xl"
+                                            style={{
+                                                backgroundColor:
+                                                    layoutJson.global.backgroundColor,
+                                            }}
+                                        >
                                             <SectionRenderer
                                                 section={section}
                                                 layoutJson={layoutJson}

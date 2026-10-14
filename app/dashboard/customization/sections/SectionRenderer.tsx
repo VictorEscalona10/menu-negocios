@@ -33,9 +33,12 @@ import {
     designStyleOf,
     imageWellStyle,
     navPillStyle,
+    scopedGlobalStyle,
     withAlpha,
 } from '@/src/styles/designStyles'
+import type { SectionColorOverrides } from '@/src/types/customization'
 import { HeaderView } from './HeaderView'
+import BsPrice from '../../../components/BsPrice'
 
 type SectionRendererProps = {
     section: Section
@@ -93,11 +96,22 @@ const CATEGORIES = [
     { name: 'Postres', count: 5 },
 ]
 
-const MENU_ITEMS = [
-    { name: 'Café latte', price: '$4.50', desc: 'Espresso con leche vaporizada' },
-    { name: 'Brownie', price: '$3.20', desc: 'Con helado de vainilla' },
-    { name: 'Pancakes', price: '$6.00', desc: 'Tres unidades con miel' },
-    { name: 'Jugo natural', price: '$3.80', desc: 'Naranja o limón' },
+interface MenuPreviewItem {
+    name: string
+    price: string
+    /** Precio numérico en USD para convertir a Bs en el preview. */
+    priceUsd: number
+    desc: string
+    isCombo?: boolean
+    comboBadge?: string
+}
+
+const MENU_ITEMS: MenuPreviewItem[] = [
+    { name: 'Café latte', price: '$4.50', priceUsd: 4.5, desc: 'Espresso con leche vaporizada' },
+    { name: 'Combo Familiar', price: '$12.90', priceUsd: 12.9, desc: 'Pizza grande + 2 bebidas', isCombo: true, comboBadge: 'COMBO' },
+    { name: 'Brownie', price: '$3.20', priceUsd: 3.2, desc: 'Con helado de vainilla' },
+    { name: 'Pancakes', price: '$6.00', priceUsd: 6, desc: 'Tres unidades con miel' },
+    { name: 'Jugo natural', price: '$3.80', priceUsd: 3.8, desc: 'Naranja o limón' },
 ]
 
 function Placeholder({
@@ -224,41 +238,43 @@ function CarouselView({
                                 <Shapes className="h-5 w-5 opacity-50" />
                             </div>
                         )}
-                        {item.overlayText && (
-                            <span
-                                className={`absolute inset-x-1 text-center text-[11px] font-black ${
-                                    item.ctaText ? 'bottom-11' : 'bottom-3'
-                                }`}
-                                style={{ color: g.textColor }}
-                            >
-                                {item.overlayText}
-                            </span>
+                        {(item.overlayText || item.ctaText) && (
+                            <div className="absolute inset-x-0 bottom-2 flex flex-col items-center gap-1 px-1">
+                                {item.overlayText && (
+                                    <span
+                                        className="text-center text-[11px] font-black"
+                                        style={{ color: g.textColor }}
+                                    >
+                                        {item.overlayText}
+                                    </span>
+                                )}
+                                {item.ctaText &&
+                                    (interactive && item.ctaUrl ? (
+                                        <a
+                                            href={item.ctaUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="max-w-full truncate rounded-full px-2.5 py-0.5 text-[10px] font-black"
+                                            style={{
+                                                backgroundColor: g.accentColor,
+                                                color: g.buttonTextColor,
+                                            }}
+                                        >
+                                            {item.ctaText}
+                                        </a>
+                                    ) : (
+                                        <span
+                                            className="max-w-full truncate rounded-full px-2.5 py-0.5 text-[10px] font-black"
+                                            style={{
+                                                backgroundColor: g.accentColor,
+                                                color: g.buttonTextColor,
+                                            }}
+                                        >
+                                            {item.ctaText}
+                                        </span>
+                                    ))}
+                            </div>
                         )}
-                        {item.ctaText &&
-                            (interactive && item.ctaUrl ? (
-                                <a
-                                    href={item.ctaUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="absolute bottom-3 left-1/2 max-w-[calc(100%-1rem)] -translate-x-1/2 truncate rounded-full px-2.5 py-0.5 text-[10px] font-black"
-                                    style={{
-                                        backgroundColor: g.accentColor,
-                                        color: g.buttonTextColor,
-                                    }}
-                                >
-                                    {item.ctaText}
-                                </a>
-                            ) : (
-                                <span
-                                    className="absolute bottom-3 left-1/2 max-w-[calc(100%-1rem)] -translate-x-1/2 truncate rounded-full px-2.5 py-0.5 text-[10px] font-black"
-                                    style={{
-                                        backgroundColor: g.accentColor,
-                                        color: g.buttonTextColor,
-                                    }}
-                                >
-                                    {item.ctaText}
-                                </span>
-                            ))}
                     </div>
                 ))}
             </div>
@@ -319,7 +335,10 @@ export function SectionRenderer({
     deviceView,
     interactive = false,
 }: SectionRendererProps) {
-    const g: GlobalStyle = layoutJson.global
+    // Global con los overrides de color de la sección aplicados (si los tiene):
+    // todo lo que pintemos dentro de la sección hereda estos colores.
+    const sectionColors = section.config as SectionColorOverrides
+    const g: GlobalStyle = scopedGlobalStyle(layoutJson.global, sectionColors)
     const device = deviceView ?? layoutJson.deviceView
     const isPhone = device === 'phone'
     const isTablet = device === 'tablet'
@@ -355,9 +374,12 @@ export function SectionRenderer({
                         )}
                         <div className="mt-0.5 flex items-center justify-between gap-1">
                             {config.showPrices && (
-                                <p className="text-[11px] font-bold" style={accentText()}>
-                                    {item.price}
-                                </p>
+                                <div>
+                                    <p className="text-[11px] font-bold" style={accentText()}>
+                                        {item.price}
+                                    </p>
+                                    <BsPrice usd={item.priceUsd} enabled={config.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                                </div>
                             )}
                             <span
                                 className="ml-auto flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-black"
@@ -394,9 +416,12 @@ export function SectionRenderer({
                     )}
                     <div className="mt-0.5 flex items-center justify-center gap-1">
                         {config.showPrices && (
-                            <p className="text-[11px] font-bold" style={accentText()}>
-                                {item.price}
-                            </p>
+                            <div>
+                                <p className="text-[11px] font-bold" style={accentText()}>
+                                    {item.price}
+                                </p>
+                                <BsPrice usd={item.priceUsd} enabled={config.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                            </div>
                         )}
                         <span
                             className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-black"
@@ -424,13 +449,64 @@ export function SectionRenderer({
                     <p className="truncate text-[10px] opacity-60">{item.desc}</p>
                 )}
                 {config.showPrices && (
-                    <p className="mt-0.5 text-[11px] font-bold" style={accentText()}>
-                        {item.price}
-                    </p>
+                    <div className="mt-0.5">
+                        <p className="text-[11px] font-bold" style={accentText()}>
+                            {item.price}
+                        </p>
+                        <BsPrice usd={item.priceUsd} enabled={config.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                    </div>
                 )}
             </div>
         )
     }
+
+    // Card destacada de COMBO para el preview del editor: imagen/pojo arriba
+    // full-width, etiqueta "COMBO" (o comboBadge) arriba a la derecha e
+    // información abajo. Refleja la ComboCard del menú público.
+    const comboCard = (
+        item: MenuPreviewItem,
+        config: MenuSectionConfig,
+        fontScale?: CSSProperties,
+    ) => (
+        <div
+            className="relative flex flex-col overflow-hidden rounded-2xl"
+            style={{ ...cardStyle(config), border: `2px solid ${g.accentColor}` }}
+        >
+            {config.showImages && (
+                <div
+                    className="flex h-20 w-full shrink-0 items-center justify-center"
+                    style={{ backgroundColor: `${g.accentColor}15` }}
+                >
+                    <Shapes className="h-5 w-5 opacity-50" />
+                </div>
+            )}
+            <span
+                className="absolute right-2 top-2 z-10 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider shadow-sm"
+                style={{ backgroundColor: g.accentColor, color: g.buttonTextColor }}
+            >
+                ⭐ {item.comboBadge || 'COMBO'}
+            </span>
+            <div
+                className="flex flex-1 flex-col justify-between gap-1 p-2"
+                style={fontScale}
+            >
+                <div>
+                    <p className="truncate text-xs font-bold">{item.name}</p>
+                    {config.showDescriptions && (
+                        <p className="truncate text-[10px] opacity-60">{item.desc}</p>
+                    )}
+                </div>
+                {config.showPrices && (
+                    <div>
+                        <p className="text-[11px] font-extrabold" style={{ color: g.accentColor }}>
+                            {item.price}
+                        </p>
+                        <BsPrice usd={item.priceUsd} enabled={config.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                    </div>
+                )}
+            </div>
+        </div>
+    )
 
     const renderByType = (): ReactNode => {
         switch (section.type) {
@@ -442,6 +518,7 @@ export function SectionRenderer({
                         g={g}
                         alignment={section.alignment}
                         name="Mi tienda"
+                        subtitle={c.subtitle}
                     />
                 )
             }
@@ -497,6 +574,11 @@ export function SectionRenderer({
                         return (
                             <div className={`flex w-full flex-col ${GAP_CLASS[c.gap]} px-3 py-2`}>
                                 {MENU_ITEMS.slice(0, 4).map((item) => (
+                                    item.isCombo ? (
+                                        <div key={item.name} className="py-1">
+                                            {comboCard(item, c, fontScale)}
+                                        </div>
+                                    ) : (
                                     <div
                                         key={item.name}
                                         className="flex items-center gap-2 rounded-2xl p-2.5"
@@ -514,12 +596,15 @@ export function SectionRenderer({
                                         </div>
                                         <div className="flex shrink-0 flex-col items-end gap-1">
                                             {c.showPrices && (
-                                                <p
-                                                    className="text-[11px] font-bold"
-                                                    style={accentText()}
-                                                >
-                                                    {item.price}
-                                                </p>
+                                                <div>
+                                                    <p
+                                                        className="text-[11px] font-bold"
+                                                        style={accentText()}
+                                                    >
+                                                        {item.price}
+                                                    </p>
+                                                    <BsPrice usd={item.priceUsd} enabled={c.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                                                </div>
                                             )}
                                             <span
                                                 className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-black"
@@ -532,6 +617,7 @@ export function SectionRenderer({
                                             </span>
                                         </div>
                                     </div>
+                                    )
                                 ))}
                             </div>
                         )
@@ -540,6 +626,11 @@ export function SectionRenderer({
                     return (
                         <div className={`flex w-full flex-col ${GAP_CLASS[c.gap]} px-3 py-2`}>
                             {MENU_ITEMS.slice(0, 4).map((item) => (
+                                item.isCombo ? (
+                                    <div key={item.name} className="py-1">
+                                        {comboCard(item, c, fontScale)}
+                                    </div>
+                                ) : (
                                 <div
                                     key={item.name}
                                     className="rounded-full px-4 py-2 text-center text-xs font-black"
@@ -547,6 +638,7 @@ export function SectionRenderer({
                                 >
                                     {item.name}
                                 </div>
+                                )
                             ))}
                         </div>
                     )
@@ -559,6 +651,11 @@ export function SectionRenderer({
                         return (
                             <div className={`flex w-full flex-col ${GAP_CLASS[c.gap]} px-3 py-2`}>
                                 {MENU_ITEMS.map((item, index) => (
+                                    item.isCombo ? (
+                                        <div key={item.name} className="py-1">
+                                            {comboCard(item, c, fontScale)}
+                                        </div>
+                                    ) : (
                                     <div
                                         key={item.name}
                                         className={`flex items-center gap-2 py-2 ${
@@ -582,14 +679,18 @@ export function SectionRenderer({
                                             )}
                                         </div>
                                         {c.showPrices && (
-                                            <p
-                                                className="shrink-0 text-xs font-bold"
-                                                style={accentText()}
-                                            >
-                                                {item.price}
-                                            </p>
+                                            <div className="shrink-0">
+                                                <p
+                                                    className="text-xs font-bold"
+                                                    style={accentText()}
+                                                >
+                                                    {item.price}
+                                                </p>
+                                                <BsPrice usd={item.priceUsd} enabled={c.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                                            </div>
                                         )}
                                     </div>
+                                    )
                                 ))}
                             </div>
                         )
@@ -599,6 +700,11 @@ export function SectionRenderer({
                         return (
                             <div className={`flex w-full flex-col ${GAP_CLASS[c.gap]} px-3 py-2`}>
                                 {MENU_ITEMS.map((item) => (
+                                    item.isCombo ? (
+                                        <div key={item.name} className="py-1">
+                                            {comboCard(item, c, fontScale)}
+                                        </div>
+                                    ) : (
                                     <div
                                         key={item.name}
                                         className="flex items-center gap-2 rounded-xl p-2"
@@ -629,17 +735,21 @@ export function SectionRenderer({
                                             )}
                                         </div>
                                         {c.showPrices && (
-                                            <p
-                                                className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black"
-                                                style={{
-                                                    backgroundColor: g.accentColor,
-                                                    color: g.buttonTextColor,
-                                                }}
-                                            >
-                                                {item.price}
-                                            </p>
+                                            <div className="shrink-0">
+                                                <p
+                                                    className="rounded-full px-2 py-0.5 text-[10px] font-black"
+                                                    style={{
+                                                        backgroundColor: g.accentColor,
+                                                        color: g.buttonTextColor,
+                                                    }}
+                                                >
+                                                    {item.price}
+                                                </p>
+                                                <BsPrice usd={item.priceUsd} enabled={c.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                                            </div>
                                         )}
                                     </div>
+                                    )
                                 ))}
                             </div>
                         )
@@ -648,6 +758,11 @@ export function SectionRenderer({
                     return (
                         <div className={`flex w-full flex-col ${GAP_CLASS[c.gap]} px-3 py-2`}>
                             {MENU_ITEMS.map((item) => (
+                                item.isCombo ? (
+                                    <div key={item.name} className="py-1">
+                                        {comboCard(item, c, fontScale)}
+                                    </div>
+                                ) : (
                                 <div
                                     key={item.name}
                                     className="flex items-center gap-2 rounded-xl p-2"
@@ -672,14 +787,18 @@ export function SectionRenderer({
                                         )}
                                     </div>
                                     {c.showPrices && (
-                                        <p
-                                            className="shrink-0 text-xs font-bold"
-                                            style={accentText()}
-                                        >
-                                            {item.price}
-                                        </p>
+                                        <div className="shrink-0">
+                                            <p
+                                                className="text-xs font-bold"
+                                                style={accentText()}
+                                            >
+                                                {item.price}
+                                            </p>
+                                            <BsPrice usd={item.priceUsd} enabled={c.showBsPrice ?? true} color={g.subtextColor} className="text-[9px]" />
+                                        </div>
                                     )}
                                 </div>
+                                )
                             ))}
                         </div>
                     )
@@ -697,12 +816,14 @@ export function SectionRenderer({
                                 key={item.name}
                                 style={{
                                     ...fontScale,
-                                    ...(isBento && bentoSpan(index)
-                                        ? { gridColumn: 'span 2' }
-                                        : null),
+                                    ...(item.isCombo
+                                        ? { gridColumn: '1 / -1' }
+                                        : isBento && bentoSpan(index)
+                                          ? { gridColumn: 'span 2' }
+                                          : null),
                                 }}
                             >
-                                {productCard(item, c)}
+                                {item.isCombo ? comboCard(item, c) : productCard(item, c)}
                             </div>
                         ))}
                     </div>
@@ -773,12 +894,8 @@ export function SectionRenderer({
                             </div>
                         )}
 
-                        {(c.overlayText || c.overlaySubheading) && (
-                            <div
-                                className={`absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-4 text-center ${
-                                    c.ctaText ? 'pb-14' : ''
-                                }`}
-                            >
+                        {(c.overlayText || c.overlaySubheading || c.ctaText) && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-4 text-center">
                                 {c.overlayText && (
                                     <span
                                         className="text-base font-black"
@@ -790,39 +907,40 @@ export function SectionRenderer({
                                 {c.overlaySubheading && (
                                     <span
                                         className="text-xs"
-                                        style={{ color: g.subtextColor }}
+                                        style={{
+                                            color: c.overlaySubheadingColor ?? g.subtextColor,
+                                        }}
                                     >
                                         {c.overlaySubheading}
                                     </span>
                                 )}
+                                {c.ctaText &&
+                                    (interactive && c.ctaUrl ? (
+                                        <a
+                                            href={c.ctaUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-1.5 max-w-[calc(100%-2rem)] truncate rounded-full px-4 py-1.5 text-xs font-black"
+                                            style={{
+                                                backgroundColor: g.accentColor,
+                                                color: g.buttonTextColor,
+                                            }}
+                                        >
+                                            {c.ctaText}
+                                        </a>
+                                    ) : (
+                                        <span
+                                            className="mt-1.5 max-w-[calc(100%-2rem)] truncate rounded-full px-4 py-1.5 text-xs font-black"
+                                            style={{
+                                                backgroundColor: g.accentColor,
+                                                color: g.buttonTextColor,
+                                            }}
+                                        >
+                                            {c.ctaText}
+                                        </span>
+                                    ))}
                             </div>
                         )}
-
-                        {c.ctaText &&
-                            (interactive && c.ctaUrl ? (
-                                <a
-                                    href={c.ctaUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="absolute bottom-4 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 truncate rounded-full px-4 py-1.5 text-xs font-black"
-                                    style={{
-                                        backgroundColor: g.accentColor,
-                                        color: g.buttonTextColor,
-                                    }}
-                                >
-                                    {c.ctaText}
-                                </a>
-                            ) : (
-                                <span
-                                    className="absolute bottom-4 left-1/2 max-w-[calc(100%-2rem)] -translate-x-1/2 truncate rounded-full px-4 py-1.5 text-xs font-black"
-                                    style={{
-                                        backgroundColor: g.accentColor,
-                                        color: g.buttonTextColor,
-                                    }}
-                                >
-                                    {c.ctaText}
-                                </span>
-                            ))}
                     </div>
                 )
             }
@@ -853,12 +971,26 @@ export function SectionRenderer({
                     )
                 }
 
+                const align = c.align ?? 'center'
+                const justifyClass =
+                    c.layout === 'grid'
+                        ? align === 'left'
+                            ? 'justify-items-start'
+                            : align === 'right'
+                              ? 'justify-items-end'
+                              : 'justify-items-center'
+                        : align === 'left'
+                          ? 'justify-start'
+                          : align === 'right'
+                            ? 'justify-end'
+                            : 'justify-center'
+
                 return (
                     <div
                         className={`flex w-full px-3 py-2 ${
                             c.layout === 'grid'
-                                ? 'grid grid-cols-2 gap-2'
-                                : 'flex-row flex-wrap items-center gap-3'
+                                ? `grid grid-cols-2 gap-2 ${justifyClass}`
+                                : `flex-row flex-wrap items-center gap-3 ${justifyClass}`
                         }`}
                         style={{
                             backgroundColor: c.bgColor,
@@ -906,11 +1038,38 @@ export function SectionRenderer({
         section.type === 'category-nav' &&
         (section.config as CategoryNavSectionConfig).sticky
 
+    // Título/subtítulo opcionales sobre el contenido (menú y categorías)
+    const headingCfg = section.config as { heading?: string; subheading?: string }
+    const showHeading =
+        (section.type === 'menu' || section.type === 'category-nav') &&
+        Boolean(headingCfg.heading || headingCfg.subheading)
+
     return (
         <div
             className={`flex w-full flex-col ${alignClass}${stickyNav ? ' sticky top-0 z-20' : ''}`}
-            style={{ ...bodyFont, color: g.textColor }}
+            style={{
+                ...bodyFont,
+                color: g.textColor,
+                backgroundColor: sectionColors.bgColor,
+            }}
         >
+            {showHeading && (
+                <div className="px-4 pb-1 pt-2">
+                    {headingCfg.heading && (
+                        <p
+                            className="text-sm font-black"
+                            style={{ ...headingFont, color: g.textColor }}
+                        >
+                            {headingCfg.heading}
+                        </p>
+                    )}
+                    {headingCfg.subheading && (
+                        <p className="mt-0.5 text-xs" style={{ color: g.subtextColor }}>
+                            {headingCfg.subheading}
+                        </p>
+                    )}
+                </div>
+            )}
             {renderByType()}
         </div>
     )

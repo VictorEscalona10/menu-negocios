@@ -42,6 +42,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     const showProductImages = formData.get('showProductImages') === 'on'
     const forceNotesModal = formData.get('forceNotesModal') === 'on'
     const requireCedula = formData.get('requireCedula') === 'on'
+    const showBsPrice = formData.get('showBsPrice') === 'on'
 
     const textColor = formData.get('textColor') as string || '#e5e2e1'
     const subtextColor = formData.get('subtextColor') as string || '#e4beb5'
@@ -129,6 +130,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
         showProductImages,
         forceNotesModal,
         requireCedula,
+        showBsPrice,
         textColor,
         subtextColor,
         fontHeading,

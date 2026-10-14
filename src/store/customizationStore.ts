@@ -60,12 +60,13 @@ const defaultConfigFor = (type: SectionType): SectionConfig => {
         showImages: true,
         showPrices: true,
         showDescriptions: true,
+        showBsPrice: true,
         columns: 2,
         gap: 'md',
         cardStyle: 'default',
       };
     case 'social':
-      return { platforms: [], layout: 'row', iconSize: 'md', showLabels: true };
+      return { platforms: [], layout: 'row', iconSize: 'md', showLabels: true, align: 'center' };
     case 'text':
       return { body: '', fontSize: 'md', textAlign: 'center', padding: '24px 16px' };
     case 'image':

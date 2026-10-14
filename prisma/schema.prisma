@@ -56,6 +56,7 @@ model Store {
   showProductImages Boolean @default(true)
   forceNotesModal   Boolean @default(false)
   requireCedula     Boolean @default(true)
+  showBsPrice       Boolean @default(true) // Muestra el precio convertido a Bs debajo del precio en USD
 
   upsellCategoryId String? // Categoría estrella para el carrito
 

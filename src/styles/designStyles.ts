@@ -1,5 +1,9 @@
 import type { CSSProperties } from 'react';
-import type { DesignStyle, GlobalStyle } from '@/src/types/customization';
+import type {
+  DesignStyle,
+  GlobalStyle,
+  SectionColorOverrides,
+} from '@/src/types/customization';
 
 export type CardStyleVariant = 'default' | 'outlined' | 'filled';
 
@@ -85,6 +89,19 @@ export const normalizeDesignStyle = (value: unknown): DesignStyle =>
 
 export const designStyleOf = (g: GlobalStyle): DesignStyle =>
   normalizeDesignStyle((g as { designStyle?: unknown }).designStyle);
+
+/**
+ * GlobalStyle con los overrides opcionales de color de una sección aplicados.
+ * Sin bgColor/textColor en la sección devuelve el global sin cambios.
+ */
+export function scopedGlobalStyle(g: GlobalStyle, config: SectionColorOverrides): GlobalStyle {
+  if (!config.bgColor && !config.textColor) return g;
+  return {
+    ...g,
+    backgroundColor: config.bgColor ?? g.backgroundColor,
+    textColor: config.textColor ?? g.textColor,
+  };
+}
 
 export const DESIGN_STYLE_META: { value: DesignStyle; label: string }[] = [
   { value: 'classic', label: 'Clásico' },
