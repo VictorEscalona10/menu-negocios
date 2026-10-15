@@ -8,6 +8,8 @@ import BsPrice from './BsPrice'
 import ComboCard from './ComboCard'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import { KnifeFork1Outlined, SparkOutlined } from '@lineiconshq/free-icons'
 
 interface SharedMenuUIProps {
     store: {
@@ -249,10 +251,10 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                     </div>
                 ) : (
                     <div
-                        className={`${isPreview ? 'w-14 h-14 mb-2 text-2xl' : 'w-20 h-20 mb-3 text-3xl'} rounded-full ring-4 ring-black/30 flex items-center justify-center shrink-0 shadow-lg`}
+                        className={`${isPreview ? 'w-14 h-14 mb-2' : 'w-20 h-20 mb-3'} rounded-full ring-4 ring-black/30 flex items-center justify-center shrink-0 shadow-lg`}
                         style={{ backgroundColor: `${accent}25`, boxShadow: `0 8px 24px ${accent}44` }}
                     >
-                        🍽️
+                        <Lineicons icon={KnifeFork1Outlined} size={isPreview ? 26 : 36} style={{ color: accent }} />
                     </div>
                 )}
 
@@ -424,10 +426,10 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                             </div>
                                         ) : (
                                             <div
-                                                className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center text-lg"
+                                                className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center"
                                                 style={{ backgroundColor: `${accent}15`, color: accent }}
                                             >
-                                                ✨
+                                                <Lineicons icon={SparkOutlined} size={20} style={{ color: accent }} />
                                             </div>
                                         )}
 

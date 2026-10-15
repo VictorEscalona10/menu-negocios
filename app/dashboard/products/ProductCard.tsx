@@ -5,6 +5,8 @@ import { toggleProductAvailability } from "@/src/actions/menu"
 import { EditProductModal } from "./EditProductModal"
 import { DeleteButton } from "./DeleteButton"
 import { ModifiersManager } from "./ModifiersManager"
+import { Lineicons } from "@lineiconshq/react-lineicons"
+import { StarFatSolid } from "@lineiconshq/free-icons"
 
 interface ProductCardProps {
     product: any;
@@ -59,7 +61,8 @@ export function ProductCard({ product, categories, deleteAction }: ProductCardPr
                             )}
                             {product.isCombo && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-400 to-orange-400 text-white uppercase tracking-tighter shrink-0 whitespace-nowrap">
-                                    🌟 Combo
+                                    <Lineicons icon={StarFatSolid} size={11} className="shrink-0" />
+                                    <span>Combo</span>
                                 </span>
                             )}
                             {product.isCombo && product.comboBadge && (

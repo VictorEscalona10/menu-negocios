@@ -101,8 +101,8 @@ export async function verifyOtpAction({ email, token }: { email: string; token: 
         return { error: "Correo electrónico no válido." }
     }
 
-    if (!cleanToken || cleanToken.length < 6) {
-        return { error: "Por favor, ingresa el código de 6 dígitos que llegó a tu correo." }
+    if (!cleanToken || cleanToken.length !== 8) {
+        return { error: "Por favor, ingresa el código de 8 dígitos que llegó a tu correo." }
     }
 
     const supabase = await createClient()

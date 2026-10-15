@@ -6,6 +6,8 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import { SparkOutlined, StarFatSolid } from '@lineiconshq/free-icons'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import BsPrice from './BsPrice'
 
@@ -116,10 +118,10 @@ export default function ComboCard({
                 </div>
             ) : (
                 <div
-                    className="flex h-24 w-full shrink-0 items-center justify-center rounded-t-2xl text-3xl"
+                    className="flex h-24 w-full shrink-0 items-center justify-center rounded-t-2xl"
                     style={{ backgroundColor: `${accent}15` }}
                 >
-                    ✨
+                    <Lineicons icon={SparkOutlined} size={28} style={{ color: accent }} />
                 </div>
             )}
 
@@ -129,10 +131,11 @@ export default function ComboCard({
                 y el span de la animación de entrada (scale). */}
             <div className="absolute left-3 top-0 z-10 -translate-y-1/2">
                 <span
-                    className="combo-badge-in block rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-sm"
+                    className="combo-badge-in inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow-sm"
                     style={{ backgroundColor: accent, color: buttonTextColor }}
                 >
-                    ⭐ {product.comboBadge || 'COMBO'}
+                    <Lineicons icon={StarFatSolid} size={11} className="shrink-0" />
+                    <span>{product.comboBadge || 'COMBO'}</span>
                 </span>
             </div>
 

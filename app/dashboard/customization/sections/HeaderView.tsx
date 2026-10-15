@@ -1,4 +1,6 @@
 import type { CSSProperties } from 'react'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import { KnifeFork1Outlined } from '@lineiconshq/free-icons'
 import type {
     Alignment,
     GlobalStyle,
@@ -61,7 +63,7 @@ export function HeaderView({ c, g, alignment, name, logoUrl, subtitle }: HeaderV
                     boxShadow: `0 8px 24px ${g.accentColor}44`,
                 }}
             >
-                🍽️
+                <Lineicons icon={KnifeFork1Outlined} size={style === 'minimal' ? 20 : style === 'editorial' ? 24 : 32} style={{ color: g.accentColor }} />
             </div>
         )
     ) : null

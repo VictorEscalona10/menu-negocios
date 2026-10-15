@@ -4,6 +4,18 @@
 import { useState, useEffect } from 'react'
 import { useCartStore } from '@/src/store/cartStore'
 import { logOrderIntent } from '@/src/actions/analytics'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import {
+    TruckDelivery1Outlined,
+    BasketShopping3Outlined,
+    KnifeFork1Outlined,
+    MapPin5Outlined,
+    MapMarker1Outlined,
+    Cart1Outlined,
+    StarFatSolid,
+    Notebook1Outlined,
+    Ban2Outlined,
+} from '@lineiconshq/free-icons'
 
 interface UpsellProduct {
     id: string;
@@ -166,39 +178,39 @@ export default function FloatingCart({
     if (totalItems === 0) return null;
 
     // Modos activos disponibles
-    const activeModes: { id: DeliveryType; label: string; emoji: string }[] = [];
-    if (enableDelivery) activeModes.push({ id: 'delivery', label: 'Delivery', emoji: '🚗' });
-    if (enablePickup) activeModes.push({ id: 'pickup', label: 'Pick-Up', emoji: '🏃' });
-    if (enableDineIn) activeModes.push({ id: 'dinein', label: 'En el Local', emoji: '🍽️' });
+    const activeModes: { id: DeliveryType; label: string; icon: any }[] = [];
+    if (enableDelivery) activeModes.push({ id: 'delivery', label: 'Delivery', icon: TruckDelivery1Outlined });
+    if (enablePickup) activeModes.push({ id: 'pickup', label: 'Pick-Up', icon: BasketShopping3Outlined });
+    if (enableDineIn) activeModes.push({ id: 'dinein', label: 'En el Local', icon: KnifeFork1Outlined });
 
     const hasMultipleModes = activeModes.length > 1;
     const hasZones = deliveryZones.length > 0;
 
     const handleWhatsAppOrder = () => {
         if (isPreview) {
-            alert("🔒 Modo Previsualización: Las órdenes a WhatsApp están desactivadas para no molestar a tus clientes.");
+            alert("Modo Previsualización: Las órdenes a WhatsApp están desactivadas para no molestar a tus clientes.");
             return;
         }
 
         // Validar campos requeridos
         if (!customerName.trim()) {
-            setFormError('⚠️ El nombre del cliente es obligatorio.');
+            setFormError('El nombre del cliente es obligatorio.');
             return;
         }
         if (customerName.trim().length < 3) {
-            setFormError('⚠️ El nombre debe tener al menos 3 caracteres.');
+            setFormError('El nombre debe tener al menos 3 caracteres.');
             return;
         }
 
         if (requireCedula) {
             if (!customerCedula.trim()) {
-                setFormError('⚠️ La cédula de identidad es obligatoria.');
+                setFormError('La cédula de identidad es obligatoria.');
                 return;
             }
             // Verificar que la cédula tenga al menos algunos dígitos
             const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
             if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
-                setFormError('⚠️ La cédula debe tener entre 6 y 9 dígitos numéricos.');
+                setFormError('La cédula debe tener entre 6 y 9 dígitos numéricos.');
                 return;
             }
         }
@@ -206,11 +218,11 @@ export default function FloatingCart({
         // Validar zona de delivery
         if (deliveryType === 'delivery') {
             if (hasZones && !selectedZoneId) {
-                setFormError('⚠️ Por favor selecciona tu zona de delivery.');
+                setFormError('Por favor selecciona tu zona de delivery.');
                 return;
             }
             if (!locationUrl && !selectedZoneId && !hasZones) {
-                setFormError('⚠️ Comparte tu ubicación GPS para el delivery.');
+                setFormError('Comparte tu ubicación GPS para el delivery.');
                 return;
             }
         }
@@ -356,6 +368,7 @@ export default function FloatingCart({
                                 {/* Error de validación */}
                                 {formError && (
                                     <div className="flex items-center gap-2 mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
+                                        <Lineicons icon={Ban2Outlined} size={16} className="text-red-400 shrink-0" />
                                         <span className="text-sm font-bold text-red-400">{formError}</span>
                                     </div>
                                 )}
@@ -374,7 +387,7 @@ export default function FloatingCart({
                                         className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-white/10"
                                         style={{ backgroundColor: `${themeColor}22` }}
                                     >
-                                        <span className="text-2xl">{activeModes[0]?.emoji}</span>
+                                        {activeModes[0] && <Lineicons icon={activeModes[0].icon} size={24} className="text-white shrink-0" />}
                                         <div>
                                             <p className="text-white font-bold text-sm">{activeModes[0]?.label}</p>
                                             <p className="text-zinc-500 text-[10px]">Único modo de entrega disponible</p>
@@ -396,7 +409,7 @@ export default function FloatingCart({
                                                     }`}
                                                 style={deliveryType === mode.id ? { backgroundColor: themeColor } : {}}
                                             >
-                                                <span className="text-2xl">{mode.emoji}</span>
+                                                <Lineicons icon={mode.icon} size={24} className="shrink-0" />
                                                 <span className="text-xs leading-tight text-center">{mode.label}</span>
                                             </button>
                                         ))}
@@ -420,7 +433,7 @@ export default function FloatingCart({
                                                         className={`w-full flex items-center justify-between gap-3 bg-white/5 border rounded-xl px-4 py-3.5 text-sm text-left transition-all focus:outline-none ${isZoneDropdownOpen ? 'border-white/30 bg-white/[0.08]' : 'border-white/10 hover:border-white/20'}`}
                                                     >
                                                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                            <span className="text-base shrink-0">📍</span>
+                                                            <Lineicons icon={MapPin5Outlined} size={18} className="text-zinc-400 shrink-0" />
                                                             {selectedZone ? (
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="text-white font-bold text-sm truncate">{selectedZone.name}</p>
@@ -454,7 +467,7 @@ export default function FloatingCart({
                                                                     className={`w-full flex items-center justify-between px-4 py-3.5 text-left transition-colors ${idx > 0 ? 'border-t border-white/5' : ''} ${selectedZoneId === zone.id ? 'bg-white/10' : 'hover:bg-white/5'}`}
                                                                 >
                                                                     <div className="flex items-center gap-3">
-                                                                        <span className="text-base">📍</span>
+                                                                        <Lineicons icon={MapPin5Outlined} size={16} className="text-zinc-400 shrink-0" />
                                                                         <span className="text-white font-medium text-sm">{zone.name}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
@@ -495,7 +508,10 @@ export default function FloatingCart({
                                                                 Detectando...
                                                             </span>
                                                         ) : (
-                                                            <>📍 Detectar ubicación GPS</>
+                                                            <span className="flex items-center justify-center gap-2">
+                                                                <Lineicons icon={MapMarker1Outlined} size={16} />
+                                                                Detectar ubicación GPS
+                                                            </span>
                                                         )}
                                                     </button>
                                                     {(locationStatus === 'denied' || locationStatus === 'error') && (
@@ -527,7 +543,9 @@ export default function FloatingCart({
                                     className="w-full p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">🛒</div>
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white">
+                                            <Lineicons icon={Cart1Outlined} size={20} />
+                                        </div>
                                         <div className="text-left">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Detalle del Pedido</p>
                                             <p className="text-sm font-bold text-white">
@@ -602,7 +620,7 @@ export default function FloatingCart({
                                 <div className="border-b border-white/10">
                                     {/* Header */}
                                     <div className="px-5 pt-5 pb-3 flex items-center gap-2">
-                                        <span className="text-base">🔥</span>
+                                        <Lineicons icon={StarFatSolid} size={18} className="text-amber-500 shrink-0" />
                                         <div>
                                             <p className="text-xs font-black uppercase tracking-widest" style={{ color: themeColor }}>
                                                 Completa tu orden
@@ -633,10 +651,10 @@ export default function FloatingCart({
                                                         />
                                                     ) : (
                                                         <div
-                                                            className="w-full h-[80px] flex items-center justify-center text-3xl"
+                                                            className="w-full h-[80px] flex items-center justify-center"
                                                             style={{ backgroundColor: `${themeColor}15` }}
                                                         >
-                                                            🍽️
+                                                            <Lineicons icon={KnifeFork1Outlined} size={28} className="opacity-50" style={{ color: themeColor }} />
                                                         </div>
                                                     )}
 
@@ -695,7 +713,10 @@ export default function FloatingCart({
 
                             {/* ── Sección 5: Notas adicionales ── */}
                             <div className="p-5 pb-8">
-                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-1">📝 Notas para el local</p>
+                                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-1 flex items-center gap-1.5">
+                                    <Lineicons icon={Notebook1Outlined} size={15} />
+                                    <span>Notas para el local</span>
+                                </p>
                                 <textarea
                                     value={orderNotes}
                                     onChange={e => setOrderNotes(e.target.value)}

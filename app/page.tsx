@@ -21,6 +21,19 @@ import {
   ExternalLink,
   ChevronDown
 } from "lucide-react";
+import { Lineicons } from '@lineiconshq/react-lineicons';
+import {
+  Burger1Outlined,
+  MenuHamburger1Outlined,
+  Pizza2Outlined,
+  GlassJuice1Outlined,
+  StarFatSolid,
+  SparkOutlined,
+  MapPin5Outlined,
+  CreditCardMultipleOutlined,
+  CheckCircle1Outlined,
+  BikeOutlined
+} from '@lineiconshq/free-icons';
 
 export default function HomePage() {
   // --- States for Interactive Hero Device Simulator ---
@@ -75,7 +88,7 @@ export default function HomePage() {
       desc: "Doble carne madurada, queso cheddar fundido, alioli de trufa y pan brioche.",
       price: 9.5,
       category: "hamburguesas",
-      image: "🍔"
+      icon: Burger1Outlined
     },
     {
       id: "2",
@@ -83,7 +96,7 @@ export default function HomePage() {
       desc: "Tocino crocante ahumado en leña, cebolla caramelizada y salsa especial Komy.",
       price: 8.9,
       category: "hamburguesas",
-      image: "🥓"
+      icon: MenuHamburger1Outlined
     },
     {
       id: "3",
@@ -91,7 +104,7 @@ export default function HomePage() {
       desc: "Papas cortadas a mano con queso parmesano reggiano y aceite de trufa blanca.",
       price: 4.5,
       category: "populares",
-      image: "🍟"
+      icon: Pizza2Outlined
     },
     {
       id: "4",
@@ -99,7 +112,7 @@ export default function HomePage() {
       desc: "Limones frescos exprimidos al momento, hojas de menta orgánica y toque de jengibre.",
       price: 3.2,
       category: "bebidas",
-      image: "🍋"
+      icon: GlassJuice1Outlined
     }
   ];
 
@@ -326,10 +339,14 @@ export default function HomePage() {
                           <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF453A]">Abierto ahora</span>
                             <h3 className="text-base font-bold tracking-tight">Smash Burger House</h3>
-                            <p className="text-[11px] text-white/70">Delivery 25-35 min • ⭐ 4.9</p>
+                            <p className="text-[11px] text-white/70 flex items-center gap-1">
+                              <span>Delivery 25-35 min •</span>
+                              <Lineicons icon={StarFatSolid} size={11} className="text-amber-400" />
+                              <span>4.9</span>
+                            </p>
                           </div>
-                          <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-xl">
-                            🍔
+                          <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white">
+                            <Lineicons icon={Burger1Outlined} size={20} />
                           </div>
                         </div>
 
@@ -345,7 +362,22 @@ export default function HomePage() {
                                   : "bg-white/10 text-white/80 hover:bg-white/20"
                               }`}
                             >
-                              {cat === "populares" ? "🔥 Destacados" : cat === "hamburguesas" ? "🍔 Burgers" : "🥤 Bebidas"}
+                              {cat === "populares" ? (
+                                <span className="flex items-center gap-1">
+                                  <Lineicons icon={SparkOutlined} size={12} />
+                                  <span>Destacados</span>
+                                </span>
+                              ) : cat === "hamburguesas" ? (
+                                <span className="flex items-center gap-1">
+                                  <Lineicons icon={Burger1Outlined} size={12} />
+                                  <span>Burgers</span>
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <Lineicons icon={GlassJuice1Outlined} size={12} />
+                                  <span>Bebidas</span>
+                                </span>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -361,8 +393,8 @@ export default function HomePage() {
                               className="bg-white p-3 rounded-2xl border border-black/[0.04] shadow-xs flex items-center justify-between gap-3 hover:border-black/10 transition-all"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-[#F5F5F7] flex items-center justify-center text-2xl shrink-0">
-                                  {dish.image}
+                                <div className="w-11 h-11 rounded-xl bg-[#F5F5F7] flex items-center justify-center text-[#1D1D1F] shrink-0">
+                                  <Lineicons icon={dish.icon} size={20} />
                                 </div>
                                 <div className="text-left">
                                   <h4 className="text-xs font-bold text-[#1D1D1F] line-clamp-1">{dish.name}</h4>
@@ -506,7 +538,10 @@ export default function HomePage() {
 
                   {/* Formatted Message Bubble */}
                   <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-xs border border-black/[0.04] text-[#111B21] text-xs font-mono space-y-2 leading-relaxed">
-                    <p className="font-bold text-[#008069]">🍔 ¡NUEVO PEDIDO #KM-482!</p>
+                    <p className="font-bold text-[#008069] flex items-center gap-1.5">
+                      <Lineicons icon={Burger1Outlined} size={15} />
+                      <span>¡NUEVO PEDIDO #KM-482!</span>
+                    </p>
                     <p className="text-[#667781]">──────────────────────</p>
                     <div>
                       {cartItems.map((item) => (
@@ -517,8 +552,14 @@ export default function HomePage() {
                     </div>
                     <p className="text-[#667781]">──────────────────────</p>
                     <p className="font-bold">Total: ${cartTotal.toFixed(2)}</p>
-                    <p>📍 Entrega: Av. Las Condes 1024, Depto 402</p>
-                    <p>💳 Pago: Transferencia / Efectivo</p>
+                    <p className="flex items-center gap-1.5">
+                      <Lineicons icon={MapPin5Outlined} size={13} className="text-[#54656F] shrink-0" />
+                      <span>Entrega: Av. Las Condes 1024, Depto 402</span>
+                    </p>
+                    <p className="flex items-center gap-1.5">
+                      <Lineicons icon={CreditCardMultipleOutlined} size={13} className="text-[#54656F] shrink-0" />
+                      <span>Pago: Transferencia / Efectivo</span>
+                    </p>
                     <div className="text-right text-[10px] text-[#667781] pt-1">14:32 ✓✓</div>
                   </div>
 
@@ -561,23 +602,25 @@ export default function HomePage() {
                       </button>
                       <button
                         onClick={() => setOrderStatus("confirmado")}
-                        className={`py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+                        className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                           orderStatus === "confirmado"
                             ? "bg-[#007AFF] text-white shadow-xs"
                             : "bg-[#F2F2F7] text-[#6E6E73] hover:bg-[#E5E5EA]"
                         }`}
                       >
-                        Confirmado ✅
+                        <span>Confirmado</span>
+                        <Lineicons icon={CheckCircle1Outlined} size={13} />
                       </button>
                       <button
                         onClick={() => setOrderStatus("en_camino")}
-                        className={`py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+                        className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                           orderStatus === "en_camino"
                             ? "bg-[#34C759] text-white shadow-xs"
                             : "bg-[#F2F2F7] text-[#6E6E73] hover:bg-[#E5E5EA]"
                         }`}
                       >
-                        En Camino 🛵
+                        <span>En Camino</span>
+                        <Lineicons icon={BikeOutlined} size={13} />
                       </button>
                     </div>
                   </div>
@@ -641,7 +684,9 @@ export default function HomePage() {
                 {/* Interactive Toggle Demo inside card */}
                 <div className="bg-white p-3.5 rounded-2xl border border-black/[0.06] shadow-xs flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg">🍔</span>
+                    <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                      <Lineicons icon={Burger1Outlined} size={18} />
+                    </div>
                     <div>
                       <div className="text-xs font-bold text-[#1D1D1F]">Smash Doble</div>
                       <div className="text-[10px] text-[#86868B]">

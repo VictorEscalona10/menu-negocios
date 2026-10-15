@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { createDeliveryZone, updateDeliveryZone, deleteDeliveryZone } from '@/src/actions/store'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import { MapMarker1Outlined, MapPin5Outlined } from '@lineiconshq/free-icons'
 
 interface DeliveryZone {
     id: string;
@@ -94,7 +96,10 @@ export default function DeliveryZonesManager({ storeId, initialZones }: Delivery
     return (
         <div className="space-y-4 pt-4 border-t border-zinc-100">
             <div>
-                <h2 className="text-lg font-semibold text-zinc-800">🗺️ Zonas de Delivery</h2>
+                <h2 className="text-lg font-semibold text-zinc-800 flex items-center gap-2">
+                    <Lineicons icon={MapMarker1Outlined} size={20} className="text-zinc-700" />
+                    <span>Zonas de Delivery</span>
+                </h2>
                 <p className="text-xs text-zinc-400 mt-0.5">
                     Define las zonas de entrega y su precio. El cliente podrá elegir su zona en el carrito.
                 </p>
@@ -146,7 +151,7 @@ export default function DeliveryZonesManager({ storeId, initialZones }: Delivery
                                         disabled={isPending}
                                         className="flex-1 bg-black text-white text-xs font-bold py-2 rounded-lg hover:bg-zinc-800 transition-colors disabled:opacity-50"
                                     >
-                                        {isPending ? 'Guardando...' : '✓ Guardar'}
+                                        {isPending ? 'Guardando...' : 'Guardar'}
                                     </button>
                                     <button
                                         type="button"
@@ -160,7 +165,7 @@ export default function DeliveryZonesManager({ storeId, initialZones }: Delivery
                         ) : (
                             /* ── Modo vista ── */
                             <>
-                                <span className="text-xl shrink-0">📍</span>
+                                <Lineicons icon={MapPin5Outlined} size={20} className="text-zinc-600 shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-sm text-zinc-900 truncate">{zone.name}</p>
                                     <p className="text-xs text-zinc-500 font-medium">

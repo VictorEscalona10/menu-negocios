@@ -9,6 +9,31 @@ import DollarRateInfo from '../../components/DollarRateInfo'
 import { toggleCustomizationMode } from '@/src/actions/customization'
 import type { AdvancedCustomization, CustomizationMode } from '@/src/types/customization'
 import { buildGoogleFontsUrl } from "@/src/styles/fonts"
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import {
+    Home2Outlined,
+    Gear1Outlined,
+    ColourPalette3Outlined,
+    SparkOutlined,
+    Burger1Outlined,
+    Bolt2Outlined,
+    CoffeeCup2Outlined,
+    GlassJuice1Outlined,
+    Leaf1Outlined,
+    PhoneOutlined,
+    Layout9Outlined,
+    TruckDelivery1Outlined,
+    BasketShopping3Outlined,
+    KnifeFork1Outlined,
+    StarFatSolid,
+    Ban2Outlined,
+    Folder1Outlined,
+    PhotosOutlined,
+    Notebook1Outlined,
+    User4Outlined,
+    RefreshDollar1Outlined,
+    CheckOutlined,
+} from '@lineiconshq/free-icons'
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -79,7 +104,7 @@ export interface MenuTemplate {
     id: string;
     name: string;
     description: string;
-    emoji: string;
+    icon: any;
     backgroundColor: string;
     cardBackgroundColor: string;
     themeColor: string;
@@ -96,7 +121,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         id: 'tokyo-dark',
         name: 'Tokyo Dark',
         description: 'Urbano & Street Food',
-        emoji: '🔥',
+        icon: Burger1Outlined,
         backgroundColor: '#0e0e10',
         cardBackgroundColor: 'rgba(255,255,255,0.06)',
         themeColor: '#FF5630',
@@ -111,7 +136,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         id: 'neon-smash',
         name: 'Neon Smash',
         description: 'Alto Contraste & Smash',
-        emoji: '⚡',
+        icon: Bolt2Outlined,
         backgroundColor: '#09090b',
         cardBackgroundColor: '#18181b',
         themeColor: '#84cc16',
@@ -126,7 +151,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         id: 'cafe-bakery',
         name: 'Café & Bakery',
         description: 'Tonalidades Cálidas & Panadería',
-        emoji: '☕',
+        icon: CoffeeCup2Outlined,
         backgroundColor: '#fdfbf7',
         cardBackgroundColor: '#ffffff',
         themeColor: '#92400e',
@@ -142,7 +167,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         name: 'Bistro Gourmet',
         category: 'Restaurante & Vinos',
         description: 'Sofisticado & Acento Dorado',
-        emoji: '🍷',
+        icon: GlassJuice1Outlined,
         backgroundColor: '#18181b',
         cardBackgroundColor: '#27272a',
         themeColor: '#f59e0b',
@@ -157,7 +182,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         id: 'matcha-fresh',
         name: 'Matcha & Fresh',
         description: 'Orgánico, Bowls & Sushi',
-        emoji: '🥑',
+        icon: Leaf1Outlined,
         backgroundColor: '#062e24',
         cardBackgroundColor: 'rgba(255,255,255,0.08)',
         themeColor: '#10b981',
@@ -172,7 +197,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
         id: 'clean-slate',
         name: 'Clean Minimal',
         description: 'Blanco Puro & Minimalista',
-        emoji: '✨',
+        icon: SparkOutlined,
         backgroundColor: '#ffffff',
         cardBackgroundColor: '#f4f4f5',
         themeColor: '#000000',
@@ -204,7 +229,7 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                     {localStore.logoUrl ? (
                         <img src={localStore.logoUrl} alt="Store" className="w-full h-full object-cover" />
                     ) : (
-                        <span className="text-xs">🏪</span>
+                        <Lineicons icon={Home2Outlined} size={16} className="text-white" />
                     )}
                 </div>
                 <div>
@@ -226,7 +251,10 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
                             <p><strong>2x Papas Fritas</strong> - $8.00</p>
                         </div>
 
-                        <p><strong>💰 TOTAL A PAGAR:</strong> $24.50</p>
+                        <p className="flex items-center gap-1.5">
+                            <Lineicons icon={RefreshDollar1Outlined} size={13} className="text-emerald-600 inline-block shrink-0" />
+                            <span><strong>TOTAL A PAGAR:</strong> $24.50</span>
+                        </p>
 
                         <div className="mt-2 text-zinc-600 italic">
                             {formatWhatsAppText(footer)}
@@ -320,7 +348,7 @@ function MenuPreviewWrapper({
                         />
                     ) : (
                         <div className="w-full h-full overflow-hidden bg-zinc-50 flex flex-col items-center justify-center text-center px-8 gap-3">
-                            <span className="text-4xl">🛠️</span>
+                            <Lineicons icon={Gear1Outlined} size={40} className="text-zinc-400" />
                             <p className="text-sm font-bold text-zinc-800">Aún no has creado tu diseño avanzado</p>
                             <p className="text-xs text-zinc-500 leading-relaxed">Abre el editor para crearlo sección por sección y verlo aquí.</p>
                             <Link
@@ -462,7 +490,8 @@ export function SettingsForm({
                     <div className="bg-gradient-to-br from-zinc-50 to-zinc-100/80 p-5 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
                         <div>
                             <h2 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
-                                <span>🎨</span> Diseño del menú
+                                <Lineicons icon={ColourPalette3Outlined} size={18} className="text-zinc-700" />
+                                <span>Diseño del menú</span>
                             </h2>
                             <p className="text-xs text-zinc-500 mt-0.5">Elige qué diseño se muestra en tu menú público y en la vista previa.</p>
                         </div>
@@ -477,7 +506,10 @@ export function SettingsForm({
                                     : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
                                     }`}
                             >
-                                <p className="font-bold text-xs text-zinc-900">✨ Plantillas del sistema</p>
+                                <p className="font-bold text-xs text-zinc-900 flex items-center gap-1.5">
+                                    <Lineicons icon={SparkOutlined} size={13} className="text-zinc-700" />
+                                    <span>Plantillas del sistema</span>
+                                </p>
                                 <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">
                                     Paletas, fuentes y layout clásico configurados en esta página.
                                 </p>
@@ -492,7 +524,10 @@ export function SettingsForm({
                                     : 'border-zinc-200/80 bg-white/70 hover:border-zinc-300'
                                     }`}
                             >
-                                <p className="font-bold text-xs text-zinc-900">🛠️ Diseño avanzado</p>
+                                <p className="font-bold text-xs text-zinc-900 flex items-center gap-1.5">
+                                    <Lineicons icon={Gear1Outlined} size={13} className="text-zinc-700" />
+                                    <span>Diseño avanzado</span>
+                                </p>
                                 <p className="text-[10px] text-zinc-500 mt-0.5 leading-snug">
                                     Editor sección por sección con plantillas propias.
                                 </p>
@@ -513,7 +548,8 @@ export function SettingsForm({
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-base font-extrabold text-zinc-900 flex items-center gap-2">
-                                    <span>✨</span> Plantillas Estilo Linktree
+                                    <Lineicons icon={SparkOutlined} size={18} className="text-zinc-700" />
+                                    <span>Plantillas Estilo Linktree</span>
                                 </h2>
                                 <p className="text-xs text-zinc-500 mt-0.5">Aplica paletas de colores, fuentes y layout con un solo toque y mira la vista previa en vivo.</p>
                             </div>
@@ -547,7 +583,9 @@ export function SettingsForm({
                                     >
                                         <div>
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <span className="text-xl">{tmpl.emoji}</span>
+                                                <span className="text-zinc-700">
+                                                    <Lineicons icon={tmpl.icon} size={20} />
+                                                </span>
                                                 {/* Mini paleta de colores */}
                                                 <div className="flex -space-x-1">
                                                     <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.backgroundColor }} />
@@ -563,8 +601,9 @@ export function SettingsForm({
                                                 {tmpl.menuLayout}
                                             </span>
                                             {isCurrent && (
-                                                <span className="text-[10px] text-black font-extrabold flex items-center gap-0.5">
-                                                    ✓ Activo
+                                                <span className="text-[10px] text-black font-extrabold flex items-center gap-1">
+                                                    <Lineicons icon={CheckOutlined} size={11} />
+                                                    <span>Activo</span>
                                                 </span>
                                             )}
                                         </div>
@@ -628,9 +667,10 @@ export function SettingsForm({
                                 <button
                                     type="button"
                                     onClick={() => setLocalStore({ ...localStore, cardBackgroundColor: 'rgba(255,255,255,0.05)' })}
-                                    className="text-[10px] font-bold text-zinc-400 hover:text-black transition-colors uppercase tracking-wider"
+                                    className="text-[10px] font-bold text-zinc-400 hover:text-black transition-colors uppercase tracking-wider inline-flex items-center gap-1"
                                 >
-                                    ✨ Usar Automático
+                                    <Lineicons icon={SparkOutlined} size={12} />
+                                    <span>Usar Automático</span>
                                 </button>
                             </div>
                             <p className="text-[10px] text-zinc-400 mb-2">Color del recuadro de cada producto. Usa el automático para un efecto elegante.</p>
@@ -838,10 +878,10 @@ export function SettingsForm({
 
                         <div className="space-y-3">
                             {([
-                                { key: 'enableDelivery' as const, label: 'Delivery', sub: 'El negocio hace entregas a domicilio', emoji: '🚗' },
-                                { key: 'enablePickup' as const, label: 'Pick-Up', sub: 'El cliente pasa a retirar su pedido', emoji: '🏃' },
-                                { key: 'enableDineIn' as const, label: 'En el Local', sub: 'El cliente consume en el restaurante', emoji: '🍽️' },
-                            ]).map(({ key, label, sub, emoji }) => {
+                                { key: 'enableDelivery' as const, label: 'Delivery', sub: 'El negocio hace entregas a domicilio', icon: TruckDelivery1Outlined },
+                                { key: 'enablePickup' as const, label: 'Pick-Up', sub: 'El cliente pasa a retirar su pedido', icon: BasketShopping3Outlined },
+                                { key: 'enableDineIn' as const, label: 'En el Local', sub: 'El cliente consume en el restaurante', icon: KnifeFork1Outlined },
+                            ]).map(({ key, label, sub, icon }) => {
                                 const isOn = localStore[key];
                                 const activeCount = [localStore.enableDelivery, localStore.enablePickup, localStore.enableDineIn].filter(Boolean).length;
                                 const isLast = isOn && activeCount === 1;
@@ -857,7 +897,9 @@ export function SettingsForm({
                                             : 'border-zinc-200 bg-white hover:border-zinc-300'
                                             } ${isLast ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
-                                        <span className="text-2xl shrink-0">{emoji}</span>
+                                        <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-800">
+                                            <Lineicons icon={icon} size={22} />
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={`font-bold text-sm ${isOn ? 'text-zinc-900' : 'text-zinc-500'}`}>{label}</p>
                                             <p className="text-xs text-zinc-400 truncate">{sub}</p>
@@ -874,7 +916,10 @@ export function SettingsForm({
                     {/* Categoría Estrella del Carrito */}
                     <div className="space-y-4 pt-4 border-t border-zinc-100">
                         <div>
-                            <h2 className="text-lg font-semibold text-zinc-800">🔥 Categoría Estrella del Carrito</h2>
+                            <h2 className="text-lg font-semibold text-zinc-800 flex items-center gap-2">
+                                <Lineicons icon={StarFatSolid} size={18} className="text-amber-500 shrink-0" />
+                                <span>Categoría Estrella del Carrito</span>
+                            </h2>
                             <p className="text-xs text-zinc-400 mt-0.5">
                                 Elige una categoría para recomendarla al cliente en el carrito. Ideal para bebidas, postres o extras.
                             </p>
@@ -891,7 +936,7 @@ export function SettingsForm({
                                     : 'border-zinc-200 bg-white hover:border-zinc-300'
                                     }`}
                             >
-                                <span className="text-xl shrink-0">🚫</span>
+                                <Lineicons icon={Ban2Outlined} size={20} className="text-zinc-400 shrink-0" />
                                 <p className={`font-semibold text-sm ${localStore.upsellCategoryId === '' ? 'text-zinc-900' : 'text-zinc-400'}`}>
                                     No mostrar recomendaciones
                                 </p>
@@ -922,7 +967,7 @@ export function SettingsForm({
                                                     : 'border-zinc-200 bg-white hover:border-zinc-300'
                                                     }`}
                                             >
-                                                <span className="text-xl shrink-0">📂</span>
+                                                <Lineicons icon={Folder1Outlined} size={20} className="text-zinc-500 shrink-0" />
                                                 <p className={`font-semibold text-sm ${isSelected ? 'text-zinc-900' : 'text-zinc-500'}`}>
                                                     {cat.name}
                                                 </p>
@@ -962,7 +1007,7 @@ export function SettingsForm({
                                         }`}
                                 >
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xl">🌿</span>
+                                        <Lineicons icon={Leaf1Outlined} size={18} className="text-zinc-700 shrink-0" />
                                         <span className="font-bold text-xs text-zinc-900">Estilo Linktree</span>
                                     </div>
                                     <p className="text-[11px] text-zinc-500">Botones táctiles anchos optimizados para bio de Instagram o TikTok.</p>
@@ -977,7 +1022,7 @@ export function SettingsForm({
                                         }`}
                                 >
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xl">📱</span>
+                                        <Lineicons icon={PhoneOutlined} size={18} className="text-zinc-700 shrink-0" />
                                         <span className="font-bold text-xs text-zinc-900">Cuadrícula</span>
                                     </div>
                                     <p className="text-[11px] text-zinc-500">2 columnas tipo feed con fotos grandes de productos.</p>
@@ -992,7 +1037,7 @@ export function SettingsForm({
                                         }`}
                                 >
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xl">📋</span>
+                                        <Lineicons icon={Layout9Outlined} size={18} className="text-zinc-700 shrink-0" />
                                         <span className="font-bold text-xs text-zinc-900">Lista Clásica</span>
                                     </div>
                                     <p className="text-[11px] text-zinc-500">Slider horizontal con deslizamiento entre categorías.</p>
@@ -1009,7 +1054,9 @@ export function SettingsForm({
                                 : 'border-zinc-200 bg-white hover:border-zinc-300'
                                 }`}
                         >
-                            <span className="text-2xl shrink-0">🖼️</span>
+                            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-700">
+                                <Lineicons icon={PhotosOutlined} size={22} />
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`font-bold text-sm ${localStore.showProductImages ? 'text-zinc-900' : 'text-zinc-500'}`}>
                                     Mostrar imágenes de productos
@@ -1032,7 +1079,9 @@ export function SettingsForm({
                                 : 'border-zinc-200 bg-white hover:border-zinc-300'
                                 }`}
                         >
-                            <span className="text-2xl shrink-0">📝</span>
+                            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-700">
+                                <Lineicons icon={Notebook1Outlined} size={22} />
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`font-bold text-sm ${localStore.forceNotesModal ? 'text-zinc-900' : 'text-zinc-500'}`}>
                                     Forzar modal de comentarios
@@ -1055,7 +1104,9 @@ export function SettingsForm({
                                 : 'border-zinc-200 bg-white hover:border-zinc-300'
                                 }`}
                         >
-                            <span className="text-2xl shrink-0">🆔</span>
+                            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-700">
+                                <Lineicons icon={User4Outlined} size={22} />
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`font-bold text-sm ${localStore.requireCedula ? 'text-zinc-900' : 'text-zinc-500'}`}>
                                     Pedir Cédula de Identidad
@@ -1078,7 +1129,9 @@ export function SettingsForm({
                                 : 'border-zinc-200 bg-white hover:border-zinc-300'
                                 }`}
                         >
-                            <span className="text-2xl shrink-0">💱</span>
+                            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-700">
+                                <Lineicons icon={RefreshDollar1Outlined} size={22} />
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <p className={`font-bold text-sm ${localStore.showBsPrice ? 'text-zinc-900' : 'text-zinc-500'}`}>
                                     Mostrar precio en Bolívares (Bs)

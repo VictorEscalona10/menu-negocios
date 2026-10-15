@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { ConfirmationModal } from "./ConfirmationModal"
+import { Lineicons } from "@lineiconshq/react-lineicons"
+import { StarFatSolid } from "@lineiconshq/free-icons"
 
 interface Category {
     id: string
@@ -236,7 +238,9 @@ export function ProductForm({
                             : 'border-zinc-200 bg-white hover:border-zinc-300'
                             }`}
                     >
-                        <span className="text-2xl shrink-0">🌟</span>
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                            <Lineicons icon={StarFatSolid} size={20} className="text-amber-500 shrink-0" />
+                        </div>
                         <div className="flex-1 min-w-0">
                             <p className={`font-bold text-sm ${isCombo ? 'text-amber-900' : 'text-zinc-500'}`}>
                                 Este producto es un Combo

@@ -9,6 +9,13 @@ import { headers } from 'next/headers'
 import QRGenerator from '@/app/components/QRGenerator'
 import Link from 'next/link'
 import { CopyMenuLinkButton, ShareWhatsappButton } from './components/DashboardActions'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import {
+    Link2AngularRightOutlined,
+    Burger1Outlined,
+    Gear1Outlined,
+    ColourPalette3Outlined,
+} from '@lineiconshq/free-icons'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -140,8 +147,8 @@ export default async function DashboardPage() {
                    ══════════════════════════════════════════ */}
                 <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-base shrink-0">
-                            🔗
+                        <div className="w-9 h-9 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0">
+                            <Lineicons icon={Link2AngularRightOutlined} size={18} className="text-zinc-700" />
                         </div>
                         <div>
                             <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-semibold block">
@@ -174,8 +181,8 @@ export default async function DashboardPage() {
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-xl">
-                                    🍔
+                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                    <Lineicons icon={Burger1Outlined} size={22} className="text-zinc-700" />
                                 </div>
                                 <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200">
                                     {totalProducts} Platos
@@ -201,8 +208,8 @@ export default async function DashboardPage() {
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-xl">
-                                    ⚙️
+                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                    <Lineicons icon={Gear1Outlined} size={22} className="text-zinc-700" />
                                 </div>
                                 <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
                                     {store.menuLayout || 'LINKTREE'}
@@ -229,8 +236,8 @@ export default async function DashboardPage() {
                         <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                             <div>
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-xl">
-                                        🎨
+                                    <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                        <Lineicons icon={ColourPalette3Outlined} size={22} className="text-zinc-700" />
                                     </div>
                                     <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
                                         AVANCED

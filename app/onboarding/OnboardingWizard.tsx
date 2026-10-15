@@ -7,6 +7,19 @@ import SharedMenuUI from '@/app/components/SharedMenuUI'
 import { MENU_TEMPLATES, MenuTemplate } from '@/app/dashboard/settings/SettingsForm'
 import { createStoreFromOnboarding } from '@/src/actions/onboarding'
 import Link from 'next/link'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import {
+    Ban2Outlined,
+    CheckOutlined,
+    Leaf1Outlined,
+    PhoneOutlined,
+    Layout9Outlined,
+    KnifeFork1Outlined,
+    Burger1Outlined,
+    Pizza2Outlined,
+    CoffeeCup2Outlined,
+    SparkOutlined,
+} from '@lineiconshq/free-icons'
 
 interface OnboardingWizardProps {
     userEmail?: string;
@@ -226,7 +239,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                         {/* Error Alert */}
                         {errorMessage && (
                             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
-                                <span>⚠️</span>
+                                <Lineicons icon={Ban2Outlined} size={16} className="text-red-500 shrink-0" />
                                 <span>{errorMessage}</span>
                             </div>
                         )}
@@ -326,7 +339,9 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                                 >
                                                     <div>
                                                         <div className="flex items-center justify-between mb-2">
-                                                            <span className="text-xl">{tmpl.emoji}</span>
+                                                            <span className="text-zinc-700">
+                                                                <Lineicons icon={tmpl.icon} size={20} />
+                                                            </span>
                                                             <div className="flex -space-x-1">
                                                                 <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.backgroundColor }} />
                                                                 <span className="w-3.5 h-3.5 rounded-full border border-white shadow-xs" style={{ backgroundColor: tmpl.themeColor }} />
@@ -338,7 +353,12 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
 
                                                     <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px]">
                                                         <span className="text-zinc-400 font-mono text-[9px] uppercase">{tmpl.menuLayout}</span>
-                                                        {isSelected && <span className="text-zinc-900 font-bold">✓ Seleccionado</span>}
+                                                        {isSelected && (
+                                                            <span className="text-zinc-900 font-bold flex items-center gap-1">
+                                                                <Lineicons icon={CheckOutlined} size={11} />
+                                                                <span>Seleccionado</span>
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </button>
                                             );
@@ -361,7 +381,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-base">🌿</span>
+                                                <Lineicons icon={Leaf1Outlined} size={18} className="text-zinc-700 shrink-0" />
                                                 <span className="font-bold text-xs text-zinc-900">Estilo Linktree</span>
                                             </div>
                                             <p className="text-[10px] text-zinc-500">Botones táctiles anchos optimizados para bio de Instagram.</p>
@@ -376,7 +396,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-base">📱</span>
+                                                <Lineicons icon={PhoneOutlined} size={18} className="text-zinc-700 shrink-0" />
                                                 <span className="font-bold text-xs text-zinc-900">Cuadrícula</span>
                                             </div>
                                             <p className="text-[10px] text-zinc-500">2 columnas tipo catálogo con fotos grandes.</p>
@@ -391,7 +411,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-base">📋</span>
+                                                <Lineicons icon={Layout9Outlined} size={18} className="text-zinc-700 shrink-0" />
                                                 <span className="font-bold text-xs text-zinc-900">Lista Clásica</span>
                                             </div>
                                             <p className="text-[10px] text-zinc-500">Slider horizontal con deslizamiento por categorías.</p>
@@ -425,7 +445,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                                 {logoPreview ? (
                                                     <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <span className="text-2xl">🍽️</span>
+                                                    <Lineicons icon={KnifeFork1Outlined} size={28} className="text-zinc-400" />
                                                 )}
                                             </div>
                                             <div className="flex-1">
@@ -521,14 +541,22 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                                     <div>
                                         <p className="text-[11px] text-zinc-400 mb-2 font-mono uppercase tracking-wider">O toca una sugerencia rápida:</p>
                                         <div className="flex flex-wrap gap-2">
-                                            {['🍔 Hamburguesas', '🍕 Pizzas', '☕ Café & Bebidas', '🥗 Bowls & Ensaladas', '🍰 Postres', '🌮 Tacos & Antojitos'].map((item) => (
+                                            {[
+                                                { label: 'Hamburguesas', icon: Burger1Outlined },
+                                                { label: 'Pizzas', icon: Pizza2Outlined },
+                                                { label: 'Café & Bebidas', icon: CoffeeCup2Outlined },
+                                                { label: 'Bowls & Ensaladas', icon: Leaf1Outlined },
+                                                { label: 'Postres', icon: SparkOutlined },
+                                                { label: 'Platos Principales', icon: KnifeFork1Outlined },
+                                            ].map((item) => (
                                                 <button
-                                                    key={item}
+                                                    key={item.label}
                                                     type="button"
-                                                    onClick={() => setInitialCategory(item.replace(/^[^\s]+\s/, ''))}
-                                                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 border border-zinc-200 hover:bg-zinc-200 text-xs text-zinc-700 font-medium transition-colors"
+                                                    onClick={() => setInitialCategory(item.label)}
+                                                    className="px-3.5 py-1.5 rounded-full bg-zinc-100 border border-zinc-200 hover:bg-zinc-200 text-xs text-zinc-700 font-medium transition-colors inline-flex items-center gap-1.5"
                                                 >
-                                                    {item}
+                                                    <Lineicons icon={item.icon} size={14} className="text-zinc-600 shrink-0" />
+                                                    <span>{item.label}</span>
                                                 </button>
                                             ))}
                                         </div>

@@ -10,6 +10,8 @@ import {
     toggleModifierOptionAvailability
 } from "@/src/actions/modifiers"
 import { ConfirmationModal } from "./ConfirmationModal"
+import { Lineicons } from "@lineiconshq/react-lineicons"
+import { PlusOutlined } from "@lineiconshq/free-icons"
 
 interface ModifierOption {
     id: string;
@@ -226,7 +228,9 @@ export function ModifiersManager({ product }: { product: Product }) {
 
                                 {product.modifierGroups.length === 0 ? (
                                     <div className="text-center py-14 bg-white border-2 border-dashed border-zinc-100 rounded-[2.5rem]">
-                                        <div className="bg-zinc-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🧩</div>
+                                        <div className="bg-zinc-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
+                                            <Lineicons icon={PlusOutlined} size={32} />
+                                        </div>
                                         <p className="text-zinc-500 font-bold">No has configurado extras para este producto.</p>
                                         <p className="text-zinc-400 text-sm mt-1 font-medium">Empieza creando un grupo arriba.</p>
                                     </div>

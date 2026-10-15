@@ -7,6 +7,8 @@ import Link from 'next/link'
 import type { AdvancedCustomization } from '@/src/types/customization'
 import SharedMenuUI from '@/app/components/SharedMenuUI'
 import AdvancedMenuUI from '@/app/components/AdvancedMenuUI'
+import { Lineicons } from '@lineiconshq/react-lineicons'
+import { Home2Outlined, Gear1Outlined } from '@lineiconshq/free-icons'
 
 export default async function MenuPage({
     params
@@ -66,7 +68,7 @@ export default async function MenuPage({
             <div className="min-h-screen flex items-center justify-center bg-[#131313] text-white p-6 font-sans">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="w-20 h-20 bg-zinc-800 rounded-full mx-auto flex items-center justify-center mb-6">
-                        <span className="text-4xl opacity-50">🏪</span>
+                        <Lineicons icon={Home2Outlined} size={36} className="text-zinc-400" />
                     </div>
                     <h1 className="text-2xl font-black tracking-tight">Local en mantenimiento</h1>
                     <p className="text-zinc-400 text-sm">
@@ -86,7 +88,7 @@ export default async function MenuPage({
             <div className="min-h-screen flex items-center justify-center bg-white text-black p-6 font-sans">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="w-20 h-20 bg-zinc-200 rounded-full mx-auto flex items-center justify-center mb-6">
-                        <span className="text-4xl opacity-80">🛠️</span>
+                        <Lineicons icon={Gear1Outlined} size={36} className="text-zinc-600" />
                     </div>
                     <h1 className="text-2xl font-black tracking-tight">Configura tu menú</h1>
                     <p className="text-zinc-600 text-sm">

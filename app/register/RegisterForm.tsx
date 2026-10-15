@@ -116,8 +116,8 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
         setSuccessMsg("")
 
         const cleanCode = otpCode.trim().replace(/\D/g, "")
-        if (cleanCode.length !== 6) {
-            setErrorMsg("Por favor, introduce el código numérico completo de 6 dígitos.")
+        if (cleanCode.length !== 8) {
+            setErrorMsg("Por favor, introduce el código numérico completo de 8 dígitos.")
             return
         }
 
@@ -195,7 +195,7 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
                         </div>
                         <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">Revisa tu Correo</h1>
                         <p className="text-zinc-500 font-medium mt-1 text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
-                            Enviamos un código de 6 dígitos a <strong className="text-zinc-900 font-semibold">{email}</strong>.
+                            Enviamos un código de 8 dígitos a <strong className="text-zinc-900 font-semibold">{email}</strong>.
                         </p>
                     </>
                 )}
@@ -314,40 +314,40 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
                 </form>
             ) : (
                 /* ════════════════════════════════════════════════
-                   PASO 2: VERIFICACIÓN CON CÓDIGO OTP (6 DÍGITOS)
+                   PASO 2: VERIFICACIÓN CON CÓDIGO OTP (8 DÍGITOS)
                    ════════════════════════════════════════════════ */
                 <form onSubmit={handleVerifySubmit} className="space-y-5 mt-2">
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-zinc-700 uppercase tracking-wider block text-center" htmlFor="otp-input">
                             Código de verificación
                         </label>
-                        <div className="relative max-w-[280px] mx-auto">
+                        <div className="relative max-w-[340px] mx-auto">
                             <input
                                 ref={otpInputRef}
                                 id="otp-input"
                                 type="text"
                                 inputMode="numeric"
                                 autoComplete="one-time-code"
-                                maxLength={6}
+                                maxLength={8}
                                 value={otpCode}
                                 onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, "").slice(0, 6)
+                                    const val = e.target.value.replace(/\D/g, "").slice(0, 8)
                                     setOtpCode(val)
                                 }}
-                                placeholder="000000"
-                                className="w-full bg-zinc-50 border-2 border-zinc-200 focus:border-black rounded-2xl py-4 text-center font-mono text-3xl font-extrabold tracking-[0.4em] text-zinc-900 outline-none transition-all shadow-inner focus:bg-white"
+                                placeholder="00000000"
+                                className="w-full bg-zinc-50 border-2 border-zinc-200 focus:border-black rounded-2xl py-4 text-center font-mono text-2xl sm:text-3xl font-extrabold tracking-[0.2em] sm:tracking-[0.3em] text-zinc-900 outline-none transition-all shadow-inner focus:bg-white"
                                 required
                             />
                         </div>
                         <p className="text-[12px] text-zinc-400 text-center font-medium">
-                            Escribe los 6 dígitos que recibiste por correo.
+                            Escribe los 8 dígitos que recibiste por correo.
                         </p>
                     </div>
 
                     {/* Botón de Verificación por Código */}
                     <button
                         type="submit"
-                        disabled={isPending || otpCode.length !== 6}
+                        disabled={isPending || otpCode.length !== 8}
                         className="w-full bg-black text-white rounded-2xl px-4 py-4 text-sm font-bold shadow-sm hover:bg-zinc-800 hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isPending ? (
