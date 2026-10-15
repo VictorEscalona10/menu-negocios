@@ -71,6 +71,15 @@ export default function PrivacidadPage() {
                 de diagnóstico y seguridad. Esta información no se asocia a su
                 identidad de forma permanente.
               </li>
+              <li>
+                <strong>Cookies y tecnologías de almacenamiento:</strong>{" "}
+                utilizamos cookies y tecnologías similares de almacenamiento
+                local en el navegador (como LocalStorage o SessionStorage) de
+                forma estrictamente necesaria. Estas tecnologías no se usan para
+                rastreo publicitario, sino exclusivamente para mantener activa
+                la sesión del usuario en el panel de administración, autenticar
+                accesos y garantizar el funcionamiento técnico del sistema.
+              </li>
             </ul>
             <p className="mt-4">
               No recopilamos información de los consumidores finales que
@@ -145,7 +154,28 @@ export default function PrivacidadPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              4. Almacenamiento y seguridad
+              4. Tratamiento de datos financieros y pagos
+            </h2>
+            <p>
+              La Plataforma no procesa, almacena ni gestiona datos financieros
+              sensibles de El Cliente ni de sus consumidores finales (tales como
+              números de tarjetas de crédito, débito o credenciales de acceso
+              bancario). Todo procesamiento de pagos por la suscripción a La
+              Plataforma se delega a pasarelas de pago de terceros debidamente
+              certificadas.
+            </p>
+            <p className="mt-4">
+              En los casos donde El Cliente reporte un pago manual (ej.
+              transferencias bancarias o Pago Móvil), La Plataforma limitará la
+              retención de la información a los comprobantes o referencias de
+              transacción con el único fin de realizar la conciliación contable y
+              validación del pago.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
+              5. Almacenamiento y seguridad
             </h2>
             <p>
               La información se almacena en servidores seguros gestionados por
@@ -155,11 +185,21 @@ export default function PrivacidadPage() {
               no autorizados, pérdida o alteración. Sin embargo, ningún sistema
               es 100% seguro; no podemos garantizar una protección absoluta.
             </p>
+            <p className="mt-4">
+              <strong>Transferencia Internacional de Datos:</strong> La
+              infraestructura tecnológica de La Plataforma está alojada en
+              proveedores de servicios en la nube de alcance global (como
+              Vercel). Por lo tanto, al registrarse y utilizar el servicio, El
+              Cliente comprende y acepta expresamente que su información será
+              transferida, almacenada y procesada en servidores ubicados fuera del
+              territorio de la República Bolivariana de Venezuela, bajo los
+              estándares de seguridad del proveedor internacional.
+            </p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              5. Conservación de los datos
+              6. Conservación de los datos
             </h2>
             <p>
               Conservamos los datos de su cuenta mientras su suscripción se
@@ -178,7 +218,7 @@ export default function PrivacidadPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              6. Sus derechos
+              7. Sus derechos
             </h2>
             <p>
               Aunque Venezuela no cuenta con una ley integral de protección de
@@ -211,7 +251,7 @@ export default function PrivacidadPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              7. Datos de menores
+              8. Datos de menores
             </h2>
             <p>
               La Plataforma no está dirigida a menores de edad ni recopila
@@ -224,7 +264,7 @@ export default function PrivacidadPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              8. Cambios a esta Política de Privacidad
+              9. Cambios a esta Política de Privacidad
             </h2>
             <p>
               Podemos modificar esta política en cualquier momento. Los cambios
@@ -238,7 +278,7 @@ export default function PrivacidadPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              9. Contacto
+              10. Contacto
             </h2>
             <p>
               Para cualquier pregunta, solicitud o reclamo sobre esta Política
