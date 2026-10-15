@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { useCartStore } from "@/src/store/cartStore"
 
 interface ModifierOption {
@@ -171,8 +172,13 @@ export default function ProductConfiguratorModal({ product, themeColor, buttonTe
                 <div className="relative shrink-0">
                     {product.imageUrl ? (
                         <div className="w-full h-44 sm:h-52 relative">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                            <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                sizes="(max-width: 640px) 100vw, 480px"
+                                className="object-cover"
+                            />
                             <div className="absolute inset-0 bg-black/40" />
                         </div>
                     ) : (

@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useCartStore } from '@/src/store/cartStore'
 import { logOrderIntent } from '@/src/actions/analytics'
 import { Lineicons } from '@lineiconshq/react-lineicons'
@@ -643,12 +644,15 @@ export default function FloatingCart({
                                                 >
                                                     {/* Imagen o placeholder */}
                                                     {prod.imageUrl ? (
-                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                        <img
-                                                            src={prod.imageUrl}
-                                                            alt={prod.name}
-                                                            className="w-full h-[80px] object-cover"
-                                                        />
+                                                        <div className="w-full h-[80px] relative overflow-hidden">
+                                                            <Image
+                                                                src={prod.imageUrl}
+                                                                alt={prod.name}
+                                                                fill
+                                                                sizes="140px"
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
                                                     ) : (
                                                         <div
                                                             className="w-full h-[80px] flex items-center justify-center"

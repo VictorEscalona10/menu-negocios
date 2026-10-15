@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { revalidateMenu } from '@/lib/menu'
 import { createClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 
@@ -37,7 +38,7 @@ export async function createCategory(storeId: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${store.slug}`)
+    revalidateMenu(store.slug)
 }
 
 export async function createProduct(formData: FormData) {
@@ -118,7 +119,7 @@ export async function createProduct(formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${category.store.slug}`)
+    revalidateMenu(category.store.slug)
 }
 
 export async function updateProduct(productId: string, formData: FormData) {
@@ -217,7 +218,7 @@ export async function updateProduct(productId: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${currentProduct.category.store.slug}`)
+    revalidateMenu(currentProduct.category.store.slug)
 }
 
 export async function deleteCategory(categoryId: string) {
@@ -239,7 +240,7 @@ export async function deleteCategory(categoryId: string) {
         }
     })
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${category.store.slug}`)
+    revalidateMenu(category.store.slug)
 }
 
 export async function deleteProduct(productId: string) {
@@ -279,7 +280,7 @@ export async function deleteProduct(productId: string) {
     });
 
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${product.category.store.slug}`)
+    revalidateMenu(product.category.store.slug)
 }
 
 export async function toggleProductAvailability(productId: string, currentValue: boolean) {
@@ -306,7 +307,7 @@ export async function toggleProductAvailability(productId: string, currentValue:
     // 1. Actualiza el panel de admin
     revalidatePath('/dashboard/products')
     // 2. MAGIA: Actualiza el menú público instantáneamente
-    revalidatePath(`/menu/${product.category.store.slug}`)
+    revalidateMenu(product.category.store.slug)
 }
 
 export async function updateProductsOrder(orderedIds: string[]) {
@@ -334,7 +335,7 @@ export async function updateProductsOrder(orderedIds: string[]) {
             select: { category: { select: { store: { select: { slug: true } } } } }
         })
         if (firstProduct) {
-            revalidatePath(`/menu/${firstProduct.category.store.slug}`)
+            revalidateMenu(firstProduct.category.store.slug)
         }
     }
 
@@ -361,7 +362,7 @@ export async function updateCategoriesOrder(orderedIds: string[]) {
             select: { store: { select: { slug: true } } }
         })
         if (firstCategory) {
-            revalidatePath(`/menu/${firstCategory.store.slug}`)
+            revalidateMenu(firstCategory.store.slug)
         }
     }
 
@@ -384,5 +385,5 @@ export async function toggleCategoryAvailability(categoryId: string, currentValu
         data: { isActive: !currentValue }
     })
     revalidatePath('/dashboard/products')
-    revalidatePath(`/menu/${category.store.slug}`)
+    revalidateMenu(category.store.slug)
 }

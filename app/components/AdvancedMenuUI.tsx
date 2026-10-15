@@ -2,6 +2,7 @@
 'use client'
 
 import { Fragment, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import Image from 'next/image'
 import { Camera, Globe, MapPin, MessageCircle, Music2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCartStore } from '@/src/store/cartStore'
@@ -332,12 +333,13 @@ function AdvancedLayout({
                         )}
 
                         {c.showImages && product.imageUrl && (
-                            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                                <Image
                                     src={product.imageUrl}
                                     alt={product.name}
-                                    className="h-full w-full object-cover"
+                                    fill
+                                    sizes="48px"
+                                    className="object-cover"
                                 />
                             </div>
                         )}
@@ -412,12 +414,13 @@ function AdvancedLayout({
                         )}
 
                         {c.showImages && product.imageUrl && (
-                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
+                                <Image
                                     src={product.imageUrl}
                                     alt={product.name}
-                                    className="h-full w-full object-cover"
+                                    fill
+                                    sizes="56px"
+                                    className="object-cover"
                                 />
                             </div>
                         )}
@@ -485,12 +488,13 @@ function AdvancedLayout({
                     )}
 
                     {c.showImages && product.imageUrl && (
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
+                            <Image
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="h-full w-full object-cover"
+                                fill
+                                sizes="56px"
+                                className="object-cover"
                             />
                         </div>
                     )}
@@ -552,12 +556,13 @@ function AdvancedLayout({
                             }}
                         >
                             {c.showImages && product.imageUrl && (
-                                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm @max-[150px]:h-10 @max-[150px]:w-10 @min-[210px]:h-20 @min-[210px]:w-20">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
+                                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm @max-[150px]:h-10 @max-[150px]:w-10 @min-[210px]:h-20 @min-[210px]:w-20">
+                                    <Image
                                         src={product.imageUrl}
                                         alt={product.name}
-                                        className="h-full w-full object-cover"
+                                        fill
+                                        sizes="(max-width: 640px) 56px, 80px"
+                                        className="object-cover"
                                     />
                                 </div>
                             )}
@@ -634,11 +639,12 @@ function AdvancedLayout({
 
                         {c.showImages && product.imageUrl && (
                             <div className="relative mb-2 mt-1 aspect-[16/10] overflow-hidden rounded-xl">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <Image
                                     src={product.imageUrl}
                                     alt={product.name}
-                                    className="h-full w-full object-cover"
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, 240px"
+                                    className="object-cover"
                                 />
                             </div>
                         )}
@@ -710,11 +716,12 @@ function AdvancedLayout({
 
                     {c.showImages && product.imageUrl && (
                         <div className="relative h-28 w-full overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                            <Image
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="h-full w-full object-cover"
+                                fill
+                                sizes="(max-width: 640px) 50vw, 220px"
+                                className="object-cover"
                             />
                         </div>
                     )}
@@ -788,12 +795,13 @@ function AdvancedLayout({
                     )}
 
                     {c.showImages && product.imageUrl && (
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl shadow-sm">
+                            <Image
                                 src={product.imageUrl}
                                 alt={product.name}
-                                className="h-full w-full object-cover"
+                                fill
+                                sizes="56px"
+                                className="object-cover"
                             />
                         </div>
                     )}

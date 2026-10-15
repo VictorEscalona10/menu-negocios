@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { revalidateMenu } from '@/lib/menu'
 import { createClient } from '@/utils/supabase/server'
 
 export async function createModifierGroup(productId: string, formData: FormData) {
@@ -29,9 +30,7 @@ export async function createModifierGroup(productId: string, formData: FormData)
     });
 
     revalidatePath(`/dashboard/products`);
-    if (product?.category?.store?.slug) {
-        revalidatePath(`/menu/${product.category.store.slug}`);
-    }
+    revalidateMenu(product?.category?.store?.slug);
 }
 
 export async function createModifierOption(modifierGroupId: string, formData: FormData) {
@@ -67,10 +66,7 @@ export async function createModifierOption(modifierGroupId: string, formData: Fo
     });
 
     revalidatePath(`/dashboard/products`);
-    const slug = group.product.category.store.slug;
-    if (slug) {
-        revalidatePath(`/menu/${slug}`);
-    }
+    revalidateMenu(group.product?.category?.store?.slug);
 }
 
 export async function deleteModifierGroup(id: string) {
@@ -105,9 +101,7 @@ export async function deleteModifierGroup(id: string) {
 
     await prisma.modifierGroup.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
-    if (slug) {
-        revalidatePath(`/menu/${slug}`);
-    }
+    revalidateMenu(slug);
 }
 
 export async function deleteModifierOption(id: string) {
@@ -146,9 +140,7 @@ export async function deleteModifierOption(id: string) {
 
     await prisma.modifierOption.delete({ where: { id } });
     revalidatePath(`/dashboard/products`);
-    if (slug) {
-        revalidatePath(`/menu/${slug}`);
-    }
+    revalidateMenu(slug);
 }
 
 export async function toggleModifierOptionAvailability(id: string, isAvailable: boolean) {
@@ -189,7 +181,5 @@ export async function toggleModifierOptionAvailability(id: string, isAvailable: 
     })
 
     revalidatePath(`/dashboard/products`)
-    if (slug) {
-        revalidatePath(`/menu/${slug}`);
-    }
+    revalidateMenu(slug);
 }

@@ -6,6 +6,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import Image from 'next/image'
 import { Lineicons } from '@lineiconshq/react-lineicons'
 import { SparkOutlined, StarFatSolid } from '@lineiconshq/free-icons'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
@@ -109,11 +110,12 @@ export default function ComboCard({
             {/* Imagen arriba ocupando todo el ancho */}
             {showImages && product.imageUrl ? (
                 <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-t-2xl bg-black/20">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                         src={product.imageUrl}
                         alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     />
                 </div>
             ) : (

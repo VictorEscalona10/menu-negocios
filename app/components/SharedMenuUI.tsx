@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
 import { useCartStore } from '@/src/store/cartStore'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import BsPrice from './BsPrice'
@@ -219,11 +220,13 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
             ═══════════════════════════════════ */}
             {store.bannerUrl && (
                 <div className={`relative w-full shrink-0 overflow-hidden ${isPreview ? 'h-24' : 'h-36 md:h-44'}`}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                         src={store.bannerUrl}
                         alt="Portada"
-                        className="w-full h-full object-cover"
+                        fill
+                        priority
+                        sizes="100vw"
+                        className="object-cover"
                     />
                     <div
                         className="absolute inset-0"
@@ -243,11 +246,17 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                 {/* Logo */}
                 {store.logoUrl ? (
                     <div
-                        className={`${isPreview ? 'w-14 h-14 mb-2' : 'w-20 h-20 mb-3'} rounded-full overflow-hidden ring-4 ring-black/40 shadow-xl shrink-0 transition-transform duration-300 hover:scale-105`}
+                        className={`relative ${isPreview ? 'w-14 h-14 mb-2' : 'w-20 h-20 mb-3'} rounded-full overflow-hidden ring-4 ring-black/40 shadow-xl shrink-0 transition-transform duration-300 hover:scale-105`}
                         style={{ boxShadow: `0 8px 24px ${accent}44` }}
                     >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={store.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                        <Image
+                            src={store.logoUrl}
+                            alt="Logo"
+                            fill
+                            priority
+                            sizes="(max-width: 768px) 56px, 80px"
+                            className="object-cover"
+                        />
                     </div>
                 ) : (
                     <div
@@ -420,9 +429,14 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
 
                                         {/* Miniatura / Icono */}
                                         {showImages && product.imageUrl ? (
-                                            <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden shadow-sm bg-black/20">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                            <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden shadow-sm bg-black/20 relative">
+                                                <Image
+                                                    src={product.imageUrl}
+                                                    alt={product.name}
+                                                    fill
+                                                    sizes="56px"
+                                                    className="object-cover group-hover:scale-105 transition-transform"
+                                                />
                                             </div>
                                         ) : (
                                             <div
@@ -546,8 +560,13 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                         {/* Imagen */}
                                         {showImages && product.imageUrl ? (
                                             <div className="w-full h-28 relative overflow-hidden bg-black/20">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                <Image
+                                                    src={product.imageUrl}
+                                                    alt={product.name}
+                                                    fill
+                                                    sizes="(max-width: 640px) 50vw, 220px"
+                                                    className="object-cover group-hover:scale-105 transition-transform"
+                                                />
                                             </div>
                                         ) : null}
 
@@ -669,12 +688,13 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                             )}
 
                                             {showImages && product.imageUrl && (
-                                                <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden shadow-sm bg-black/20">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
+                                                <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden shadow-sm bg-black/20 relative">
+                                                    <Image
                                                         src={product.imageUrl}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover"
+                                                        fill
+                                                        sizes="72px"
+                                                        className="object-cover"
                                                     />
                                                 </div>
                                             )}

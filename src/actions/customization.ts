@@ -4,6 +4,7 @@
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { revalidateMenu } from '@/lib/menu'
 import { createClient } from '@/utils/supabase/server'
 import type { ZodError } from 'zod'
 import {
@@ -209,7 +210,7 @@ export async function applyTemplate(storeId: string, templateId: string): Promis
         update: { layoutJson: validated.data, version: { increment: 1 } },
     })
 
-    revalidatePath(`/menu/${store.slug}`)
+    revalidateMenu(store.slug)
     revalidatePath('/dashboard/customization')
 
     return validated.data
@@ -313,7 +314,7 @@ export async function saveCustomizationLayout(storeId: string, layoutJson: unkno
         })
     }
 
-    revalidatePath(`/menu/${store.slug}`)
+    revalidateMenu(store.slug)
     revalidatePath('/dashboard/customization')
 }
 
@@ -328,7 +329,7 @@ export async function deleteCustomizationLayout(storeId: string) {
         }),
     ])
 
-    revalidatePath(`/menu/${store.slug}`)
+    revalidateMenu(store.slug)
     revalidatePath('/dashboard/customization')
 }
 
@@ -344,7 +345,7 @@ export async function toggleCustomizationMode(storeId: string, mode: Customizati
         data: { customizationMode: parsed.data },
     })
 
-    revalidatePath(`/menu/${store.slug}`)
+    revalidateMenu(store.slug)
     revalidatePath('/dashboard/customization')
 
     return parsed.data
@@ -409,6 +410,6 @@ export async function deleteCustomizationImage(imageId: string): Promise<void> {
         },
     })
 
-    revalidatePath(`/menu/${image.store.slug}`)
+    revalidateMenu(image.store.slug)
     revalidatePath('/dashboard/customization')
 }

@@ -3,6 +3,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { revalidateMenu } from '@/lib/menu'
 import { createClient } from '@/utils/supabase/server'
 
 export async function updateStoreSettings(storeId: string, formData: FormData) {
@@ -154,8 +155,7 @@ export async function updateStoreSettings(storeId: string, formData: FormData) {
     })
     revalidatePath('/dashboard/settings')
     revalidatePath('/dashboard')
-    revalidatePath(`/menu/${storeExists.slug}`)
-    revalidatePath('/menu/[slug]', 'page')
+    revalidateMenu(storeExists.slug)
 }
 
 export async function createDeliveryZone(storeId: string, formData: FormData) {
@@ -177,7 +177,7 @@ export async function createDeliveryZone(storeId: string, formData: FormData) {
     });
 
     revalidatePath('/dashboard/settings');
-    revalidatePath(`/menu/${store.slug}`);
+    revalidateMenu(store.slug);
 }
 
 export async function updateDeliveryZone(zoneId: string, formData: FormData) {
@@ -203,7 +203,7 @@ export async function updateDeliveryZone(zoneId: string, formData: FormData) {
     });
 
     revalidatePath('/dashboard/settings');
-    revalidatePath(`/menu/${zone.store.slug}`);
+    revalidateMenu(zone.store.slug);
 }
 
 export async function deleteDeliveryZone(zoneId: string) {
@@ -220,5 +220,5 @@ export async function deleteDeliveryZone(zoneId: string) {
     await prisma.deliveryZone.delete({ where: { id: zoneId } });
 
     revalidatePath('/dashboard/settings');
-    revalidatePath(`/menu/${zone.store.slug}`);
+    revalidateMenu(zone.store.slug);
 }
