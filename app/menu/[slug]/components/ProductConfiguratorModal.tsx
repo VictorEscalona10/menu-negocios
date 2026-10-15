@@ -112,9 +112,18 @@ export default function ProductConfiguratorModal({ product, themeColor, buttonTe
     }
 
     const handleAddToCart = () => {
-        if (!validateRequired()) {
+        const requiredGroups = (product.modifierGroups || []).filter(g => g.isRequired);
+        const missingGroup = requiredGroups.find(rg => {
+            const selected = selections[rg.id];
+            return !selected || selected.length === 0;
+        });
+
+        if (missingGroup) {
             setShowValidation(true);
-            // Hacer scroll al primer grupo faltante si es posible
+            const el = document.getElementById(`modifier-group-${missingGroup.id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
 
@@ -208,7 +217,11 @@ export default function ProductConfiguratorModal({ product, themeColor, buttonTe
                         const isMissing = showValidation && group.isRequired && selectedInGroup.length === 0;
 
                         return (
-                            <div key={group.id} className={`space-y-4 transition-all duration-300 ${isMissing ? 'p-3 rounded-2xl bg-red-500/5 ring-1 ring-red-500/20' : ''}`}>
+                            <div
+                                key={group.id}
+                                id={`modifier-group-${group.id}`}
+                                className={`space-y-4 transition-all duration-300 ${isMissing ? 'p-3 rounded-2xl bg-red-500/5 ring-1 ring-red-500/20' : ''}`}
+                            >
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <div className="flex items-center gap-2">

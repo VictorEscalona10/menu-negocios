@@ -1,7 +1,7 @@
 // app/menu/[slug]/components/FloatingCart.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useCartStore } from '@/src/store/cartStore'
 import { logOrderIntent } from '@/src/actions/analytics'
@@ -85,6 +85,25 @@ export default function FloatingCart({
     const [customerCedula, setCustomerCedula] = useState('');
     const [orderNotes, setOrderNotes] = useState('');
     const [formError, setFormError] = useState('');
+    const [errorField, setErrorField] = useState<'name' | 'cedula' | 'zone' | 'location' | null>(null);
+    const [shakeError, setShakeError] = useState(false);
+
+    // Refs para auto-scroll inmediato hacia los campos con error
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const nameInputRef = useRef<HTMLInputElement>(null);
+    const cedulaInputRef = useRef<HTMLInputElement>(null);
+    const zoneSelectRef = useRef<HTMLDivElement>(null);
+    const locationSectionRef = useRef<HTMLDivElement>(null);
+
+    const scrollToField = (element: HTMLElement | null, focusInput = true) => {
+        if (!element) return;
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (focusInput && ('focus' in element && typeof element.focus === 'function')) {
+            setTimeout(() => {
+                element.focus({ preventScroll: true });
+            }, 120);
+        }
+    };
 
     // Zona de delivery seleccionada
     const [selectedZoneId, setSelectedZoneId] = useState<string>('');
@@ -171,10 +190,11 @@ export default function FloatingCart({
         }
     }, [totalItems]);
 
-    // Reset error cuando el usuario tipea
+    // Reset error cuando el usuario tipea o cambia selección
     useEffect(() => {
         setFormError('');
-    }, [customerName, customerCedula, selectedZoneId]);
+        setErrorField(null);
+    }, [customerName, customerCedula, selectedZoneId, deliveryType]);
 
     if (totalItems === 0) return null;
 
@@ -193,25 +213,41 @@ export default function FloatingCart({
             return;
         }
 
-        // Validar campos requeridos
+        // Validar campos requeridos con auto-scroll al lugar exacto
         if (!customerName.trim()) {
             setFormError('El nombre del cliente es obligatorio.');
+            setErrorField('name');
+            setShakeError(true);
+            setTimeout(() => setShakeError(false), 500);
+            scrollToField(nameInputRef.current);
             return;
         }
         if (customerName.trim().length < 3) {
             setFormError('El nombre debe tener al menos 3 caracteres.');
+            setErrorField('name');
+            setShakeError(true);
+            setTimeout(() => setShakeError(false), 500);
+            scrollToField(nameInputRef.current);
             return;
         }
 
         if (requireCedula) {
             if (!customerCedula.trim()) {
                 setFormError('La cédula de identidad es obligatoria.');
+                setErrorField('cedula');
+                setShakeError(true);
+                setTimeout(() => setShakeError(false), 500);
+                scrollToField(cedulaInputRef.current);
                 return;
             }
             // Verificar que la cédula tenga al menos algunos dígitos
             const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
             if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
                 setFormError('La cédula debe tener entre 6 y 9 dígitos numéricos.');
+                setErrorField('cedula');
+                setShakeError(true);
+                setTimeout(() => setShakeError(false), 500);
+                scrollToField(cedulaInputRef.current);
                 return;
             }
         }
@@ -220,10 +256,19 @@ export default function FloatingCart({
         if (deliveryType === 'delivery') {
             if (hasZones && !selectedZoneId) {
                 setFormError('Por favor selecciona tu zona de delivery.');
+                setErrorField('zone');
+                setIsZoneDropdownOpen(true);
+                setShakeError(true);
+                setTimeout(() => setShakeError(false), 500);
+                scrollToField(zoneSelectRef.current, false);
                 return;
             }
             if (!locationUrl && !selectedZoneId && !hasZones) {
                 setFormError('Comparte tu ubicación GPS para el delivery.');
+                setErrorField('location');
+                setShakeError(true);
+                setTimeout(() => setShakeError(false), 500);
+                scrollToField(locationSectionRef.current, false);
                 return;
             }
         }
@@ -323,7 +368,7 @@ export default function FloatingCart({
                         </div>
 
                         {/* Contenido scrolleable */}
-                        <div className="flex-1 overflow-y-auto">
+                        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto scroll-smooth">
 
                             {/* ── Sección 1: Datos del Cliente ── */}
                             <div className="p-5 space-y-4 border-b border-white/10 bg-white/[0.02]">
@@ -339,13 +384,24 @@ export default function FloatingCart({
                                             Nombre completo <span style={{ color: themeColor }}>*</span>
                                         </label>
                                         <input
+                                            ref={nameInputRef}
                                             type="text"
                                             value={customerName}
                                             onChange={e => handleNameChange(e.target.value)}
                                             placeholder="Ej: Juan Pérez"
                                             maxLength={50}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
+                                            className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none transition-all ${
+                                                errorField === 'name'
+                                                    ? 'border-red-500/80 ring-2 ring-red-500/30 bg-red-500/[0.07]'
+                                                    : 'border-white/10 focus:border-white/30 focus:bg-white/[0.08]'
+                                            } ${errorField === 'name' && shakeError ? 'animate-shake' : ''}`}
                                         />
+                                        {errorField === 'name' && formError && (
+                                            <p className="text-xs text-red-400 font-semibold mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+                                                <Lineicons icon={Ban2Outlined} size={14} className="shrink-0" />
+                                                <span>{formError}</span>
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Cédula */}
@@ -355,24 +411,28 @@ export default function FloatingCart({
                                                 Cédula de identidad <span style={{ color: themeColor }}>*</span>
                                             </label>
                                             <input
+                                                ref={cedulaInputRef}
                                                 type="text"
                                                 value={customerCedula}
                                                 onChange={e => handleCedulaChange(e.target.value)}
+                                                placeholder="Ej: 12345678"
                                                 maxLength={15}
                                                 inputMode="text"
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none focus:border-white/30 transition-all focus:bg-white/[0.08]"
+                                                className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none transition-all ${
+                                                    errorField === 'cedula'
+                                                        ? 'border-red-500/80 ring-2 ring-red-500/30 bg-red-500/[0.07]'
+                                                    : 'border-white/10 focus:border-white/30 focus:bg-white/[0.08]'
+                                                } ${errorField === 'cedula' && shakeError ? 'animate-shake' : ''}`}
                                             />
+                                            {errorField === 'cedula' && formError && (
+                                                <p className="text-xs text-red-400 font-semibold mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+                                                    <Lineicons icon={Ban2Outlined} size={14} className="shrink-0" />
+                                                    <span>{formError}</span>
+                                                </p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Error de validación */}
-                                {formError && (
-                                    <div className="flex items-center gap-2 mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl animate-pulse">
-                                        <Lineicons icon={Ban2Outlined} size={16} className="text-red-400 shrink-0" />
-                                        <span className="text-sm font-bold text-red-400">{formError}</span>
-                                    </div>
-                                )}
                             </div>
 
                             {/* ── Sección 2: Tipo de Entrega ── */}
@@ -423,7 +483,7 @@ export default function FloatingCart({
 
                                         {/* Selector de zona desplegable */}
                                         {hasZones && (
-                                            <div>
+                                            <div ref={zoneSelectRef}>
                                                 <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
                                                     Zona de delivery <span style={{ color: themeColor }}>*</span>
                                                 </label>
@@ -431,7 +491,13 @@ export default function FloatingCart({
                                                     <button
                                                         type="button"
                                                         onClick={() => setIsZoneDropdownOpen(!isZoneDropdownOpen)}
-                                                        className={`w-full flex items-center justify-between gap-3 bg-white/5 border rounded-xl px-4 py-3.5 text-sm text-left transition-all focus:outline-none ${isZoneDropdownOpen ? 'border-white/30 bg-white/[0.08]' : 'border-white/10 hover:border-white/20'}`}
+                                                        className={`w-full flex items-center justify-between gap-3 bg-white/5 border rounded-xl px-4 py-3.5 text-sm text-left transition-all focus:outline-none ${
+                                                            errorField === 'zone'
+                                                                ? 'border-red-500/80 ring-2 ring-red-500/30 bg-red-500/[0.07]'
+                                                                : isZoneDropdownOpen
+                                                                    ? 'border-white/30 bg-white/[0.08]'
+                                                                    : 'border-white/10 hover:border-white/20'
+                                                        } ${errorField === 'zone' && shakeError ? 'animate-shake' : ''}`}
                                                     >
                                                         <div className="flex items-center gap-2 flex-1 min-w-0">
                                                             <Lineicons icon={MapPin5Outlined} size={18} className="text-zinc-400 shrink-0" />
@@ -443,7 +509,7 @@ export default function FloatingCart({
                                                                     </p>
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-zinc-600 text-sm">Selecciona tu zona...</p>
+                                                                <p className="text-zinc-500 text-sm">Selecciona tu zona...</p>
                                                             )}
                                                         </div>
                                                         <svg
@@ -453,6 +519,12 @@ export default function FloatingCart({
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </button>
+                                                    {errorField === 'zone' && formError && (
+                                                        <p className="text-xs text-red-400 font-semibold mt-1.5 flex items-center gap-1.5 animate-fadeIn">
+                                                            <Lineicons icon={Ban2Outlined} size={14} className="shrink-0" />
+                                                            <span>{formError}</span>
+                                                        </p>
+                                                    )}
 
                                                     {/* Lista desplegable */}
                                                     {isZoneDropdownOpen && (
@@ -492,7 +564,7 @@ export default function FloatingCart({
                                         )}
 
                                         {/* Botón GPS */}
-                                        <div>
+                                        <div ref={locationSectionRef}>
                                             <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
                                                 {hasZones ? 'Opcional: Ubicación GPS exacta' : 'Ubicación GPS'}
                                             </label>
@@ -754,6 +826,29 @@ export default function FloatingCart({
                                 <span className="text-zinc-400 font-medium">Total a pagar</span>
                                 <span className="text-2xl font-black text-white">${Number(totalPrice).toFixed(2)}</span>
                             </div>
+
+                            {/* Alerta de error interactiva junto al botón de envío */}
+                            {formError && (
+                                <div
+                                    onClick={() => {
+                                        if (errorField === 'name') scrollToField(nameInputRef.current);
+                                        else if (errorField === 'cedula') scrollToField(cedulaInputRef.current);
+                                        else if (errorField === 'zone') scrollToField(zoneSelectRef.current, false);
+                                        else if (errorField === 'location') scrollToField(locationSectionRef.current, false);
+                                        else scrollToField(nameInputRef.current);
+                                    }}
+                                    className="cursor-pointer mb-3 p-3 bg-red-500/15 border border-red-500/30 rounded-xl flex items-center justify-between text-red-300 text-xs font-bold hover:bg-red-500/20 transition-all animate-shake"
+                                >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <Lineicons icon={Ban2Outlined} size={16} className="text-red-400 shrink-0" />
+                                        <span className="truncate">{formError}</span>
+                                    </div>
+                                    <span className="text-[11px] underline text-red-200 hover:text-white shrink-0 ml-2 font-black">
+                                        Completar ↑
+                                    </span>
+                                </div>
+                            )}
+
                             <button
                                 onClick={handleWhatsAppOrder}
                                 className="w-full text-white font-bold text-base py-4 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:brightness-110"
@@ -777,6 +872,14 @@ export default function FloatingCart({
                             @keyframes fadeIn {
                                 from { opacity: 0; transform: translateY(-8px); }
                                 to { opacity: 1; transform: translateY(0); }
+                            }
+                            @keyframes shakeCartError {
+                                0%, 100% { transform: translateX(0); }
+                                20%, 60% { transform: translateX(-6px); }
+                                40%, 80% { transform: translateX(6px); }
+                            }
+                            .animate-shake {
+                                animation: shakeCartError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
                             }
                         `}} />
                     </div>
