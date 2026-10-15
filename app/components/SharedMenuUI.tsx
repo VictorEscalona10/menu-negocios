@@ -4,6 +4,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useCartStore } from '@/src/store/cartStore'
 import AddToCartButton from '../menu/[slug]/AddToCartButton'
+import BsPrice from './BsPrice'
+import ComboCard from './ComboCard'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
 
@@ -29,6 +31,7 @@ interface SharedMenuUIProps {
         showProductImages?: boolean;
         forceNotesModal?: boolean;
         requireCedula?: boolean;
+        showBsPrice?: boolean;
         textColor?: string;
         subtextColor?: string;
         fontHeading?: string;
@@ -70,12 +73,18 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
     const accent = store.themeColor || '#FF5630';
     const buttonTextColor = store.buttonTextColor || '#ffffff';
     const showImages = store.showProductImages ?? true;
+    const showBsPrice = store.showBsPrice ?? true;
     const textColor = store.textColor || '#e5e2e1';
     const subtextColor = store.subtextColor || '#e4beb5';
     const fontHeading = store.fontHeading || 'Epilogue';
     const fontBody = store.fontBody || 'Manrope';
     const cardBg = store.cardBackgroundColor || 'rgba(255,255,255,0.05)';
     const layout = (store.menuLayout || 'LIST').toUpperCase();
+
+    // Ancho del contenido de la barra de categorías: el mismo que usa cada
+    // layout para el menú, para que las pills queden alineadas y centradas.
+    const navMaxWidth =
+        layout === 'LINKTREE' ? 'max-w-lg' : layout === 'LIST' ? 'max-w-2xl' : 'max-w-xl';
 
     // Build Google Fonts URL for selected fonts
     const uniqueFonts = [...new Set([fontHeading, fontBody])];
@@ -183,7 +192,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
     return (
         <div
             className={`relative font-sans selection:bg-white/20 flex flex-col ${isPreview ? `w-full h-full ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}` : 'h-screen overflow-hidden'}`}
-            style={{ backgroundColor: bg }}
+            style={{ backgroundColor: bg, color: textColor }}
         >
             {/* Google Fonts */}
             <style dangerouslySetInnerHTML={{
@@ -320,7 +329,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                 >
                     <div
                         ref={navRef}
-                        className="flex gap-2 overflow-x-auto hide-scrollbar px-4 py-2.5"
+                        className={`flex gap-2 overflow-x-auto hide-scrollbar px-4 py-2.5 ${navMaxWidth} mx-auto w-full`}
                     >
                         {activeCategories.map((cat, idx) => {
                             const isActive = activeIndex === idx;
@@ -366,6 +375,27 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
 
                             <div className="space-y-3">
                                 {currentCategory.products.map((product) => (
+                                    product.isCombo ? (
+                                        <ComboCard
+                                            key={product.id}
+                                            product={product}
+                                            accent={accent}
+                                            buttonTextColor={buttonTextColor}
+                                            textColor={textColor}
+                                            subtextColor={subtextColor}
+                                            showImages={showImages}
+                                            bsEnabled={showBsPrice}
+                                            surfaceStyle={{
+                                                backgroundColor: cardBg
+                                            }}
+                                            headingStyle={{ fontFamily: `'${fontHeading}', sans-serif` }}
+                                            bodyStyle={{ fontFamily: `'${fontBody}', sans-serif` }}
+                                            isPreview={isPreview}
+                                            forceNotesModal={store.forceNotesModal}
+                                            onClick={() => handleProductAction(product)}
+                                            onConfigure={() => setActiveConfigProduct(product)}
+                                        />
+                                    ) : (
                                     <div
                                         key={product.id}
                                         onClick={() => handleProductAction(product)}
@@ -411,10 +441,11 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                     {product.description}
                                                 </p>
                                             )}
-                                            <div className="flex items-center gap-2 mt-1">
+                                            <div className="mt-1">
                                                 <span className="font-manrope font-extrabold text-sm" style={{ color: accent }}>
                                                     ${product.price.toFixed(2)}
                                                 </span>
+                                                <BsPrice usd={product.price} enabled={showBsPrice} color={subtextColor} />
                                             </div>
                                         </div>
 
@@ -438,6 +469,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                             )}
                                         </div>
                                     </div>
+                                    )
                                 ))}
                             </div>
                         </div>
@@ -467,6 +499,28 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
 
                             <div className="grid grid-cols-2 gap-3">
                                 {currentCategory.products.map((product) => (
+                                    product.isCombo ? (
+                                        <ComboCard
+                                            key={product.id}
+                                            product={product}
+                                            accent={accent}
+                                            buttonTextColor={buttonTextColor}
+                                            textColor={textColor}
+                                            subtextColor={subtextColor}
+                                            span
+                                            showImages={showImages}
+                                            bsEnabled={showBsPrice}
+                                            surfaceStyle={{
+                                                backgroundColor: cardBg
+                                            }}
+                                            headingStyle={{ fontFamily: `'${fontHeading}', sans-serif` }}
+                                            bodyStyle={{ fontFamily: `'${fontBody}', sans-serif` }}
+                                            isPreview={isPreview}
+                                            forceNotesModal={store.forceNotesModal}
+                                            onClick={() => handleProductAction(product)}
+                                            onConfigure={() => setActiveConfigProduct(product)}
+                                        />
+                                    ) : (
                                     <div
                                         key={product.id}
                                         onClick={() => handleProductAction(product)}
@@ -509,9 +563,12 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                             </div>
 
                                             <div className="mt-3 flex items-center justify-between pt-2 border-t border-white/5">
-                                                <span className="font-manrope font-extrabold text-sm" style={{ color: accent }}>
-                                                    ${product.price.toFixed(2)}
-                                                </span>
+                                                <div>
+                                                    <span className="font-manrope font-extrabold text-sm" style={{ color: accent }}>
+                                                        ${product.price.toFixed(2)}
+                                                    </span>
+                                                    <BsPrice usd={product.price} enabled={showBsPrice} color={subtextColor} />
+                                                </div>
                                                 <div className="shrink-0" onClick={e => e.stopPropagation()}>
                                                     {isPreview ? (
                                                         <div
@@ -533,6 +590,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                             </div>
                                         </div>
                                     </div>
+                                    )
                                 ))}
                             </div>
                         </div>
@@ -568,6 +626,27 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                     </p>
 
                                     {category.products.map((product) => (
+                                        product.isCombo ? (
+                                            <ComboCard
+                                                key={product.id}
+                                                product={product}
+                                                accent={accent}
+                                                buttonTextColor={buttonTextColor}
+                                                textColor={textColor}
+                                                subtextColor={subtextColor}
+                                                showImages={showImages}
+                                                bsEnabled={showBsPrice}
+                                                surfaceStyle={{
+                                                    backgroundColor: cardBg
+                                                }}
+                                                headingStyle={{ fontFamily: `'${fontHeading}', sans-serif` }}
+                                                bodyStyle={{ fontFamily: `'${fontBody}', sans-serif` }}
+                                                isPreview={isPreview}
+                                                forceNotesModal={store.forceNotesModal}
+                                                onClick={() => handleProductAction(product)}
+                                                onConfigure={() => setActiveConfigProduct(product)}
+                                            />
+                                        ) : (
                                         <article
                                             key={product.id}
                                             onClick={() => handleProductAction(product)}
@@ -610,6 +689,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                 <p className="font-manrope font-bold text-sm mt-1.5" style={{ color: accent }}>
                                                     ${product.price.toFixed(2)}
                                                 </p>
+                                                <BsPrice usd={product.price} enabled={showBsPrice} color={subtextColor} />
                                             </div>
 
                                             <div className="shrink-0">
@@ -631,6 +711,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                 )}
                                             </div>
                                         </article>
+                                        )
                                     ))}
                                 </div>
                             </div>

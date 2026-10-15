@@ -106,3 +106,59 @@ body {
     grid-template-columns: repeat(var(--menu-cols-narrow, 2), minmax(0, 1fr));
   }
 }
+
+/* ── Card COMBO: material con luz + micro-motion ──────────────────────────
+   La sombra base/hover se inyecta vía CSS vars (--combo-shadow*) desde el
+   componente, para poder combinarla con la sombra del design style. */
+.combo-card {
+  box-shadow: var(--combo-shadow, none);
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.combo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--combo-shadow-hover, var(--combo-shadow, none));
+}
+
+/* Press instantáneo en pointer-down (no al soltar). */
+.combo-card:active {
+  transform: scale(0.97);
+}
+
+/* Entrada de la etiqueta COMBO: fade + scale corto. */
+@keyframes combo-badge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.combo-badge-in {
+  animation: combo-badge-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Accesibilidad: sin lift/zoom/animación ante prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .combo-card {
+    transition: box-shadow 200ms ease;
+  }
+  .combo-card:hover,
+  .combo-card:active {
+    transform: none;
+  }
+  .combo-badge-in {
+    animation: none;
+  }
+  .combo-card img {
+    transition: none;
+  }
+  .combo-card:hover img {
+    transform: none;
+  }
+}

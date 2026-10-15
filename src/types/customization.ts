@@ -55,12 +55,22 @@ export interface HeaderSectionConfig {
   layout: 'centered' | 'inline';
   /** Variante visual del encabezado (default = diseño actual) */
   style: HeaderStyle;
+  /** Título propio (fallback: nombre del negocio) */
+  title?: string;
+  /** Subtítulo propio (fallback: "Menú Digital · Pedido Online") */
+  subtitle?: string;
+  bgColor?: string;
+  textColor?: string;
 }
 
 export interface CategoryNavSectionConfig {
   style: 'pills' | 'tabs' | 'minimal';
   sticky: boolean;
   showCount: boolean;
+  /** Título opcional sobre la navegación de categorías */
+  heading?: string;
+  bgColor?: string;
+  textColor?: string;
 }
 
 export interface MenuSectionConfig {
@@ -70,9 +80,22 @@ export interface MenuSectionConfig {
   showImages: boolean;
   showPrices: boolean;
   showDescriptions: boolean;
+  /** Muestra el precio convertido a Bs debajo del precio en USD (default true). */
+  showBsPrice?: boolean;
   columns: 1 | 2 | 3;
   gap: 'sm' | 'md' | 'lg';
   cardStyle: 'default' | 'outlined' | 'filled';
+  /** Título opcional sobre la lista de productos */
+  heading?: string;
+  subheading?: string;
+  bgColor?: string;
+  textColor?: string;
+}
+
+/** Colores opcionales que toda sección puede sobreescribir (fallback: global) */
+export interface SectionColorOverrides {
+  bgColor?: string;
+  textColor?: string;
 }
 
 export type MenuLayoutStyle =
@@ -111,10 +134,14 @@ export interface ImageSectionConfig {
   opacity: number;
   overlayText?: string;
   overlaySubheading?: string;
+  /** Color propio del subtítulo superpuesto (fallback: subtext global) */
+  overlaySubheadingColor?: string;
   ctaText?: string;
   ctaUrl?: string;
   borderRadius: string;
   height: 'auto' | 'sm' | 'md' | 'lg';
+  bgColor?: string;
+  textColor?: string;
 }
 
 export interface CarouselSectionConfig {
@@ -127,6 +154,8 @@ export interface CarouselSectionConfig {
   /** Alto de cada slide del carrusel. */
   height: 'sm' | 'md' | 'lg';
   items: CarouselItem[];
+  bgColor?: string;
+  textColor?: string;
 }
 
 export interface CarouselItem {
@@ -144,7 +173,10 @@ export interface SocialSectionConfig {
   layout: 'row' | 'grid';
   iconSize: 'sm' | 'md' | 'lg';
   showLabels: boolean;
+  /** Alineación horizontal de los íconos dentro de la sección. */
+  align?: 'left' | 'center' | 'right';
   bgColor?: string;
+  textColor?: string;
   padding?: string;
 }
 
@@ -262,12 +294,19 @@ export const headerSectionSchema = z.object({
   showLogo: z.boolean(),
   layout: z.enum(['centered', 'inline']),
   style: z.enum(['classic', 'minimal', 'editorial']).default('classic'),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
 });
 
 export const categoryNavSectionSchema = z.object({
   style: z.enum(['pills', 'tabs', 'minimal']),
   sticky: z.boolean(),
   showCount: z.boolean(),
+  heading: z.string().optional(),
+  bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
 });
 
 export const menuSectionSchema = z.object({
@@ -278,9 +317,14 @@ export const menuSectionSchema = z.object({
   showImages: z.boolean(),
   showPrices: z.boolean(),
   showDescriptions: z.boolean(),
+  showBsPrice: z.boolean().default(true),
   columns: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   gap: z.enum(['sm', 'md', 'lg']),
   cardStyle: z.enum(['default', 'outlined', 'filled']),
+  heading: z.string().optional(),
+  subheading: z.string().optional(),
+  bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
 });
 
 export const textSectionSchema = z.object({
@@ -300,10 +344,13 @@ export const imageSectionSchema = z.object({
   opacity: z.number().min(0, 'Opacidad mínima 0').max(1, 'Opacidad máxima 1'),
   overlayText: z.string().optional(),
   overlaySubheading: z.string().optional(),
+  overlaySubheadingColor: cssColor.optional(),
   ctaText: z.string().optional(),
   ctaUrl: z.string().optional(),
   borderRadius: z.string(),
   height: z.enum(['auto', 'sm', 'md', 'lg']),
+  bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
 });
 
 export const carouselItemSchema = z.object({
@@ -330,6 +377,8 @@ export const carouselSectionSchema = z.object({
     .default(3),
   height: z.enum(['sm', 'md', 'lg']).default('sm'),
   items: z.array(carouselItemSchema),
+  bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
 });
 
 export const socialPlatformSchema = z.object({
@@ -344,7 +393,9 @@ export const socialSectionSchema = z.object({
   layout: z.enum(['row', 'grid']),
   iconSize: z.enum(['sm', 'md', 'lg']),
   showLabels: z.boolean(),
+  align: z.enum(['left', 'center', 'right']).optional(),
   bgColor: cssColor.optional(),
+  textColor: cssColor.optional(),
   padding: z.string().optional(),
 });
 

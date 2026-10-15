@@ -19,12 +19,14 @@ import type {
     MenuLayoutStyle,
     MenuSectionConfig,
     Section,
+    SectionColorOverrides,
     SocialPlatform,
     SocialSectionConfig,
     TextSectionConfig,
 } from '@/src/types/customization'
 import { SECTION_META } from '../sections/sectionMeta'
 import { ColorField, Segmented, SelectField, TextArea, TextField, Toggle } from './PanelFields'
+import DollarRateInfo from '../../../components/DollarRateInfo'
 
 // ---------- Upload de imágenes ----------
 
@@ -204,6 +206,20 @@ function HeaderForm({ section }: { section: Section }) {
 
     return (
         <div className="space-y-3">
+            <TextField
+                label="Título"
+                hint="opcional"
+                value={c.title ?? ''}
+                onChange={(title) => update({ title: title || undefined })}
+                placeholder="Nombre del negocio"
+            />
+            <TextField
+                label="Subtítulo"
+                hint="opcional"
+                value={c.subtitle ?? ''}
+                onChange={(subtitle) => update({ subtitle: subtitle || undefined })}
+                placeholder="Menú Digital · Pedido Online"
+            />
             <Segmented
                 label="Estilo"
                 value={c.style ?? 'classic'}
@@ -231,6 +247,13 @@ function CategoryNavForm({ section }: { section: Section }) {
 
     return (
         <div className="space-y-3">
+            <TextField
+                label="Título de la sección"
+                hint="opcional"
+                value={c.heading ?? ''}
+                onChange={(heading) => update({ heading: heading || undefined })}
+                placeholder="Ej: Categorías"
+            />
             <Segmented
                 label="Estilo"
                 value={c.style}
@@ -289,6 +312,20 @@ function MenuForm({ section }: { section: Section }) {
 
     return (
         <div className="space-y-3">
+            <TextField
+                label="Título de la sección"
+                hint="opcional"
+                value={c.heading ?? ''}
+                onChange={(heading) => update({ heading: heading || undefined })}
+                placeholder="Ej: Nuestro menú"
+            />
+            <TextField
+                label="Subtítulo"
+                hint="opcional"
+                value={c.subheading ?? ''}
+                onChange={(subheading) => update({ subheading: subheading || undefined })}
+                placeholder="Elige tus favoritos"
+            />
             <Segmented
                 label="Layout"
                 value={c.layout}
@@ -377,6 +414,12 @@ function MenuForm({ section }: { section: Section }) {
                 checked={c.showDescriptions}
                 onChange={(showDescriptions) => update({ showDescriptions })}
             />
+            <Toggle
+                label="Mostrar precio en Bs"
+                checked={c.showBsPrice ?? true}
+                onChange={(showBsPrice) => update({ showBsPrice })}
+            />
+            <DollarRateInfo className="px-1" />
         </div>
     )
 }
@@ -449,16 +492,6 @@ function TextForm({ section }: { section: Section }) {
                 </div>
             </div>
 
-            <OptionalColorField
-                label="Color de texto"
-                value={c.textColor}
-                onSet={(textColor) => update({ textColor })}
-            />
-            <OptionalColorField
-                label="Color de fondo"
-                value={c.bgColor}
-                onSet={(bgColor) => update({ bgColor })}
-            />
             <TextField
                 label="Relleno"
                 hint="ej: 24px 16px"
@@ -520,6 +553,11 @@ function ImageForm({ section }: { section: Section }) {
                 onChange={(overlaySubheading) =>
                     update({ overlaySubheading: overlaySubheading || undefined })
                 }
+            />
+            <OptionalColorField
+                label="Color del subtítulo"
+                value={c.overlaySubheadingColor}
+                onSet={(overlaySubheadingColor) => update({ overlaySubheadingColor })}
             />
             <TextField
                 label="Texto del botón"
@@ -783,6 +821,16 @@ function SocialForm({ section }: { section: Section }) {
                 onChange={(layout) => update({ layout })}
             />
             <Segmented
+                label="Alineación"
+                value={c.align ?? 'center'}
+                options={[
+                    { value: 'left', label: 'Izquierda' },
+                    { value: 'center', label: 'Centro' },
+                    { value: 'right', label: 'Derecha' },
+                ]}
+                onChange={(align) => update({ align })}
+            />
+            <Segmented
                 label="Tamaño de iconos"
                 value={c.iconSize}
                 options={[
@@ -796,11 +844,6 @@ function SocialForm({ section }: { section: Section }) {
                 label="Mostrar etiquetas"
                 checked={c.showLabels}
                 onChange={(showLabels) => update({ showLabels })}
-            />
-            <ColorField
-                label="Color de fondo"
-                value={c.bgColor ?? ''}
-                onChange={(bgColor) => update({ bgColor })}
             />
             <TextField
                 label="Relleno"
@@ -843,6 +886,7 @@ export function SectionConfigPanel() {
     )
     const selectSection = useCustomizationStore((s) => s.selectSection)
     const setSectionVisible = useCustomizationStore((s) => s.setSectionVisible)
+    const updateSectionConfig = useCustomizationStore((s) => s.updateSectionConfig)
     const panelRef = useRef<HTMLElement>(null)
     const sectionId = section?.id
 
@@ -908,6 +952,28 @@ export function SectionConfigPanel() {
             </div>
 
             <SectionFields section={section} />
+
+            {/* Colores propios de la sección (fallback: colores globales) */}
+            <div className="mt-4 border-t border-zinc-100 pt-3">
+                <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-zinc-400">
+                    Colores de la sección
+                </p>
+                <div className="space-y-2">
+                    <OptionalColorField
+                        label="Color de fondo"
+                        value={(section.config as SectionColorOverrides).bgColor}
+                        onSet={(bgColor) => updateSectionConfig(section.id, { bgColor })}
+                    />
+                    <OptionalColorField
+                        label="Color de texto"
+                        value={(section.config as SectionColorOverrides).textColor}
+                        onSet={(textColor) => updateSectionConfig(section.id, { textColor })}
+                    />
+                </div>
+                <p className="mt-2 text-[11px] leading-snug text-zinc-400">
+                    Vacío = usa los colores globales del menú.
+                </p>
+            </div>
 
             <div className="mt-4 border-t border-zinc-100 pt-3">
                 {section.visible ? (

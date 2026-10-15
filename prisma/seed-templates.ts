@@ -47,6 +47,7 @@ type MenuConfig = {
   showImages: boolean
   showPrices: boolean
   showDescriptions: boolean
+  showBsPrice?: boolean
   columns: 1 | 2 | 3
   gap: 'sm' | 'md' | 'lg'
   cardStyle: 'default' | 'outlined' | 'filled'
@@ -107,6 +108,7 @@ type SocialConfig = {
   layout: 'row' | 'grid'
   iconSize: 'sm' | 'md' | 'lg'
   showLabels: boolean
+  align?: 'left' | 'center' | 'right'
   bgColor?: string
   padding?: string
 }
@@ -210,6 +212,7 @@ const menuSection = (key: string, config: Partial<MenuConfig> = {}): Section => 
     showImages: true,
     showPrices: true,
     showDescriptions: true,
+    showBsPrice: true,
     columns: 2,
     gap: 'md',
     cardStyle: 'default',
@@ -269,7 +272,7 @@ const socialSection = (key: string, config: Partial<SocialConfig> = {}): Section
   type: 'social',
   visible: true,
   alignment: 'center',
-  config: { platforms: [], layout: 'row', iconSize: 'md', showLabels: true, ...config },
+  config: { platforms: [], layout: 'row', iconSize: 'md', showLabels: true, align: 'center', ...config },
 })
 
 const carouselItem = (
