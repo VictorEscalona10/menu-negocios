@@ -24,6 +24,7 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [otpCode, setOtpCode] = useState("")
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
     
     // Estados de UI
     const [showPassword, setShowPassword] = useState(false)
@@ -78,6 +79,11 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
 
         if (password !== confirmPassword) {
             setErrorMsg("Las contraseñas no coinciden. Por favor, revísalas.")
+            return
+        }
+
+        if (!acceptedTerms) {
+            setErrorMsg("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.")
             return
         }
 
@@ -291,6 +297,51 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
                                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                         </div>
+                    </div>
+
+                    {/* Aceptación de Términos y Condiciones y Política de Privacidad */}
+                    <div className="pt-1 pb-1">
+                        <label className="flex items-start gap-3 cursor-pointer select-none group">
+                            <div className="relative flex items-center justify-center mt-0.5">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptedTerms}
+                                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                    className="sr-only peer"
+                                    required
+                                />
+                                <div className="w-5 h-5 rounded-lg border-2 border-zinc-300 peer-checked:border-black peer-checked:bg-black transition-all flex items-center justify-center group-hover:border-zinc-400 peer-focus-visible:ring-2 peer-focus-visible:ring-black/20">
+                                    {acceptedTerms && (
+                                        <svg className="w-3.5 h-3.5 text-white stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    )}
+                                </div>
+                            </div>
+                            <span className="text-xs text-zinc-600 leading-relaxed font-medium">
+                                Acepto los{" "}
+                                <Link
+                                    href="/terminos"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-black font-bold underline underline-offset-2 hover:text-zinc-700 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Términos y Condiciones
+                                </Link>{" "}
+                                y la{" "}
+                                <Link
+                                    href="/privacidad"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-black font-bold underline underline-offset-2 hover:text-zinc-700 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Política de Privacidad
+                                </Link>
+                                .
+                            </span>
+                        </label>
                     </div>
 
                     {/* Botón de Envío */}

@@ -33,14 +33,22 @@ export default function TerminosPage() {
             El presente documento establece los Términos y Condiciones (en
             adelante, “los Términos”) que regulan el acceso y uso del software
             ofrecido por <strong>Komy</strong>, en adelante
-            “La Plataforma”, cuyo titular es <strong>Victor Escalona</strong>,
-            con domicilio en Cagua, Estado Aragua, Venezuela. Al registrarse,
-            acceder o utilizar cualquiera de los servicios proporcionados, el
-            cliente o establecimiento comercial, en adelante “El Cliente”,
-            declara haber leído, comprendido y aceptado plenamente estos
-            Términos. En caso de no estar de acuerdo con alguna de las
-            disposiciones aquí establecidas, deberá abstenerse de utilizar el
-            servicio.
+            “La Plataforma”, cuyo titular y propietario exclusivo es{" "}
+            <strong>Victor Andres Escalona Sanabria</strong>, con domicilio en
+            Cagua, Estado Aragua, Venezuela. Al registrarse, acceder o utilizar
+            cualquiera de los servicios proporcionados, el cliente o
+            establecimiento comercial, en adelante “El Cliente”, declara haber
+            leído, comprendido y aceptado plenamente estos Términos. En caso de
+            no estar de acuerdo con alguna de las disposiciones aquí
+            establecidas, deberá abstenerse de utilizar el servicio.
+          </p>
+          <p className="mt-4">
+            La aceptación de estos Términos mediante medios electrónicos (como
+            hacer clic en un botón de &ldquo;Aceptar&rdquo; o &ldquo;Registrarse&rdquo;, o mediante
+            el uso continuado del servicio) tiene plena validez jurídica y
+            eficacia probatoria, de conformidad con la Ley sobre Mensajes de
+            Datos y Firmas Electrónicas de la República Bolivariana de
+            Venezuela.
           </p>
 
           <section>
@@ -138,8 +146,9 @@ export default function TerminosPage() {
               Todo el software que compone La Plataforma, incluyendo su código
               fuente, arquitectura, diseño, estructura de base de datos,
               elementos gráficos, logotipos propios y funcionalidades, es
-              propiedad exclusiva de <strong>[Tu Nombre Completo]</strong>, en
-              su condición de autor y titular de los derechos de propiedad
+              propiedad exclusiva de{" "}
+              <strong>Victor Andres Escalona Sanabria</strong>, en su
+              condición de autor y titular de los derechos de propiedad
               intelectual, y se encuentra protegido por las leyes de propiedad
               intelectual aplicables en Venezuela y tratados internacionales,
               aun en ausencia de registro formal. El uso del servicio otorga al
@@ -170,12 +179,13 @@ export default function TerminosPage() {
             </h2>
             <p>
               El Cliente se obliga a indemnizar, defender y mantener indemne a
-              La Plataforma, a su titular, empleados y colaboradores frente a
-              cualquier reclamación, demanda, daño, pérdida o gasto (incluidos
-              honorarios legales razonables) que se derive de: (a) el uso del
-              servicio por parte del Cliente; (b) el contenido publicado por el
-              Cliente; (c) los productos ofrecidos o vendidos por el Cliente;
-              (d) el incumplimiento de cualquier normativa legal aplicable a su
+              La Plataforma, a su titular Victor Andres Escalona Sanabria,
+              empleados y colaboradores frente a cualquier reclamación,
+              demanda, daño, pérdida o gasto (incluidos honorarios legales
+              razonables) que se derive de: (a) el uso del servicio por parte
+              del Cliente; (b) el contenido publicado por el Cliente; (c) los
+              productos ofrecidos o vendidos por el Cliente; (d) el
+              incumplimiento de cualquier normativa legal aplicable a su
               actividad comercial; o (e) la violación de estos Términos. La
               Plataforma notificará al Cliente de cualquier reclamación en un
               plazo razonable y se reserva el derecho de participar en la
@@ -193,18 +203,27 @@ export default function TerminosPage() {
               prepagada. El acceso al panel de administración y la visibilidad
               pública del menú están condicionados al pago oportuno de la
               suscripción. En caso de no registrarse el pago en la fecha de
-              vencimiento, el Cliente contará con un período de gracia de cinco (5) 
-              días calendario para regularizar su situación. Vencido este plazo 
-              sin que se haya confirmado el pago, el sistema podrá suspender 
-              automáticamente el acceso del Cliente y despublicar el menú sin 
+              vencimiento, el Cliente contará con un período de gracia de cinco (5)
+              días calendario para regularizar su situación. Vencido este plazo
+              sin que se haya confirmado el pago, el sistema podrá suspender
+              automáticamente el acceso del Cliente y despublicar el menú sin
               necesidad de notificación adicional.
+            </p>
+            <p className="mt-4">
+              Las tarifas de suscripción podrán estar expresadas en moneda
+              extranjera como moneda de cuenta. En estricto cumplimiento con la
+              legislación cambiaria venezolana vigente y las resoluciones del
+              Banco Central de Venezuela (BCV), El Cliente podrá realizar el pago
+              en Bolívares (Bs.) calculados a la tasa de cambio oficial
+              publicada por el BCV con fecha valor del día en que se efectúe el
+              pago.
             </p>
             <p className="mt-4">
               No se otorgarán reembolsos ni prorrateos por períodos no
               utilizados, cancelaciones anticipadas o cierres temporales del
               establecimiento. Si el impago se extiende por más de treinta (30)
-              días calendario contados a partir de la fecha de vencimiento original, 
-              La Plataforma podrá eliminar definitivamente la cuenta y su contenido 
+              días calendario contados a partir de la fecha de vencimiento original,
+              La Plataforma podrá eliminar definitivamente la cuenta y su contenido
               sin responsabilidad alguna.
             </p>
           </section>
@@ -289,7 +308,7 @@ export default function TerminosPage() {
 
           <section>
             <h2 className="text-xl font-bold text-zinc-900 mb-4 uppercase">
-              12. PROTECCIÓN DE DATOS PERSONALES
+              12. PROTECCIÓN DE DATOS PERSONALES Y HABEAS DATA
             </h2>
             <p>
               La Plataforma únicamente recaba y almacena los datos estrictamente
@@ -299,9 +318,17 @@ export default function TerminosPage() {
               comercializados con terceros. La Plataforma aplica medidas de
               seguridad técnicas y organizativas razonables acordes con la
               naturaleza del servicio, sin que ello implique una garantía
-              absoluta frente a accesos no autorizados. Para mayor detalle sobre
-              el tratamiento de la información, el Cliente puede consultar la
-              Política de Privacidad disponible en{" "}
+              absoluta frente a accesos no autorizados.
+            </p>
+            <p className="mt-4">
+              En cumplimiento del derecho a la autodeterminación informativa y al
+              Habeas Data consagrado en el Artículo 28 de la Constitución de la
+              República Bolivariana de Venezuela, El Cliente podrá en cualquier
+              momento solicitar el acceso, rectificación, actualización o
+              supresión definitiva de sus datos personales y comerciales
+              escribiendo a <strong>victorescalona2006@gmail.com</strong>. Para
+              mayor detalle sobre el tratamiento de la información, el Cliente
+              puede consultar la{" "}
               <Link
                 href="/privacidad"
                 className="text-zinc-900 underline underline-offset-4 hover:text-zinc-500 transition-colors"
@@ -328,7 +355,7 @@ export default function TerminosPage() {
 
         <footer className="mt-20 pt-8 border-t border-zinc-200 text-center">
           <p className="text-zinc-400 text-sm">
-            © {new Date().getFullYear()} Komy. Todos los
+            © {new Date().getFullYear()} Komy — Victor Andres Escalona Sanabria. Todos los
             derechos reservados.
           </p>
         </footer>

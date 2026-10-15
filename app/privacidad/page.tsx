@@ -31,12 +31,12 @@ export default function PrivacidadPage() {
         <main className="space-y-12 text-zinc-700 leading-relaxed text-base md:text-lg text-justify">
           <p>
             Esta Política de Privacidad describe cómo{" "}
-            <strong>Komy</strong> ("La Plataforma",
-            "nosotros", "nuestro"), cuyo titular es{" "}
-            <strong>Victor Escalona</strong>, con domicilio en Cagua, Estado
+            <strong>Komy</strong> (&quot;La Plataforma&quot;,
+            &quot;nosotros&quot;, &quot;nuestro&quot;), cuyo titular y responsable legal es{" "}
+            <strong>Victor Andres Escalona Sanabria</strong>, con domicilio en Cagua, Estado
             Aragua, Venezuela, recopila, utiliza, almacena y protege la
             información personal de los establecimientos comerciales que
-            utilizan el servicio ("El Cliente", "usted", "su"). Al registrarse
+            utilizan el servicio (&quot;El Cliente&quot;, &quot;usted&quot;, &quot;su&quot;). Al registrarse
             o utilizar La Plataforma, usted acepta las prácticas descritas en
             esta política.
           </p>
@@ -201,10 +201,11 @@ export default function PrivacidadPage() {
               </li>
             </ul>
             <p className="mt-4">
-              Puede ejercer estos derechos enviando un mensaje a nuestro correo
-              electrónico de contacto:{" "}
-              <strong>[correo electrónico de soporte]</strong>. Verificaremos
-              su identidad antes de procesar la solicitud.
+              Puede ejercer estos derechos (consagrados en el Artículo 28 de la
+              Constitución de la República Bolivariana de Venezuela sobre Habeas
+              Data) enviando un mensaje a nuestro correo electrónico de contacto:{" "}
+              <strong>victorescalona2006@gmail.com</strong>. Verificaremos su
+              identidad antes de procesar la solicitud.
             </p>
           </section>
 
@@ -256,7 +257,7 @@ export default function PrivacidadPage() {
 
         <footer className="mt-20 pt-8 border-t border-zinc-200 text-center">
           <p className="text-zinc-400 text-sm">
-            © {new Date().getFullYear()} Komy. Todos los
+            © {new Date().getFullYear()} Komy — Victor Andres Escalona Sanabria. Todos los
             derechos reservados.
           </p>
         </footer>
