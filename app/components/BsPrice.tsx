@@ -31,6 +31,7 @@ export default function BsPrice({ usd, enabled = true, color, className = '' }: 
 
     return (
         <span
+            suppressHydrationWarning
             className={`block text-[11px] font-semibold leading-tight opacity-70 ${className}`}
             style={color ? { color } : undefined}
         >

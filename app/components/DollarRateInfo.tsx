@@ -21,7 +21,7 @@ export default function DollarRateInfo({ className = '' }: { className?: string 
     else if (typeof rate === 'number') text = `1 USD = Bs ${bsFormatter.format(rate)}`
 
     return (
-        <p className={`px-1 text-xs text-zinc-400 ${className}`}>
+        <p suppressHydrationWarning className={`px-1 text-xs text-zinc-400 ${className}`}>
             💱 {text}
             {rate ? (
                 <span className="text-zinc-300"> · fuente: ve.dolarapi.com (oficial)</span>

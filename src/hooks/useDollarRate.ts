@@ -71,25 +71,29 @@ function fetchRate(): Promise<number | null> {
 }
 
 export function useDollarRate(enabled = true): number | null | undefined {
-    const [rate, setRate] = useState<number | null | undefined>(
-        () => readCache()?.rate ?? undefined,
-    )
+    // Inicializar siempre como undefined para que coincida entre SSR y la hidratación inicial del cliente
+    const [rate, setRate] = useState<number | null | undefined>(undefined)
 
     useEffect(() => {
         if (!enabled) return
 
-        // Si el cache sigue vigente, úsalo sin salir de la red. El estado inicial
-        // ya lo cargó, así que no hace falta (ni se debe) hacer setState aquí.
+        // 1. Si hay cache disponible en el cliente, úsalo inmediatamente
         const cached = readCache()
-        if (cached && Date.now() - cached.fetchedAt < TTL_MS) {
-            return
+        if (cached) {
+            setRate(cached.rate)
+            // Si el cache sigue vigente dentro del TTL, no hace falta salir a la red
+            if (Date.now() - cached.fetchedAt < TTL_MS) {
+                return
+            }
         }
 
         let cancelled = false
 
         fetchRate().then((value) => {
-            // `value` es null si la petición falló: lo marcamos como no disponible.
-            if (!cancelled) setRate(value)
+            // `value` es null si la petición falló: lo marcamos como no disponible (o dejamos el cache)
+            if (!cancelled) {
+                setRate((prev) => (value !== null ? value : prev ?? null))
+            }
         })
 
         return () => {

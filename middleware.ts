@@ -43,8 +43,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Si el usuario ya está logueado y trata de entrar al login, lo mandamos al dashboard
-    if (request.nextUrl.pathname.startsWith('/login') && user) {
+    // Si el usuario ya está logueado y trata de entrar al login o registro, lo mandamos al dashboard
+    if ((request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')) && user) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
@@ -59,6 +59,7 @@ export const config = {
          */
         '/dashboard/:path*',
         '/onboarding/:path*',
-        '/login'
+        '/login',
+        '/register'
     ],
 }

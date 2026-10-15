@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { signInAction } from "@/src/actions/auth"
 
 export function LoginForm({ initialMessage }: { initialMessage?: string }) {
@@ -34,9 +35,17 @@ export function LoginForm({ initialMessage }: { initialMessage?: string }) {
 
     return (
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col w-full justify-center gap-5 text-foreground bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
-            <div className="text-center mb-4">
+            <div className="text-center mb-2">
+                <Link href="/" className="inline-flex items-center gap-2 group mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1D1D1F] flex items-center justify-center text-white font-black text-sm shadow-sm group-hover:scale-105 transition-transform duration-200">
+                        K
+                    </div>
+                    <span className="font-extrabold text-2xl tracking-tight text-[#1D1D1F]">
+                        komy<span className="text-[#FF453A]">.</span>
+                    </span>
+                </Link>
                 <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Bienvenido de Vuelta</h1>
-                <p className="text-zinc-500 font-medium mt-2 leading-relaxed">Inicia sesión en tu cuenta para acceder al panel de administración.</p>
+                <p className="text-zinc-500 font-medium mt-2 leading-relaxed">Inicia sesión en tu cuenta para acceder a tu panel.</p>
             </div>
 
             <div className="space-y-1.5">
@@ -112,6 +121,15 @@ export function LoginForm({ initialMessage }: { initialMessage?: string }) {
                     </span>
                 </div>
             )}
+
+            <div className="text-center pt-2 border-t border-zinc-100">
+                <p className="text-sm text-zinc-500 font-medium">
+                    ¿No tienes una cuenta?{" "}
+                    <Link href="/register" className="text-black font-bold hover:underline transition-all">
+                        Crea una gratis
+                    </Link>
+                </p>
+            </div>
         </form>
     )
 }

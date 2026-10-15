@@ -183,7 +183,7 @@ export default function HomePage() {
                 Iniciar sesión
               </Link>
               <Link
-                href="/dashboard"
+                href="/register"
                 className="apple-pill-btn bg-[#1D1D1F] text-white text-[13px] font-semibold px-4 py-2 rounded-full shadow-sm hover:bg-[#2C2C2E] flex items-center gap-1.5"
               >
                 <span>Crear Menú</span>
@@ -227,7 +227,7 @@ export default function HomePage() {
               </div>
 
               <Link
-                href={`/dashboard${claimedSlug ? `?slug=${claimedSlug}` : ""}`}
+                href={`/register${claimedSlug ? `?slug=${claimedSlug}` : ""}`}
                 className="apple-pill-btn w-full sm:w-auto bg-[#FF453A] hover:bg-[#E0382E] text-white px-6 py-3 rounded-xl sm:rounded-full text-sm font-semibold whitespace-nowrap shadow-sm flex items-center justify-center gap-2 active:scale-95"
               >
                 <span>Reclamar Enlace</span>
@@ -800,7 +800,7 @@ export default function HomePage() {
                 </div>
 
                 <Link
-                  href="/dashboard"
+                  href="/register"
                   className="apple-pill-btn w-full bg-white text-[#111113] hover:bg-[#F2F2F7] py-3.5 rounded-full text-center text-sm font-extrabold flex items-center justify-center gap-2 shadow-sm"
                 >
                   <span>Comenzar a Ahorrar Ahora</span>
@@ -949,7 +949,7 @@ export default function HomePage() {
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                href="/dashboard"
+                href="/register"
                 className="apple-pill-btn w-full sm:w-auto bg-[#FF453A] hover:bg-[#E0382E] text-white px-8 py-4 rounded-full font-bold text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95"
               >
                 <span>Crear mi Menú Digital Gratis</span>
