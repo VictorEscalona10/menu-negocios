@@ -123,6 +123,14 @@ export default async function DashboardPage() {
                     {/* Botones de Cabecera */}
                     <div className="flex items-center gap-2.5 self-end sm:self-auto">
                         <Link
+                            href="/dashboard/pedidos"
+                            className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-zinc-950 animate-pulse" />
+                            <span>Pedidos en Vivo</span>
+                        </Link>
+
+                        <Link
                             href={`/menu/${store.slug}`}
                             target="_blank"
                             className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
