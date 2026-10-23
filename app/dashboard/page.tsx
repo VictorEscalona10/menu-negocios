@@ -6,9 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { signOut } from '@/src/actions/auth'
 import { headers } from 'next/headers'
-import QRGenerator from '@/app/components/QRGenerator'
 import Link from 'next/link'
 import { CopyMenuLinkButton, ShareWhatsappButton } from './components/DashboardActions'
+import DashboardQRCard from './components/DashboardQRCard'
 import { Lineicons } from '@lineiconshq/react-lineicons'
 import {
     Link2AngularRightOutlined,
@@ -17,6 +17,7 @@ import {
     ColourPalette3Outlined,
     UserMultiple4Outlined,
 } from '@lineiconshq/free-icons'
+import { ChefHat } from 'lucide-react'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -184,7 +185,7 @@ export default async function DashboardPage() {
                 {/* ══════════════════════════════════════════
                     3. CUADRÍCULA PRINCIPAL (BENTO GRID BLANCO & BORDES NEGROS/RECTOS)
                    ══════════════════════════════════════════ */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                     
                     {/* TARJETA 1: CARTA & PRODUCTOS */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
@@ -213,34 +214,35 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
-                    {/* TARJETA 2: CONFIGURACIÓN & AJUSTES */}
+                    {/* TARJETA 2: PEDIDOS EN VIVO */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
-                                    <Lineicons icon={Gear1Outlined} size={22} className="text-zinc-700" />
+                                <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+                                    <ChefHat className="w-5 h-5 text-amber-600" />
                                 </div>
-                                <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
-                                    {store.menuLayout || 'LINKTREE'}
+                                <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                    EN VIVO
                                 </span>
                             </div>
 
-                            <h2 className="text-base font-bold text-zinc-900 mb-1">Configuración</h2>
+                            <h2 className="text-base font-bold text-zinc-900 mb-1">Pedidos en Vivo</h2>
                             <p className="text-xs text-zinc-500 leading-relaxed mb-6">
-                                Modifica el estilo visual de tu menú, redes sociales, horarios y opciones de entrega.
+                                Monitorea comandas en tiempo real, gestiona cocina y despacha pedidos al instante.
                             </p>
                         </div>
 
                         <Link
-                            href="/dashboard/settings"
+                            href="/dashboard/pedidos"
                             className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
                         >
-                            <span>Ajustar Local</span>
+                            <span>Abrir Comandas</span>
                             <span>→</span>
                         </Link>
                     </div>
 
-                    {/* TARJETA: MESAS Y MESEROS (Sistema de Tres Menús) */}
+                    {/* TARJETA 3: MESAS Y MESEROS (Sistema de Tres Menús) */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                         <div>
                             <div className="flex items-center justify-between mb-4">
@@ -267,54 +269,62 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
-                    {/* TARJETA 4: PERSONALIZACIÓN AVANZADA */}
-                    {store.customizationMode !== 'AVANCED' && (
-                        <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
-                                        <Lineicons icon={ColourPalette3Outlined} size={22} className="text-zinc-700" />
-                                    </div>
-                                    <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
-                                        AVANCED
-                                    </span>
+                    {/* TARJETA 4: CONFIGURACIÓN & AJUSTES */}
+                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                    <Lineicons icon={Gear1Outlined} size={22} className="text-zinc-700" />
                                 </div>
-
-                                <h2 className="text-base font-bold text-zinc-900 mb-1">Personalización Avanzada</h2>
-                                <p className="text-xs text-zinc-500 leading-relaxed mb-6">
-                                    Configura el diseño completo de tu menú con layouts personalizados.
-                                </p>
-                            </div>
-
-                            <Link
-                                href="/dashboard/customization"
-                                className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
-                            >
-                                <span>Empezar</span>
-                                <span>→</span>
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* TARJETA 3: CÓDIGO QR — PEDIDOS POR WHATSAPP */}
-                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-sm">
-                        <div className="w-full">
-                            <div className="flex items-center justify-between mb-3 w-full">
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
-                                    Código QR
+                                <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
+                                    {store.menuLayout || 'LINKTREE'}
                                 </span>
-                                <span className="text-xs text-zinc-400">Pedidos por whatsapp</span>
                             </div>
 
-                            <div className="p-3 bg-white border border-zinc-200 rounded-xl shadow-xs inline-block my-2">
-                                <QRGenerator menuUrl={menuUrl} storeName={store.name} />
-                            </div>
+                            <h2 className="text-base font-bold text-zinc-900 mb-1">Configuración</h2>
+                            <p className="text-xs text-zinc-500 leading-relaxed mb-6">
+                                Modifica el estilo visual de tu menú, redes sociales, horarios y opciones de entrega.
+                            </p>
                         </div>
 
-                        <p className="text-[11px] text-zinc-400 font-mono mt-3">
-                            Escanear para acceder a la carta en vivo
-                        </p>
+                        <Link
+                            href="/dashboard/settings"
+                            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
+                        >
+                            <span>Ajustar Local</span>
+                            <span>→</span>
+                        </Link>
                     </div>
+
+                    {/* TARJETA 5: PERSONALIZACIÓN AVANZADA */}
+                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                    <Lineicons icon={ColourPalette3Outlined} size={22} className="text-zinc-700" />
+                                </div>
+                                <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
+                                    {store.customizationMode === 'AVANCED' ? 'ACTIVO' : 'AVANZADO'}
+                                </span>
+                            </div>
+
+                            <h2 className="text-base font-bold text-zinc-900 mb-1">Personalización Avanzada</h2>
+                            <p className="text-xs text-zinc-500 leading-relaxed mb-6">
+                                Configura el diseño completo de tu menú con layouts personalizados.
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/dashboard/customization"
+                            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
+                        >
+                            <span>{store.customizationMode === 'AVANCED' ? 'Editar Diseño' : 'Personalizar'}</span>
+                            <span>→</span>
+                        </Link>
+                    </div>
+
+                    {/* TARJETA 6: CÓDIGO QR — PEDIDOS POR WHATSAPP */}
+                    <DashboardQRCard menuUrl={menuUrl} storeName={store.name} />
 
                 </div>
 
