@@ -10,12 +10,34 @@ CREATE TABLE IF NOT EXISTS public.orders (
     items JSONB NOT NULL DEFAULT '[]'::jsonb,
     total NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'cooking', 'completed', 'cancelled')),
+    -- --- SISTEMA DE TRES MENÚS (docs/DESIGN.md §10.2) ---
+    table_number TEXT,                                   -- "12" (pedido desde mesa QR o mesero)
+    waiter_name TEXT,                                    -- "Carlos" (solo source='waiter')
+    source TEXT NOT NULL DEFAULT 'whatsapp' CHECK (source IN ('whatsapp', 'waiter', 'table')),
+    -- --- v2.1 / FASE 14: mesero asignado + entrega (docs/DESIGN.md §18-20) ---
+    waiter_id TEXT,                                      -- Waiter.id que creó el pedido (resuelto en servidor)
+    delivered_at TIMESTAMPTZ,                            -- sello de hora del estado "Entregado"
+    delivered_by TEXT,                                   -- nombre del mesero o 'admin'
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Columnas del Sistema de Tres Menús en instalaciones existentes (idempotente)
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS table_number TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS waiter_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'whatsapp'
+    CHECK (source IN ('whatsapp', 'waiter', 'table'));
+
+-- Columnas v2.1 (T52) en instalaciones existentes (idempotente; también en la
+-- migración prisma/migrations/20261022175730_add_orders_waiter_delivery)
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS waiter_id TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivered_by TEXT;
 
 -- Índices para optimizar las consultas y filtros en tiempo real
 CREATE INDEX IF NOT EXISTS idx_orders_restaurant_id ON public.orders(restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_source ON public.orders(source);
+CREATE INDEX IF NOT EXISTS idx_orders_waiter_id ON public.orders(waiter_id); -- "Mis pedidos" del mesero
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
 
 -- 2. ACTIVACIÓN DE ROW LEVEL SECURITY (RLS)

@@ -1,9 +1,13 @@
-# docs/TASKS.md - Advanced Customization System Tasks (SDD)
+# docs/TASKS.md - Feature Tasks (SDD): ACS + Tres Menús
 
 ## Legend
 - **[x]** = Hecho (ya existe en el código base)
 - **[ ]** = Pendiente por implementar
 - **[≥]** = Dependencia externa (bucket, migración, etc.)
+
+> **Parte I (FASE 1-7):** Advanced Customization System.
+> **Parte II (FASE 8-13, T34-T50):** Sistema de Tres Menús (WhatsApp / Mesero / Mesa QR) — diseño en `docs/DESIGN.md` §9-17. **[x] Ejecutada.**
+> **Parte III (FASE 14, T51-T60):** Panel del mesero `/mesero/[slug]` + estado "Entregado" + fin del acceso "¿Eres mesero?" en el menú público — diseño en `docs/DESIGN.md` §13.3, §18-20. **[ ] Pendiente.**
 
 ---
 
@@ -323,3 +327,222 @@ Todas las actions son `'use server'` con auth + ownership check (mismo patrón q
 - [ ] Actualizar SPEC.md si es necesario (cambios en flujo, nuevos endpoints)
 - [ ] Tener este `docs/DESIGN.md` y `docs/TASKS.md` como fuente de verdad
 - [ ] Comentar en el código los puntos críticos (special notes) para futuros desarrolladores
+
+---
+
+# PARTE II: Sistema de Tres Menús (WhatsApp / Mesero / Mesa QR)
+> Diseño: `docs/DESIGN.md` §9-17. Regla de modos: sin query = WhatsApp (actual) · `?mesa=` = cliente en mesa (solo panel) · `?mesa=` + sesión mesero = mesero (solo panel).
+
+## FASE 8: Base de Datos
+
+### T34. Agregar modelos a prisma/schema.prisma
+- [x] Modelo `Waiter`: id, storeId(FK Store, Cascade), name, accessCodeHash, isActive(default true), createdAt, relations tables/sessions
+- [x] Modelo `Table`: id, storeId(FK Store, Cascade), number, qrToken(@unique), waiterId(FK Waiter, SetNull, nullable), isActive(default true), createdAt, `@@unique([storeId, number])`
+- [x] Modelo `WaiterSession`: id, tokenHash(@unique), waiterId(FK Waiter, Cascade), createdAt, expiresAt
+- [x] Agregar relaciones en `Store`: `waiters Waiter[]`, `tables Table[]`
+- [x] Ejecutar migración → **`migrate dev` falla aquí (P4002)** por el FK `public.orders → auth.users`; se usó **migración SQL escrita a mano + `npx prisma migrate deploy`** (ver `prisma/migrations/20261022090000_add_waiters_tables/migration.sql`). Regla: nunca listar `auth` en `schemas` ni `@@schema`.
+- [x] Verificar migración en `prisma/migrations/` + `prisma generate`
+
+### T35. SQL de public.orders (columnas de mesa/mesero/origen)
+- [x] Crear/actualizar `prisma/sql/orders-realtime.sql` con:
+  - `ADD COLUMN table_number TEXT`, `ADD COLUMN waiter_name TEXT`
+  - `ADD COLUMN source TEXT NOT NULL DEFAULT 'whatsapp' CHECK (source IN ('whatsapp','waiter','table'))`
+  - `CREATE INDEX idx_orders_source`
+- [x] [≥] Ejecutar el SQL en el SQL Editor de Supabase (o script idempotente `IF NOT EXISTS`) — ejecutado y verificado en DB
+
+### T36. SQL de Realtime para mesas (prisma/sql/tables-realtime.sql)
+- [x] `ALTER TABLE "Table" ENABLE ROW LEVEL SECURITY`
+- [x] Policy SELECT TO anon: `USING ("isActive" = true)` (nombre: "Mesas activas visibles")
+- [x] `ALTER TABLE "Table" REPLICA IDENTITY FULL`
+- [x] `ALTER PUBLICATION supabase_realtime ADD TABLE "Table"` (idempotente con DO $$)
+- [x] [≥] Ejecutar en Supabase SQL Editor después de T34 — ejecutado (realtime: orders + Table; RLS activo)
+
+## FASE 9: Server Actions (Backend)
+
+### T37. Crear src/actions/waiters.ts (hash + sesión + CRUD)
+- [x] Helper `hashAccessCode(code)` — scrypt (16B salt derivada de `storeId+code`, N=16384, r=8, p=1, 64B) → `s2:<salt_hex>:<hash_hex>` (hash determinista → lookup por igualdad con UNA consulta, en `lib/waiterAuth.ts`)
+- [x] Helper `verifyAccessCode(code, stored)` — scrypt + `timingSafeEqual`
+- [x] Helper `getSessionWaiter()` — cookie `komy_waiter` → SHA-256 → WaiterSession(no expirada) → Waiter(isActive) → `{waiter, token}` o null (limpia cookie si inválida)
+- [x] `createWaiter(storeId, name)` (admin: supabase.auth.getUser + ownership) — genera clave de 8 chars, guarda hash, **retorna la clave en claro (única vez)**
+- [x] `regenerateWaiterCode(waiterId)` (admin) — nueva clave (retorna en claro) + borra sus WaiterSession (fuerza re-login)
+- [x] `setWaiterActive(waiterId, active)` (admin) — al poner false borra sus sesiones
+- [x] `deleteWaiter(waiterId)` (admin)
+- [x] `createTable(storeId, number)` (admin) — qrToken = crypto de 16 bytes hex, valida número único por store
+- [x] `createTablesBulk(storeId, from, to)` (admin) — alta masiva (idempotente: cuenta creadas y ya existentes)
+- [x] `deleteTable(tableId)`, `setTableActive(tableId, active)` (admin)
+- [x] `assignWaiter(tableId, waiterId | null)` (admin)
+- [x] `signInWaiter(slug, accessCode)` (público) — valida store por slug + clave → crea sesión (24h) + cookie httpOnly (sameSite=lax, path=/)
+- [x] `signOutWaiter()` — borra sesión + cookie
+- [x] `claimTable(tableId)` (mesero) — `updateMany({where:{id, isActive:true, waiterId:null}})`, si count!==1 → error "La mesa ya fue tomada"; idempotente si ya es suya; devuelve la mesa con `qrToken`
+- [x] `releaseTable(tableId)` (mesero) — solo si es suya → waiterId=null
+- [x] `getTableStatuses(storeId)` (público) — fallback de polling (no expone qrToken)
+
+### T38. Extender src/actions/orders.ts (createPublicOrder)
+- [x] Payload: `tableToken?: string`, `source?: 'whatsapp' | 'table' | 'waiter'` (default 'whatsapp')
+- [x] Si tableToken: lookup Table por token + store → si no existe, error (nunca confiar en el cliente)
+- [x] Resolver `waiterName` en servidor solo si hay sesión válida de mesero para ese store (cookie)
+- [x] INSERT con `table_number`, `waiter_name`, `source` cuando aplica
+- [x] Compatibilidad: pedidos sin token siguen igual (source='whatsapp', columnas null)
+
+## FASE 10: Menú Público (Frontend)
+
+### T39. app/menu/[slug]/page.tsx — resolver modo (DESIGN §9.1)
+- [x] Recibir `searchParams: Promise<{mesa?: string}>`
+- [x] Sin `mesa` → orderMode='whatsapp' (aunque haya sesión de mesero)
+- [x] Con `mesa` → buscar Table por qrToken+slug+isActive; inválido → pantalla "Código de mesa no válido" + link `/menu/[slug]`
+- [x] Válida → leer sesión de mesero (getSessionWaiter) → 'waiter' si coincide el store, si no 'table'
+- [x] Pasar el contexto a SharedMenuUI y AdvancedMenuUI (implementado como **una sola prop `orderContext: OrderContext`** + `orderSlug`, en vez de props sueltas — menos prop drilling, mismo diseño)
+
+### T40. Propagación por las dos UIs
+- [x] `SharedMenuUI`: props nuevas `orderContext`/`orderSlug` → pásalas a FloatingCart + barra de contexto (OrderModeBar arriba del banner; no se renderiza en preview)
+- [x] `AdvancedMenuUI`: ídem (OrderModeBar también en `AdvancedLayout`; barra no sticky para no pisar el nav sticky de categorías)
+- [x] Verificar que el branch customizationMode THEME/AVANCED no cambie (ambos responden 200, probado en smoke)
+
+### T41. FloatingCart.tsx — modos de pedido (DESIGN §13.2)
+- [x] Props: `orderContext` (del que derivan mode/tableNumber/waiterName/blocking) — en vez de props sueltas
+- [x] Modos mesa: ocultar sección Entrega → badge "🍽️ En el local"; deliveryType forzado 'dinein'
+- [x] Nombre de cliente **opcional**; ocultar cédula/zonas/GPS (requireCedula efectivo false)
+- [x] Botón final en modos mesa: `createPublicOrder({tableToken, source})` + confirmación en pantalla (sin wa.me), limpiar carrito, logOrderIntent 'dinein'; si `res.success=false` se muestra el error y no se limpia nada
+- [x] Resumen del pedido: línea "Mesa N" (+ "Mesero: X" solo en modo waiter) en la cabecera y en el badge
+- [x] Modo whatsapp: sin cambios funcionales (regresión)
+- [x] Sesión de mesero sin mesa → en vez del botón, bloqueo con aviso "🔒 Elige una mesa para pedir"
+
+### T42. WaiterLoginModal.tsx (nuevo)
+- [x] Botón "¿Eres mesero?" visible en la barra de contexto mientras no haya sesión (solo se muestra la barra con `?mesa=` válido o sesión activa)
+- [x] Input de clave → `signInWaiter(slug, code)` → `router.refresh()`; error "Clave incorrecta"
+- [x] Si ya hay sesión → no se muestra
+
+### T43. Barra de contexto mesero + TablePickerSheet (nuevo)
+- [x] Barra (OrderModeBar): "Mesa N · Nombre" + botones "Cambiar mesa" y "Salir" (signOutWaiter)
+- [x] Sesión activa sin `?mesa=` → CTA "Elige una mesa para empezar" y bloquear envío del carrito
+- [x] TablePickerSheet: "Mis mesas" (asignadas) primero, luego libres; tomadas por otros deshabilitadas y mostradas como **"Ocupada"** (sin exponer el nombre de otro mesero)
+- [x] Suscripción Realtime a `"Table"` (postgres_changes, filtra por storeId) + fallback polling 10s con getTableStatuses
+- [x] Al elegir: `claimTable` → `router.replace('/menu/[slug]?mesa=NEWTOKEN')`
+- [x] Botón "Liberar mesa" para las propias (liber es manual, DESIGN §10.1)
+
+### T44. Carrito (cartStore) — aislamiento por mesa
+- [x] Nuevo `clearCart()` en el store + limpieza al cambiar de `qrToken` o de orderMode en OrderModeBar (no mezclar pedidos de mesas distintas)
+
+## FASE 11: Panel de Pedidos
+
+### T45. /dashboard/pedidos — badges de mesa/mesero/origen
+- [x] Interface `Order` + `table_number?`, `waiter_name?`, `source`
+- [x] Badge `#mesa` y `👤 mesero` en la tarjeta (componente `OrderBadges` en las 3 columnas: pendientes/cocina/completados)
+- [x] Icono de origen: WhatsApp (MessageCircle) / Mesa (UtensilsCrossed) / Mesero (UserRound)
+- [x] Verificar realtime entrega los campos nuevos en INSERT y UPDATE (el panel usa `select('*')` + cast `as Order`, y la función SQL de realtime ya expone los campos)
+
+## FASE 12: Dashboard /dashboard/mesas
+
+### T46. Página + bloque Meseros
+- [x] `app/dashboard/mesas/page.tsx` (server component: auth + ownership, patrón de settings/page.tsx) con resumen (N meseros / N mesas / ocupadas)
+- [x] `components/WaitersManager.tsx` (client): crear (clave en claro una sola vez + botón copiar), lista con estado y mesas asignadas, regenerar clave (fuerza re-login), activar/desactivar, eliminar
+- [x] `components/TablesManager.tsx` (client): alta individual y masiva ("1–20"), asignar mesero (select), liber mesa, activar/desactivar, eliminar, estado Libre/Ocupada por X
+
+### T47. QR por mesa
+- [x] Modal con `QRGenerator` (reutilizar) → URL `${baseUrl}/menu/${slug}?mesa=${qrToken}` (baseUrl del header de la request, patrón del dashboard; el repo no usa `NEXT_PUBLIC_URL`) + botón copiar enlace
+- [x] Botón imprimir (vista de impresión solo del área del QR con `@media print`)
+
+### T48. Acceso desde el dashboard
+- [x] Card "Mesas y Meseros" en `app/dashboard/page.tsx` → `/dashboard/mesas`
+- [x] Verificar middleware cubre `/dashboard/mesas` (matcher actual ya lo incluye)
+
+## FASE 13: QA y Lanzamiento
+
+### T49. Prueba manual de los 3 modos
+> **[≥] Prueba automatizada por HTTP (17/17 PASS)** con el dev server + ruta temporal de humo (ya eliminada):
+> login con clave correcta/incorrecta, hash `s2:` en DB, tipo 1/2/3 en HTML, sesión sin mesa → CTA de bloqueo,
+> QR inválido → pantalla de error, claim rechazado sin sesión y aceptado con sesión, teardown limpio.
+- [x] Tipo 1: `/menu/slug` → sin barra de mesero ni CTA (flujo WhatsApp intacto: mismo código de envío, columnas nuevas null, source='whatsapp')
+- [x] Tipo 2: `?mesa=` en incógnito → barra "Mesa N" + "¿Eres mesero?", nunca modo mesero; envío al panel con `tableToken`+`source` resuelto en servidor (sin wa.me)
+- [x] Tipo 3: login mesero con clave → barra "Mesa N · Mesero" + "Cambiar mesa"; sin sesión la misma URL sigue siendo tipo 2
+- [x] Clave hasheada: en DB solo el hash `s2:salt:hash` (nunca texto plano); regenerar clave borra sus WaiterSession (fuerza re-login)
+- [x] Claim de mesa: atómico (`updateMany` con `waiterId:null` + count) → sin sesión rechazado; si dos toman la misma, solo uno gana
+- [x] Panel: interface `Order` con campos nuevos + badges en las 3 columnas (realtime entrega los campos por `select('*')`)
+- [x] QR de mesa inválido/borrado → pantalla "Código de mesa no válido", no cae a WhatsApp
+- [x] Liber mesa: `releaseTable` (mesero) y `assignWaiter(id, null)` (admin override) → waiterId=null, vuelve a estar disponible
+- [ ] **QA en navegador (usuario):** escanear QR real desde el celular, imprimir QR, ver un pedido entrar al panel Kanban en vivo con los badges, y regenerar clave con el mesero logueado en otro dispositivo
+
+### T50. Lint, build y regresión
+- [x] `npm run lint` — **0 errores en los archivos nuevos/modificados del feature** (quedan errores preexistentes en archivos no tocados: OnboardingWizard, RegisterForm, ProductConfiguratorModal, analytics, etc.)
+- [x] `npm run build` — compila (Next 16: `searchParams`/`cookies`/`headers` como Promise/async; migraciones Prisma con `migrate deploy` + SQL a mano)
+- [x] Modo THEME y AVANCED del menú intactos (ambos 200 con y sin `?mesa=`); SettingsForm y flujo de customization sin cambios
+- [x] Marcar tareas completadas aquí y mantener DESIGN.md/TASKS.md como fuente de verdad
+
+---
+
+## FASE 14: Panel del mesero + estado "Entregado" (v2.1 — pendiente)
+
+> **Diseño:** `docs/DESIGN.md` §13.3, §14, §15 y secciones nuevas §18–§20. **Ejecutar en orden.**
+>
+> **Decisiones por defecto (confirmar antes de implementar):**
+> 1. Link del panel **por store** (`/mesero/<slug>`); la clave de acceso identifica al mesero.
+> 2. "Entregado" como **sello sobre la columna "Listos"** del Kanban (sin 4.ª columna).
+> 3. Solo el mesero que **creó** el pedido + el **admin** pueden marcarlo entregado.
+> 4. El mesero ve **solo sus pedidos** en el panel (los de WhatsApp/mesa sin mesero los marca el admin).
+> 5. Pedidos del panel del mesero con **polling de 5 s** (el RLS no da SELECT anon sobre `orders`; no se abren permisos).
+
+### T51. Quitar el acceso "¿Eres mesero?" del menú público
+- [x] `app/menu/[slug]/components/OrderModeBar.tsx`: eliminar el botón "¿Eres mesero?" y el estado/modal de login del menú
+- [x] Modo `table` (cliente que escanea el QR): la barra solo muestra "Mesa N · Pedido directo al panel" (cero UI de mesero) — rama explícita en `OrderModeBar` (icono de mesa, sin nombre de mesero, sin botones y sin `TablePickerSheet`)
+- [x] Quitar imports/estados huérfanos (`WaiterLoginModal` deja de usarse aquí); `lint` limpio — 0 problemas en los archivos del menú/mesas (baseline de 73 preexistentes intacto; `tsc --noEmit` sin errores)
+- [x] `WaiterLoginModal.tsx`: se conserva el componente para reutilizarlo/adaptarlo en `/mesero/[slug]` (T54), fuera del menú — movido a **`app/components/WaiterLoginModal.tsx`** (sin importers en `app/menu/`)
+
+### T52. DB: `waiter_id` + entrega en `public.orders`
+- [x] `ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS waiter_id TEXT, ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ, ADD COLUMN IF NOT EXISTS delivered_by TEXT;` — aplicado en DB
+- [x] `CREATE INDEX IF NOT EXISTS idx_orders_waiter_id ON public.orders(waiter_id);` — creado
+- [x] Migración escrita a mano en `prisma/migrations/` + `npx prisma migrate deploy` (**nunca `migrate dev`** — FK a `auth.users`; regla de la FASE 8) → `prisma/migrations/20261022175730_add_orders_waiter_delivery/`; `migrate status` = 6 migrations, *up to date*
+- [x] Actualizar `prisma/sql/orders-realtime.sql` (idempotente, documento vivo) y ejecutarlo en el SQL Editor de Supabase — columnas + índice añadidos al CREATE TABLE / ALTERs / índices; ejecutado contra la DB vía `npx prisma db execute --file prisma/sql/orders-realtime.sql` (equivalente al SQL Editor)
+- [x] Verificar en DB: columnas + índice presentes — `information_schema.columns` (waiter_id text · delivered_at timestamptz · delivered_by text) + `pg_indexes` (idx_orders_waiter_id); sanidad: `orders` sigue en `supabase_realtime` con `REPLICA IDENTITY FULL` y RLS activo
+
+### T53. Server actions de pedidos (v2.1)
+- [x] `src/actions/orders.ts` → `createPublicOrder`: guardar `waiter_id` además de `waiter_name` (ambos resueltos en servidor desde el token + cookie; el cliente nunca los envía) — `waiterId = session.id` en la rama `source='waiter'` + columna `waiter_id` en el INSERT (`CreateOrderPayload` no acepta waiterId ⇒ inyectarlo es imposible)
+- [x] `getWaiterOrders()` (en `src/actions/waiters.ts` o archivo nuevo): sesión `komy_waiter` → solo sus pedidos de hoy (`waiter_id` propio), ordenados — en `waiters.ts`, devuelve `WaiterOrder[]` (items, total, hora, estado, sello de entrega); hoy desde medianoche (mismo criterio que `/dashboard/pedidos`), `ORDER BY created_at DESC`; sin sesión → error
+- [x] `markOrderDelivered(orderId)`: sesión mesero → exige `waiter_id` propio y `status='completed'` → `delivered_at=now()`, `delivered_by=<nombre del mesero>` (idempotente) — `UPDATE ... RETURNING` en `waiters.ts`; si no coincide distingue *no encontrado* / *no es tuyo* / *aún no está listo*; re-entregar solo sobrescribe el sello
+- [x] `markOrderDeliveredAdmin(orderId)`: Supabase auth + `restaurant_id=user.id` → mismos campos con `delivered_by='admin'` — en `orders.ts`, mismas condiciones + ownership por `restaurant_id`
+- [x] Verificación: `tsc --noEmit` y `eslint` en `orders.ts`/`waiters.ts` = 0 problemas (baseline 73 intacto); SQL probada en DB (INSERT con rollback, SELECT de tipos `array/number/Date`, `UPDATE..RETURNING` sin tocar filas)
+
+### T54. Ruta `/mesero/[slug]` (pública, sin Supabase auth)
+- [x] `app/mesero/[slug]/page.tsx` (server): store por slug (404 si no existe); leer sesión con `getSessionWaiter()` y validar que pertenezca al store — `notFound()` si no hay store; la sesión de **otro** local cuenta como "sin sesión" (verificado en runtime: misma cookie → `/mesero/<otro>` muestra el login)
+- [x] Sin sesión → form de clave inline (reutilizar `WaiterLoginModal` — hoy en `app/components/WaiterLoginModal.tsx` — adaptado): `signInWaiter(slug, code)` → `router.refresh()` — nueva variante `variant='inline'` (el padre es server component y no puede pasar callbacks, así que el form hace `router.refresh()` tras el login; la variante `modal` queda intacta para reutilización)
+- [x] Bloque **"Mis mesas"**: sus mesas asignadas + tomadas; Realtime de `"Table"` (patrón de `TablePickerSheet`) + botón "Liberar mesa"; tocar una mesa → `/menu/[slug]?mesa=<qrToken>` (nueva pestaña o mismo tab) — `MyTables.tsx` (Realtime + polling 10 s de respaldo) sobre el action nuevo **`getMyTables(storeId)`** (solo mesas propias activas; único punto que sí devuelve `qrToken`); tile abre en **nueva pestaña** con `target="_blank"`; shell con cabecera + "Salir" en `MeseroPanel.tsx`
+- [x] Verificar que el middleware **no** proteja/redirija `/mesero/*` (solo cubre `/dashboard` y `/onboarding`) — matcher = `/dashboard/:path*`, `/onboarding/:path*`, `/login`, `/register`; verificado en runtime: `GET /mesero/<slug>` → **200 sin redirect** (con y sin sesión) y `GET /dashboard/mesas` → **307 → /login**; slug inexistente → **404**
+- [x] Verificación extra: `tsc --noEmit` y `eslint` (`app/mesero`, modal, `waiters.ts`, `middleware.ts`) = 0 problemas; lint global = baseline 73; smoke con sesión temporal de mesero (creada y **borrada** al terminar)
+
+### T55. "Mis pedidos" en el panel del mesero
+- [x] Lista de sus pedidos de hoy: items resumidos, total, hora, estado (Pendiente / En cocina / Listo / Entregado)
+- [x] Polling cada **5 s** con `getWaiterOrders()` (patrón del fallback de mesas; sin realtime por RLS)
+- [x] Botón **"Entregar"** visible solo cuando `status='completed'` → `markOrderDelivered` → sello "Entregado ✓ hora"
+- [x] Pedido sin `waiter_id` nunca aparece aquí (el action filtra por su `waiter_id`)
+
+### T56. "← Panel" en el menú del mesero
+- [x] `OrderModeBar`: cuando hay sesión de mesero (modo `waiter` o CTA sin mesa) → botón/link **"← Panel"** a `/mesero/[slug]`
+- [x] Cliente en modo `table` (sin sesión): no ve el botón (sigue sin UI de mesero)
+
+### T57. `/dashboard/mesas`: bloque "Panel del mesero"
+- [x] Nuevo bloque con el link copiable `${baseUrl}/mesero/${slug}` (botón "Copiar link") + instrucción: "Compártelo con tus meseros; cada uno entra con su clave de acceso"
+- [x] Opcional: recordatorio de que las claves se muestran/leen en el bloque de Meseros
+
+### T58. `/dashboard/pedidos`: marca de "Entregado"
+- [x] Botón **"Entregado"** en las tarjetas de la columna "Listos" → `markOrderDeliveredAdmin`
+- [x] Sello **"Entregado ✓ hora · por X"** en las tarjetas entregadas (columna Listos, sin mover de columna)
+- [x] Los pedidos entregados siguen apareciendo (historial del día) — sin 4.ª columna
+
+### T59. QA (fase 2)
+- [x] Smoke E2E por HTTP (patrón del smoke de T49, ruta temporal al final borrada): login del panel con clave correcta/mala, "mis mesas" con claim, `getWaiterOrders` con sesión, `markOrderDelivered` (mesero → pedido propio ajeno rechazado), `markOrderDeliveredAdmin`, menú `?mesa=` **sin** botón "¿Eres mesero?" — **52/52 checks PASS**; nota: GoTrue rechaza usuarios creados por SQL directo, así que el login admin del smoke se hizo reescribiendo temporalmente el hash de una cuenta dev y restaurándolo verificado (el pedido real ajeno quedó intacto: `delivered_at` null)
+- [x] Regresión: cliente que escanea el QR no ve ninguna UI de mesero; tipo 1 (WhatsApp) intacto
+- [x] `tsc --noEmit`, `npm run lint` (0 errores en archivos tocados), `npm run build` — tsc 0 errores; build OK; lint: 0 errores en archivos nuevos de la fase (`waiters.ts`, `waiterAuth.ts`, `app/mesero/*`, `OrderModeBar`, `TablePickerSheet`, `WaiterLoginModal`); los errores que quedan en `SharedMenuUI.tsx`/`FloatingCart.tsx` son preexistentes de HEAD (verificado contra `git show HEAD:`), no de esta fase
+- [ ] Prueba en navegador (usuario): panel desde el celular del mesero, entregar un pedido, marcar entregado desde el Kanban
+
+### T60. Cierre fase 2
+- [ ] Marcar tareas completadas aquí; mantener DESIGN.md/TASKS.md como fuente de verdad
+- [ ] Confirmar con el dueño las 4 decisiones abiertas de la cabecera de la FASE 14 (ajustar docs si cambian)
+
+### T61. Dos QRs por mesa: "Pedido en mesa" + "Solo ver carta" (DESIGN §9 fila 4, §15)
+- [x] Nuevo modo `view` en `OrderMode` (`src/types/order.ts`): `?mesa=<qrToken>&ver=1` sin sesión de mesero → carta de solo lectura; la sesión de mesero siempre gana (`waiter`)
+- [x] `app/menu/[slug]/page.tsx`: lee el searchParam `ver` y resuelve `table → view` solo cuando no hay sesión
+- [x] `OrderModeBar`: rama `view` → "Mesa N · Carta de solo lectura · Pide a tu mesero" (sin botones, sin UI de mesero)
+- [x] Nuevo `app/components/ProductViewModal.tsx`: modal de solo visualización (imagen, precio + Bs, descripción, opciones de `modifierGroups` informativas, pie "Este producto se pide con tu mesero"); sin agregar al carrito
+- [x] `SharedMenuUI` (THEME) y `AdvancedMenuUI` (AVANCED): `isViewMode` → `handleProductAction` abre el view modal (nunca el configurador ni `addItem`); ocultos los botones "+" (`AddToCartButton`, 3 layouts en THEME y 7 spots en AVANCED) y el `FloatingCart`
+- [x] `/dashboard/mesas` → "Ver QR": modal con **dos QRs** (grid 2 cols desktop) — "1 · Pedido en mesa" (`?mesa=`) y "2 · Solo ver carta" (`?mesa=&ver=1`) — cada uno con su explicación debajo; ambos en un solo `.qr-print-area` (se imprimen juntos); retirado el botón "Copiar enlace de la mesa" redundante (cada `QRGenerator` trae su copiar/descargar)
+- [x] Verificación: `tsc --noEmit` = 0 errores; lint global = **baseline 73 intacto** (los 2 `any` de `SharedMenuUI.tsx` siguen siendo los preexistentes; se corrigieron de paso 2 errores de memoización del React Compiler)
+- [ ] Prueba en navegador (usuario): escanear el QR 2 → tocar producto → modal de vista sin carrito; QR 1 intacto; imprimir los dos QRs

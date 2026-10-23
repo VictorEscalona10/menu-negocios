@@ -15,6 +15,7 @@ import {
     Burger1Outlined,
     Gear1Outlined,
     ColourPalette3Outlined,
+    UserMultiple4Outlined,
 } from '@lineiconshq/free-icons'
 
 export default async function DashboardPage() {
@@ -239,6 +240,33 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
+                    {/* TARJETA: MESAS Y MESEROS (Sistema de Tres Menús) */}
+                    <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                                    <Lineicons icon={UserMultiple4Outlined} size={22} className="text-zinc-700" />
+                                </div>
+                                <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
+                                    QR por mesa
+                                </span>
+                            </div>
+
+                            <h2 className="text-base font-bold text-zinc-900 mb-1">Mesas y Meseros</h2>
+                            <p className="text-xs text-zinc-500 leading-relaxed mb-6">
+                                Crea mesas con su QR, meseros con clave de acceso y reparte las mesas del salón.
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/dashboard/mesas"
+                            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm"
+                        >
+                            <span>Gestionar Mesas</span>
+                            <span>→</span>
+                        </Link>
+                    </div>
+
                     {/* TARJETA 4: PERSONALIZACIÓN AVANZADA */}
                     {store.customizationMode !== 'AVANCED' && (
                         <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
@@ -268,14 +296,14 @@ export default async function DashboardPage() {
                         </div>
                     )}
 
-                    {/* TARJETA 3: CÓDIGO QR PARA MESAS */}
+                    {/* TARJETA 3: CÓDIGO QR — PEDIDOS POR WHATSAPP */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-sm">
                         <div className="w-full">
                             <div className="flex items-center justify-between mb-3 w-full">
                                 <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 font-bold">
                                     Código QR
                                 </span>
-                                <span className="text-xs text-zinc-400">Para tus mesas</span>
+                                <span className="text-xs text-zinc-400">Pedidos por whatsapp</span>
                             </div>
 
                             <div className="p-3 bg-white border border-zinc-200 rounded-xl shadow-xs inline-block my-2">

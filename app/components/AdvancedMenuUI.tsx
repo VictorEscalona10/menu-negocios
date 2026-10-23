@@ -10,7 +10,10 @@ import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import BsPrice from './BsPrice'
 import ComboCard from './ComboCard'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
+import OrderModeBar from '../menu/[slug]/components/OrderModeBar'
+import type { OrderContext } from '@/src/types/order'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
+import ProductViewModal from './ProductViewModal'
 import SharedMenuUI from './SharedMenuUI'
 import { SectionRenderer } from '../dashboard/customization/sections/SectionRenderer'
 import { HeaderView } from '../dashboard/customization/sections/HeaderView'
@@ -63,6 +66,10 @@ export interface AdvancedMenuUIProps {
     store: AdvancedStore
     layoutJson: AdvancedCustomization | null
     isPreview?: boolean
+    /** Sistema de Tres Menús: contexto resuelto en page.tsx (undefined = modo WhatsApp actual) */
+    orderContext?: OrderContext | null
+    /** Slug del local (necesario para cambiar de mesa / login de mesero) */
+    orderSlug?: string
 }
 
 const GAP_CLASS: Record<MenuSectionConfig['gap'], string> = {
@@ -102,21 +109,39 @@ function socialHref(platform: SocialPlatform): string {
     }
 }
 
-export default function AdvancedMenuUI({ store, layoutJson, isPreview = false }: AdvancedMenuUIProps) {
+export default function AdvancedMenuUI({
+    store,
+    layoutJson,
+    isPreview = false,
+    orderContext,
+    orderSlug,
+}: AdvancedMenuUIProps) {
     if (store.customizationMode === 'AVANCED' && layoutJson) {
-        return <AdvancedLayout store={store} layout={layoutJson} isPreview={isPreview} />
+        return (
+            <AdvancedLayout
+                store={store}
+                layout={layoutJson}
+                isPreview={isPreview}
+                orderContext={orderContext}
+                orderSlug={orderSlug}
+            />
+        )
     }
-    return <SharedMenuUI store={store} isPreview={isPreview} />
+    return <SharedMenuUI store={store} isPreview={isPreview} orderContext={orderContext} orderSlug={orderSlug} />
 }
 
 function AdvancedLayout({
     store,
     layout,
     isPreview = false,
+    orderContext,
+    orderSlug,
 }: {
     store: AdvancedMenuUIProps['store']
     layout: AdvancedCustomization
     isPreview?: boolean
+    orderContext?: OrderContext | null
+    orderSlug?: string
 }) {
     const g: GlobalStyle = layout.global ?? defaultGlobalStyle
     const device: DeviceView = isPreview ? 'phone' : layout.deviceView ?? 'desktop'
@@ -142,14 +167,25 @@ function AdvancedLayout({
 
     const [activeIndex, setActiveIndex] = useState(0)
     const [activeConfigProduct, setActiveConfigProduct] = useState<StoreProduct | null>(null)
+    // Modo 'view' (QR "solo ver carta"): tocar un producto abre este modal de
+    // solo visualización (sin carrito ni configurador).
+    const [viewProduct, setViewProduct] = useState<StoreProduct | null>(null)
     const addItem = useCartStore((state) => state.addItem)
     const menuRef = useRef<HTMLDivElement>(null)
+
+    // Modo vista: resuelto del servidor (?mesa=…&ver=1 sin sesión de mesero)
+    const isViewMode = orderContext?.mode === 'view'
 
     const safeIndex = activeIndex < activeCategories.length ? activeIndex : 0
     const currentCategory = activeCategories[safeIndex]
 
     const handleProductAction = (product: StoreProduct) => {
         if (isPreview) return
+        // Solo lectura: nunca agrega al carrito ni abre el configurador
+        if (isViewMode) {
+            setViewProduct(product)
+            return
+        }
         const hasModifiers = product.modifierGroups && product.modifierGroups.length > 0
         if (store.forceNotesModal || hasModifiers) {
             setActiveConfigProduct(product)
@@ -373,15 +409,17 @@ function AdvancedLayout({
                                     <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
                                 </div>
                             )}
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <AddToCartButton
-                                    product={product}
-                                    themeColor={accent}
-                                    buttonTextColor={buttonTextColor}
-                                    onConfigure={() => setActiveConfigProduct(product)}
-                                    forceNotesModal={store.forceNotesModal}
-                                />
-                            </div>
+                            {!isViewMode && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <AddToCartButton
+                                        product={product}
+                                        themeColor={accent}
+                                        buttonTextColor={buttonTextColor}
+                                        onConfigure={() => setActiveConfigProduct(product)}
+                                        forceNotesModal={store.forceNotesModal}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )
@@ -454,15 +492,17 @@ function AdvancedLayout({
                                     <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} className="text-right" />
                                 </div>
                             )}
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <AddToCartButton
-                                    product={product}
-                                    themeColor={accent}
-                                    buttonTextColor={buttonTextColor}
-                                    onConfigure={() => setActiveConfigProduct(product)}
-                                    forceNotesModal={store.forceNotesModal}
-                                />
-                            </div>
+                            {!isViewMode && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <AddToCartButton
+                                        product={product}
+                                        themeColor={accent}
+                                        buttonTextColor={buttonTextColor}
+                                        onConfigure={() => setActiveConfigProduct(product)}
+                                        forceNotesModal={store.forceNotesModal}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 )
@@ -524,15 +564,17 @@ function AdvancedLayout({
                         )}
                     </div>
 
-                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <AddToCartButton
-                            product={product}
-                            themeColor={accent}
-                            buttonTextColor={buttonTextColor}
-                            onConfigure={() => setActiveConfigProduct(product)}
-                            forceNotesModal={store.forceNotesModal}
-                        />
-                    </div>
+                    {!isViewMode && (
+                        <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <AddToCartButton
+                                product={product}
+                                themeColor={accent}
+                                buttonTextColor={buttonTextColor}
+                                onConfigure={() => setActiveConfigProduct(product)}
+                                forceNotesModal={store.forceNotesModal}
+                            />
+                        </div>
+                    )}
                 </div>
             )
         }
@@ -594,18 +636,20 @@ function AdvancedLayout({
                                             <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
                                         </div>
                                     )}
-                                    <div
-                                        className="ml-auto shrink-0"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <AddToCartButton
-                                            product={product}
-                                            themeColor={accent}
-                                            buttonTextColor={buttonTextColor}
-                                            onConfigure={() => setActiveConfigProduct(product)}
-                                            forceNotesModal={store.forceNotesModal}
-                                        />
-                                    </div>
+                                    {!isViewMode && (
+                                        <div
+                                            className="ml-auto shrink-0"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <AddToCartButton
+                                                product={product}
+                                                themeColor={accent}
+                                                buttonTextColor={buttonTextColor}
+                                                onConfigure={() => setActiveConfigProduct(product)}
+                                                forceNotesModal={store.forceNotesModal}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -679,15 +723,17 @@ function AdvancedLayout({
                                         <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
                                     </div>
                                 )}
-                                <div onClick={(e) => e.stopPropagation()}>
-                                    <AddToCartButton
-                                        product={product}
-                                        themeColor={accent}
-                                        buttonTextColor={buttonTextColor}
-                                        onConfigure={() => setActiveConfigProduct(product)}
-                                        forceNotesModal={store.forceNotesModal}
-                                    />
-                                </div>
+                                {!isViewMode && (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                        <AddToCartButton
+                                            product={product}
+                                            themeColor={accent}
+                                            buttonTextColor={buttonTextColor}
+                                            onConfigure={() => setActiveConfigProduct(product)}
+                                            forceNotesModal={store.forceNotesModal}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -756,18 +802,20 @@ function AdvancedLayout({
                                     <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} />
                                 </div>
                             )}
-                            <div
-                                className="ml-auto shrink-0"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <AddToCartButton
-                                    product={product}
-                                    themeColor={accent}
-                                    buttonTextColor={buttonTextColor}
-                                    onConfigure={() => setActiveConfigProduct(product)}
-                                    forceNotesModal={store.forceNotesModal}
-                                />
-                            </div>
+                            {!isViewMode && (
+                                <div
+                                    className="ml-auto shrink-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <AddToCartButton
+                                        product={product}
+                                        themeColor={accent}
+                                        buttonTextColor={buttonTextColor}
+                                        onConfigure={() => setActiveConfigProduct(product)}
+                                        forceNotesModal={store.forceNotesModal}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -835,15 +883,17 @@ function AdvancedLayout({
                                 <BsPrice usd={product.price} enabled={c.showBsPrice ?? true} color={subtextColor} className="text-right" />
                             </div>
                         )}
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <AddToCartButton
-                                product={product}
-                                themeColor={accent}
-                                buttonTextColor={buttonTextColor}
-                                onConfigure={() => setActiveConfigProduct(product)}
-                                forceNotesModal={store.forceNotesModal}
-                            />
-                        </div>
+                        {!isViewMode && (
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <AddToCartButton
+                                    product={product}
+                                    themeColor={accent}
+                                    buttonTextColor={buttonTextColor}
+                                    onConfigure={() => setActiveConfigProduct(product)}
+                                    forceNotesModal={store.forceNotesModal}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             )
@@ -1074,6 +1124,11 @@ function AdvancedLayout({
         >
             <style dangerouslySetInnerHTML={{ __html: fontsCss }} />
 
+            {/* BARRA DE CONTEXTO: SISTEMA DE TRES MENÚS (mesa / mesero) */}
+            {!isPreview && orderSlug && (
+                <OrderModeBar slug={orderSlug} storeId={store.id} themeColor={accent} context={orderContext} />
+            )}
+
             {backdrop && (
                 <div
                     aria-hidden
@@ -1116,7 +1171,17 @@ function AdvancedLayout({
                 />
             )}
 
-            {!isPreview && (
+            {/* Product View Modal (modo 'view': QR "solo ver carta", sin pedidos) */}
+            {!isPreview && viewProduct && (
+                <ProductViewModal
+                    product={viewProduct}
+                    themeColor={accent}
+                    onClose={() => setViewProduct(null)}
+                />
+            )}
+
+            {/* Floating Cart (oculta en modo vista: ahí no se pide) */}
+            {!isPreview && !isViewMode && (
                 <FloatingCart
                     storeId={store.id}
                     storeName={store.name}
@@ -1132,6 +1197,7 @@ function AdvancedLayout({
                     upsellCategory={upsellCategory}
                     onConfigureUpsellProduct={(product) => setActiveConfigProduct(product)}
                     deliveryZones={store.deliveryZones ?? []}
+                    orderContext={orderContext}
                 />
             )}
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
+import { markOrderDeliveredAdmin } from '@/src/actions/orders'
 import {
     ArrowLeft,
     Clock,
@@ -16,7 +17,10 @@ import {
     VolumeX,
     AlertCircle,
     User,
-    Check
+    Check,
+    UtensilsCrossed,
+    UserRound,
+    MessageCircle
 } from 'lucide-react'
 
 // ==============================================================================
@@ -42,6 +46,55 @@ export interface Order {
     total: number
     status: OrderStatus
     created_at: string
+    // --- Sistema de Tres Menús (public.orders, ver prisma/sql/orders-realtime.sql) ---
+    table_number?: string | null
+    waiter_name?: string | null
+    source?: 'whatsapp' | 'table' | 'waiter'
+    // --- Estado "Entregado" (v2.1, docs/DESIGN.md §19 / T58) ---
+    delivered_at?: string | null
+    delivered_by?: string | null
+}
+
+// ==============================================================================
+// BADGES DE ORIGEN DEL PEDIDO (WhatsApp / Mesa / Mesero)
+// ==============================================================================
+
+function OrderBadges({ order }: { order: Order }) {
+    const table = order.table_number
+    const waiter = order.waiter_name
+    const source = order.source ?? 'whatsapp'
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+            {source === 'whatsapp' && (
+                <span
+                    className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    title="Pedido enviado por WhatsApp"
+                >
+                    <MessageCircle className="w-3 h-3" />
+                    WhatsApp
+                </span>
+            )}
+            {table && (
+                <span
+                    className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
+                    title="Pedido hecho en la mesa (QR)"
+                >
+                    <UtensilsCrossed className="w-3 h-3" />
+                    Mesa {table}
+                </span>
+            )}
+            {waiter && (
+                <span
+                    className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200"
+                    title="Enviado por el mesero"
+                >
+                    <UserRound className="w-3 h-3" />
+                    {waiter}
+                </span>
+            )}
+        </div>
+    )
 }
 
 // ==============================================================================
@@ -342,6 +395,37 @@ export default function PedidosPage() {
         [supabase]
     )
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // ENTREGA (v2.1, T58): sello "Entregado" SOLO en la columna Listos
+    // (markOrderDeliveredAdmin valida auth + restaurant_id en el servidor y es
+    // idempotente: re-marcar solo sobrescribe delivered_at/delivered_by).
+    // No mueve la tarjeta de columna ni crea una 4.ª columna.
+    // ──────────────────────────────────────────────────────────────────────────
+    const handleDeliver = useCallback(async (orderId: string) => {
+        try {
+            setUpdatingId(orderId)
+            setErrorMsg(null)
+
+            const res = await markOrderDeliveredAdmin(orderId)
+            if (!res.success) throw new Error(res.error)
+
+            // Optimista: la tarjeta pasa al sello "Entregado ✓ hora · por admin"
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o.id === orderId
+                        ? { ...o, delivered_at: res.deliveredAt.toISOString(), delivered_by: 'admin' }
+                        : o
+                )
+            )
+        } catch (err: unknown) {
+            console.error('Error al marcar pedido como entregado:', err)
+            setErrorMsg(err instanceof Error ? err.message : 'Error al marcar el pedido como entregado.')
+            refreshOrders() // el realtime UPDATE del propio update también re-sincroniza
+        } finally {
+            setUpdatingId(null)
+        }
+    }, [])
+
     const refreshOrders = async () => {
         if (!restaurantId) return
         setLoading(true)
@@ -534,6 +618,7 @@ export default function PedidosPage() {
                                                 <User className="w-3.5 h-3.5 text-zinc-500" />
                                                 <span className="truncate">{order.customer_name}</span>
                                             </div>
+                                            <OrderBadges order={order} />
                                         </div>
 
                                         {/* Lista de productos */}
@@ -662,6 +747,7 @@ export default function PedidosPage() {
                                                 <User className="w-3.5 h-3.5 text-zinc-500" />
                                                 <span className="truncate">{order.customer_name}</span>
                                             </div>
+                                            <OrderBadges order={order} />
                                         </div>
 
                                         {/* Items con énfasis para cocina */}
@@ -751,11 +837,15 @@ export default function PedidosPage() {
                         ) : (
                             completedOrders.map((order) => {
                                 const shortId = order.id.slice(0, 6).toUpperCase()
+                                const delivered = Boolean(order.delivered_at)
+                                const isUpdating = updatingId === order.id
 
                                 return (
                                     <div
                                         key={order.id}
-                                        className="bg-white border border-zinc-200 rounded-xl p-3.5 transition-all shadow-xs flex flex-col justify-between gap-3 relative overflow-hidden border-l-4 border-l-emerald-500 opacity-95 hover:opacity-100"
+                                        className={`bg-white border rounded-xl p-3.5 transition-all shadow-xs flex flex-col justify-between gap-3 relative overflow-hidden border-l-4 border-l-emerald-500 opacity-95 hover:opacity-100 ${
+                                            delivered ? 'border-emerald-200 bg-emerald-50/40' : 'border-zinc-200'
+                                        }`}
                                     >
                                         <div>
                                             <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
@@ -772,6 +862,7 @@ export default function PedidosPage() {
                                                 <User className="w-3.5 h-3.5 text-zinc-400" />
                                                 <span className="truncate">{order.customer_name}</span>
                                             </div>
+                                            <OrderBadges order={order} />
                                         </div>
 
                                         {/* Resumen */}
@@ -800,11 +891,36 @@ export default function PedidosPage() {
                                                 </span>
                                             </div>
 
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
-                                                <Check className="w-3 h-3" />
-                                                Listo
-                                            </span>
+                                            {delivered ? (
+                                                // Sello "Entregado ✓ hora · por X" (T58) — la tarjeta
+                                                // SIGUE en la columna Listos (sin 4.ª columna)
+                                                <span
+                                                    className="inline-flex items-center gap-1 text-right text-[10px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-1 rounded-lg"
+                                                    title="Pedido entregado"
+                                                >
+                                                    <Check className="w-3 h-3 shrink-0" />
+                                                    Entregado ✓ {formatTime(order.delivered_at!)} · por{' '}
+                                                    {order.delivered_by || 'admin'}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
+                                                    <Check className="w-3 h-3" />
+                                                    Listo
+                                                </span>
+                                            )}
                                         </div>
+
+                                        {/* Botón "Entregado" (T58): SOLO en pedidos listos sin entregar */}
+                                        {!delivered && (
+                                            <button
+                                                onClick={() => handleDeliver(order.id)}
+                                                disabled={isUpdating}
+                                                className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-xl transition-all shadow-xs disabled:opacity-50 active:scale-95"
+                                            >
+                                                <Check className="w-3.5 h-3.5" />
+                                                {isUpdating ? 'Marcando...' : 'Entregado'}
+                                            </button>
+                                        )}
                                     </div>
                                 )
                             })
