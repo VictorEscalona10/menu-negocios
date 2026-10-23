@@ -8,7 +8,10 @@ import AddToCartButton from '../menu/[slug]/AddToCartButton'
 import BsPrice from './BsPrice'
 import ComboCard from './ComboCard'
 import FloatingCart from '../menu/[slug]/components/FloatingCart'
+import OrderModeBar from '../menu/[slug]/components/OrderModeBar'
+import type { OrderContext } from '@/src/types/order'
 import ProductConfiguratorModal from '../menu/[slug]/components/ProductConfiguratorModal'
+import ProductViewModal from './ProductViewModal'
 import { Lineicons } from '@lineiconshq/react-lineicons'
 import { KnifeFork1Outlined, SparkOutlined } from '@lineiconshq/free-icons'
 
@@ -69,9 +72,19 @@ interface SharedMenuUIProps {
     };
     isPreview?: boolean;
     scrollable?: boolean;
+    /** Sistema de Tres Menús: contexto resuelto en page.tsx (undefined = modo WhatsApp actual) */
+    orderContext?: OrderContext | null;
+    /** Slug del local (necesario para cambiar de mesa / login de mesero) */
+    orderSlug?: string;
 }
 
-export default function SharedMenuUI({ store, isPreview = false, scrollable = true }: SharedMenuUIProps) {
+export default function SharedMenuUI({
+    store,
+    isPreview = false,
+    scrollable = true,
+    orderContext,
+    orderSlug,
+}: SharedMenuUIProps) {
     const bg = store.backgroundColor || '#131313';
     const accent = store.themeColor || '#FF5630';
     const buttonTextColor = store.buttonTextColor || '#ffffff';
@@ -103,11 +116,23 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
 
     const [activeIndex, setActiveIndex] = useState(0);
     const [activeConfigProduct, setActiveConfigProduct] = useState<any>(null);
+    // Modo 'view' (QR "solo ver carta"): tocar un producto abre este modal de
+    // solo visualización (sin carrito ni configurador).
+    const [viewProduct, setViewProduct] = useState<SharedMenuUIProps['store']['categories'][number]['products'][number] | null>(null);
     const addItem = useCartStore((state) => state.addItem);
+
+    // Modo vista: resuelto del contexto del servidor (?mesa=…&ver=1 sin sesión)
+    const isViewMode = orderContext?.mode === 'view';
 
     // ── Acción al tocar un producto (contenedor o botón) ──
     const handleProductAction = useCallback((product: any) => {
         if (isPreview) return;
+
+        // Solo lectura: nunca agrega al carrito ni abre el configurador
+        if (isViewMode) {
+            setViewProduct(product);
+            return;
+        }
 
         const hasModifiers = product.modifierGroups && product.modifierGroups.length > 0;
         if (store.forceNotesModal || hasModifiers) {
@@ -119,7 +144,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                 price: product.price,
             });
         }
-    }, [isPreview, store.forceNotesModal, addItem]);
+    }, [isPreview, isViewMode, store.forceNotesModal, addItem, setActiveConfigProduct, setViewProduct]);
 
     // Refs para el slider y el nav (Modo LIST)
     const sliderRef = useRef<HTMLDivElement>(null);
@@ -214,6 +239,13 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                     scroll-snap-stop: always;
                 }
             `}} />
+
+            {/* ═══════════════════════════════════
+                BARRA DE CONTEXTO: SISTEMA DE TRES MENÚS (mesa / mesero)
+            ═══════════════════════════════════ */}
+            {!isPreview && orderSlug && (
+                <OrderModeBar slug={orderSlug} storeId={store.id} themeColor={accent} context={orderContext} />
+            )}
 
             {/* ═══════════════════════════════════
                 BANNER SUPERIOR (Si existe)
@@ -474,7 +506,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                 >
                                                     +
                                                 </div>
-                                            ) : (
+                                            ) : isViewMode ? null : (
                                                 <AddToCartButton
                                                     product={product}
                                                     themeColor={accent}
@@ -598,7 +630,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                         >
                                                             +
                                                         </div>
-                                                    ) : (
+                                                    ) : isViewMode ? null : (
                                                         <AddToCartButton
                                                             product={product}
                                                             themeColor={accent}
@@ -722,7 +754,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                                                     >
                                                         +
                                                     </div>
-                                                ) : (
+                                                ) : isViewMode ? null : (
                                                     <AddToCartButton
                                                         product={product}
                                                         themeColor={accent}
@@ -753,8 +785,18 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                 />
             )}
 
-            {/* Floating Cart */}
-            {!isPreview && (
+            {/* Product View Modal (modo 'view': QR "solo ver carta", sin pedidos) */}
+            {viewProduct && (
+                <ProductViewModal
+                    product={viewProduct}
+                    themeColor={accent}
+                    showBsPrice={showBsPrice}
+                    onClose={() => setViewProduct(null)}
+                />
+            )}
+
+            {/* Floating Cart (oculta en modo vista: ahí no se pide) */}
+            {!isPreview && !isViewMode && (
                 <FloatingCart
                     storeId={store.id}
                     storeName={store.name}
@@ -770,6 +812,7 @@ export default function SharedMenuUI({ store, isPreview = false, scrollable = tr
                     upsellCategory={upsellCategory}
                     onConfigureUpsellProduct={(product) => setActiveConfigProduct(product)}
                     deliveryZones={store.deliveryZones ?? []}
+                    orderContext={orderContext}
                 />
             )}
 

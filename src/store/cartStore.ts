@@ -23,6 +23,8 @@ interface CartState {
     addItem: (item: Omit<CartItem, 'quantity' | 'id'> & { id?: string; quantity?: number }) => void;
     removeItem: (id: string) => void;
     deleteItem: (id: string) => void;
+    // Vacía el carrito (usado al cambiar de modo/mesa para no mezclar pedidos)
+    clearCart: () => void;
     getTotal: () => number;
     getTotalItems: () => number;
 }
@@ -69,6 +71,9 @@ export const useCartStore = create<CartState>((set, get) => ({
     deleteItem: (id) => set((state) => ({
         items: state.items.filter(i => i.id !== id)
     })),
+
+    // Vacía todo el carrito (nuevo pedido / cambio de mesa)
+    clearCart: () => set({ items: [] }),
 
     getTotal: () => get().items.reduce((total, item) => {
         const optionsTotal = item.selectedOptions?.reduce((sum, opt) => sum + opt.price, 0) || 0;

@@ -67,6 +67,10 @@ model Store {
   customizationLayout CustomizationLayout? // 1:1 con Store
   customizationTemplates CustomizationTemplate[]
   customizationImages CustomizationImage[]
+
+  // --- TRES MENÚS: meseros y mesas (docs/DESIGN.md §10.1) ---
+  waiters Waiter[]
+  tables  Table[]
 }
 
 // 2. La tabla de Categorías (Para ordenar el menú)
@@ -196,4 +200,49 @@ enum CustomizationMode {
 enum TemplateScope {
   FULL_PAGE
   SECTION
+}
+
+// ==============================================================================
+// SISTEMA DE TRES MENÚS: MESEROS Y MESAS (docs/DESIGN.md §10.1)
+// ==============================================================================
+
+// Mesero: lo crea el admin desde /dashboard/mesas con una clave de acceso.
+// La clave NUNCA se guarda en claro: solo su hash scrypt (ver src/actions/waiters.ts)
+model Waiter {
+  id             String          @id @default(uuid())
+  storeId        String
+  store          Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name           String // Nombre visible en el panel de pedidos
+  accessCodeHash String // scrypt: "s2:<salt_hex>:<hash_hex>" (si se pierde, el admin regenera)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+
+  tables    Table[]
+  sessions  WaiterSession[]
+}
+
+// Mesa: cada una tiene un QR único (?mesa=<qrToken>) que identifica el tipo de menú
+model Table {
+  id       String  @id @default(uuid())
+  storeId  String
+  store    Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  number   String // "1", "12", "Terraza 3" (lo que se muestra en el panel)
+  qrToken  String  @unique // Opaco, va en la query string. No es el número de mesa
+  waiterId String? // null = libre | mesero asignado (admin) o que la tomó (claim)
+  waiter   Waiter? @relation(fields: [waiterId], references: [id], onDelete: SetNull)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([storeId, number])
+}
+
+// Sesión del mesero: el token crudo solo vive en la cookie httpOnly;
+// aquí se guarda únicamente su SHA-256. Expira a las 24 h.
+model WaiterSession {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique // SHA-256 del token de sesión
+  waiterId  String
+  waiter    Waiter   @relation(fields: [waiterId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
