@@ -223,7 +223,7 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
     };
 
     return (
-        <div className="relative mx-auto w-[320px] h-[640px] bg-[#efe7de] rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
+        <div className="relative mx-auto w-full max-w-[320px] h-[580px] sm:h-[640px] bg-[#efe7de] rounded-[2.5rem] sm:rounded-[3rem] border-[6px] sm:border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
             <div className="bg-[#075e54] pt-8 pb-3 px-4 flex items-center gap-3 text-white">
                 <div className="w-8 h-8 rounded-full bg-zinc-200/20 flex items-center justify-center overflow-hidden">
                     {localStore.logoUrl ? (
@@ -336,7 +336,7 @@ function MenuPreviewWrapper({
     };
 
     return (
-        <div className="relative mx-auto w-[320px] h-[640px] bg-black rounded-[3rem] border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
+        <div className="relative mx-auto w-full max-w-[320px] h-[580px] sm:h-[640px] bg-black rounded-[2.5rem] sm:rounded-[3rem] border-[6px] sm:border-[8px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col shrink-0">
             <div className="absolute top-0 inset-x-0 w-32 h-6 bg-zinc-900 mx-auto rounded-b-3xl z-50 pointer-events-none"></div>
             <div key={mode} className="w-full h-full relative animate-in fade-in duration-300">
                 {mode === 'AVANCED' ? (
@@ -469,7 +469,7 @@ export function SettingsForm({
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 xl:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-8 xl:gap-16 items-start">
 
             {/* Formulario (Columna 1) */}
             <div className="order-2 lg:order-1 flex flex-col pt-2 w-full">
@@ -1171,7 +1171,7 @@ export function SettingsForm({
             </div>
 
             {/* Vista Previa Móvil (Columna 2) */}
-            <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-10 lg:sticky lg:top-8 lg:h-max">
+            <div className="order-1 lg:order-2 flex flex-col items-center justify-start border-b lg:border-b-0 lg:border-l border-zinc-100 pb-8 lg:pb-0 lg:pl-8 xl:pl-10 lg:sticky lg:top-8 lg:h-max w-full">
                 <div className="flex flex-col items-center mb-6 w-full">
                     <h3 className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-4 text-center shrink-0">Vista Previa en Vivo</h3>
 

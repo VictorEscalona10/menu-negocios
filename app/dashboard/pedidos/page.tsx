@@ -160,6 +160,7 @@ export default function PedidosPage() {
     const [updatingId, setUpdatingId] = useState<string | null>(null)
     const [soundEnabled, setSoundEnabled] = useState(true)
     const [realtimeConnected, setRealtimeConnected] = useState(false)
+    const [mobileTab, setMobileTab] = useState<'pending' | 'cooking' | 'completed'>('pending')
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -455,41 +456,41 @@ export default function PedidosPage() {
     const completedOrders = useMemo(() => orders.filter((o) => o.status === 'completed'), [orders])
 
     return (
-        <div className="h-screen max-h-screen bg-zinc-50 text-zinc-900 flex flex-col overflow-hidden font-sans p-3 sm:p-5 select-none">
+        <div className="h-[100dvh] max-h-[100dvh] bg-zinc-50 text-zinc-900 flex flex-col overflow-hidden font-sans p-2.5 sm:p-4 md:p-5 select-none">
             
             {/* ══════════════════════════════════════════
                 1. HEADER SUPERIOR (ESTILO DASHBOARD PRINCIPAL)
                ══════════════════════════════════════════ */}
-            <header className="shrink-0 bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 mb-3 sm:mb-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <header className="shrink-0 bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 mb-2.5 sm:mb-4 shadow-sm flex items-center justify-between gap-3">
                 
                 {/* Logo idéntico + Título */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                     <Link
                         href="/dashboard"
-                        className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors border border-zinc-200"
+                        className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors border border-zinc-200 shrink-0"
                         title="Volver al panel"
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </Link>
 
-                    <Link href="/dashboard" className="flex items-center gap-2 group shrink-0">
+                    <Link href="/dashboard" className="hidden sm:flex items-center gap-2 group shrink-0">
                         <div className="w-8 h-8 rounded-xl bg-[#1D1D1F] flex items-center justify-center text-white font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-200">
                             K
                         </div>
-                        <span className="font-extrabold text-lg tracking-tight text-[#1D1D1F] hidden sm:inline">
+                        <span className="font-extrabold text-lg tracking-tight text-[#1D1D1F]">
                             komy<span className="text-[#FF453A]">.</span>
                         </span>
                     </Link>
 
                     <div className="h-5 w-px bg-zinc-200 hidden sm:block" />
 
-                    <div>
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                            <h1 className="text-base sm:text-lg font-bold text-zinc-900 tracking-tight">
-                                Panel de Pedidos
+                            <h1 className="text-base sm:text-lg font-bold text-zinc-900 tracking-tight truncate">
+                                Pedidos en Vivo
                             </h1>
                             <span
-                                className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                                className={`inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border shrink-0 ${
                                     realtimeConnected
                                         ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
                                         : 'text-amber-700 bg-amber-50 border-amber-200'
@@ -500,17 +501,17 @@ export default function PedidosPage() {
                                         realtimeConnected ? 'bg-emerald-600 animate-pulse' : 'bg-amber-500'
                                     }`}
                                 />
-                                {realtimeConnected ? 'EN VIVO' : 'CONECTANDO...'}
+                                <span className="hidden xs:inline">{realtimeConnected ? 'EN VIVO' : 'CONECTANDO'}</span>
                             </span>
                         </div>
-                        <p className="text-[11px] text-zinc-400 font-mono">
+                        <p className="text-[11px] text-zinc-400 font-mono truncate hidden sm:block">
                             Comandas y flujo de cocina en tiempo real
                         </p>
                     </div>
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center gap-2 self-end sm:self-auto">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button
                         type="button"
                         onClick={() => {
@@ -518,7 +519,7 @@ export default function PedidosPage() {
                             setSoundEnabled(next)
                             if (next) playCampanaSound()
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                        className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                             soundEnabled
                                 ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 shadow-xs'
                                 : 'bg-zinc-100 text-zinc-500 border-zinc-200 hover:text-zinc-700'
@@ -526,18 +527,18 @@ export default function PedidosPage() {
                         title="Probar o silenciar campana de pedidos"
                     >
                         {soundEnabled ? (
-                            <Volume2 className="w-3.5 h-3.5 text-amber-600" />
+                            <Volume2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         ) : (
-                            <VolumeX className="w-3.5 h-3.5 text-zinc-400" />
+                            <VolumeX className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                         )}
-                        <span>{soundEnabled ? 'Campana Activa' : 'Sin Sonido'}</span>
+                        <span className="hidden sm:inline">{soundEnabled ? 'Campana Activa' : 'Sin Sonido'}</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={refreshOrders}
                         disabled={loading}
-                        className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 border border-zinc-200 transition-colors disabled:opacity-50"
+                        className="p-2 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 border border-zinc-200 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
                         title="Recargar pedidos"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -547,19 +548,72 @@ export default function PedidosPage() {
 
             {/* Banner de error */}
             {errorMsg && (
-                <div className="shrink-0 mb-3 bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2 rounded-xl text-xs flex items-center justify-between shadow-xs">
+                <div className="shrink-0 mb-2.5 bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2 rounded-xl text-xs flex items-center justify-between shadow-xs">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                         <span>{errorMsg}</span>
                     </div>
                     <button
                         onClick={() => setErrorMsg(null)}
-                        className="text-rose-500 hover:text-rose-700 font-bold px-1"
+                        className="text-rose-500 hover:text-rose-700 font-bold px-1 cursor-pointer"
                     >
                         ✕
                     </button>
                 </div>
             )}
+
+            {/* ══════════════════════════════════════════
+                SELECTOR DE PESTAÑAS MÓVIL (< md)
+               ══════════════════════════════════════════ */}
+            <div className="md:hidden shrink-0 grid grid-cols-3 gap-1.5 p-1 bg-zinc-200/70 rounded-2xl mb-2.5">
+                <button
+                    type="button"
+                    onClick={() => setMobileTab('pending')}
+                    className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        mobileTab === 'pending'
+                            ? 'bg-white text-zinc-950 shadow-xs'
+                            : 'text-zinc-600 hover:text-zinc-900'
+                    }`}
+                >
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                    <span className="text-[11px] truncate">Confirmar</span>
+                    <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full shrink-0">
+                        {pendingOrders.length}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => setMobileTab('cooking')}
+                    className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        mobileTab === 'cooking'
+                            ? 'bg-white text-zinc-950 shadow-xs'
+                            : 'text-zinc-600 hover:text-zinc-900'
+                    }`}
+                >
+                    <Flame className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                    <span className="text-[11px] truncate">Cocina</span>
+                    <span className="text-[10px] font-mono font-bold bg-orange-100 text-orange-800 px-1.5 py-0.2 rounded-full shrink-0">
+                        {cookingOrders.length}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => setMobileTab('completed')}
+                    className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        mobileTab === 'completed'
+                            ? 'bg-white text-zinc-950 shadow-xs'
+                            : 'text-zinc-600 hover:text-zinc-900'
+                    }`}
+                >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="text-[11px] truncate">Listos</span>
+                    <span className="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full shrink-0">
+                        {completedOrders.length}
+                    </span>
+                </button>
+            </div>
 
             {/* ══════════════════════════════════════════
                 2. TABLERO KANBAN CON SCROLL INDEPENDIENTE POR COLUMNA
@@ -569,7 +623,9 @@ export default function PedidosPage() {
                 {/* ──────────────────────────────────────────────────────────
                     COLUMNA 1: POR CONFIRMAR
                    ────────────────────────────────────────────────────────── */}
-                <section className="bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex flex-col h-full min-h-0 shadow-sm overflow-hidden">
+                <section className={`bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex-col h-full min-h-0 shadow-sm overflow-hidden ${
+                    mobileTab === 'pending' ? 'flex' : 'hidden md:flex'
+                }`}>
                     {/* Header de columna fijo */}
                     <div className="shrink-0 pb-3 mb-3 border-b border-zinc-100 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -698,7 +754,9 @@ export default function PedidosPage() {
                 {/* ──────────────────────────────────────────────────────────
                     COLUMNA 2: EN COCINA
                    ────────────────────────────────────────────────────────── */}
-                <section className="bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex flex-col h-full min-h-0 shadow-sm overflow-hidden">
+                <section className={`bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex-col h-full min-h-0 shadow-sm overflow-hidden ${
+                    mobileTab === 'cooking' ? 'flex' : 'hidden md:flex'
+                }`}>
                     {/* Header de columna fijo */}
                     <div className="shrink-0 pb-3 mb-3 border-b border-zinc-100 flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -810,7 +868,9 @@ export default function PedidosPage() {
                 {/* ──────────────────────────────────────────────────────────
                     COLUMNA 3: LISTOS
                    ────────────────────────────────────────────────────────── */}
-                <section className="bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex flex-col h-full min-h-0 shadow-sm overflow-hidden">
+                <section className={`bg-white border border-zinc-200 rounded-2xl p-3 sm:p-4 flex-col h-full min-h-0 shadow-sm overflow-hidden ${
+                    mobileTab === 'completed' ? 'flex' : 'hidden md:flex'
+                }`}>
                     {/* Header de columna fijo */}
                     <div className="shrink-0 pb-3 mb-3 border-b border-zinc-100 flex items-center justify-between">
                         <div className="flex items-center gap-2">

@@ -50,22 +50,22 @@ export default async function MesasPage() {
     const occupied = store.tables.filter((t) => t.waiterId && t.isActive).length
 
     return (
-        <div className="min-h-[80vh] flex flex-col items-center p-4 md:p-6 lg:p-10 bg-zinc-50/50">
-            <div className="w-full max-w-5xl bg-white p-5 md:p-10 rounded-3xl shadow-sm border border-zinc-200 relative">
+        <div className="min-h-[80vh] flex flex-col items-center p-3.5 sm:p-6 lg:p-10 bg-zinc-50/50">
+            <div className="w-full max-w-5xl bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-3xl shadow-sm border border-zinc-200 relative">
                 {/* Botón Volver */}
                 <Link
                     href="/dashboard"
-                    className="absolute top-6 left-6 md:top-8 md:left-8 flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300"
+                    className="inline-flex md:absolute md:top-8 md:left-8 items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300 mb-4 md:mb-0"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    <span className="hidden md:inline">Volver</span>
+                    <span>Volver al Resumen</span>
                 </Link>
 
-                <div className="text-center mb-4 pt-10 md:pt-4">
-                    <h1 className="text-3xl font-extrabold text-zinc-900 mb-2 tracking-tight">Mesas y Meseros</h1>
-                    <p className="text-zinc-500 font-medium">
+                <div className="text-center mb-4 pt-2 md:pt-4">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 mb-2 tracking-tight">Mesas y Meseros</h1>
+                    <p className="text-xs sm:text-sm text-zinc-500 font-medium">
                         Modo mesa: tus clientes escanean el QR de su mesa y el pedido llega directo al panel.
                     </p>
                 </div>

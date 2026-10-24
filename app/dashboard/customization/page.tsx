@@ -29,11 +29,11 @@ export default async function CustomizationPage() {
     const layout = await getCustomizationLayout(storeId)
 
     return (
-        <div className="max-w-[2000px] mx-auto space-y-8 p-4 sm:p-6 lg:p-10">
+        <div className="max-w-[2000px] mx-auto space-y-6 sm:space-y-8 p-3.5 sm:p-6 lg:p-10">
             {/* Botón Volver al dashboard */}
             <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300"
+                className="inline-flex items-center gap-2 text-zinc-500 hover:text-black transition-colors font-medium hover:-translate-x-1 duration-300 mb-2"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -42,8 +42,8 @@ export default async function CustomizationPage() {
             </Link>
 
             <div>
-                <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Personalización Avanzada</h1>
-                <p className="text-zinc-500 font-medium mt-1">Diseña el menú de tu local sección por sección</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">Personalización Avanzada</h1>
+                <p className="text-sm sm:text-base text-zinc-500 font-medium mt-1">Diseña el menú de tu local sección por sección</p>
             </div>
 
             {/* El editor monta siempre: en THEME muestra la tarjeta de activación

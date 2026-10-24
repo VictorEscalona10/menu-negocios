@@ -15,19 +15,19 @@ export default function DashboardQRCard({ menuUrl, storeName }: DashboardQRCardP
     return (
         <>
             {/* Tarjeta con tamaño y estilo idéntico a las demás */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                 <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="w-11 h-11 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
-                            <QrCode className="w-5 h-5 text-zinc-700" />
+                    <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                        <div className="w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                            <QrCode className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-zinc-700" />
                         </div>
-                        <span className="text-xs font-mono font-bold text-zinc-700 bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 uppercase">
+                        <span className="text-[11px] font-mono font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200 uppercase">
                             QR OFICIAL
                         </span>
                     </div>
 
-                    <h2 className="text-base font-bold text-zinc-900 mb-1">Código QR del Menú</h2>
-                    <p className="text-xs text-zinc-500 leading-relaxed mb-6">
+                    <h2 className="text-sm sm:text-base font-bold text-zinc-900 mb-1">Código QR del Menú</h2>
+                    <p className="text-xs text-zinc-500 leading-relaxed mb-3 sm:mb-3.5">
                         Descarga o imprime el código QR oficial de tu local para que tus clientes escaneen y pidan.
                     </p>
                 </div>
@@ -35,7 +35,7 @@ export default function DashboardQRCard({ menuUrl, storeName }: DashboardQRCardP
                 <button
                     type="button"
                     onClick={() => setOpen(true)}
-                    className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-between shadow-sm cursor-pointer"
+                    className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-2.5 px-3.5 rounded-xl transition-all flex items-center justify-between shadow-sm cursor-pointer"
                 >
                     <span>Ver y Descargar QR</span>
                     <span>→</span>
@@ -45,11 +45,11 @@ export default function DashboardQRCard({ menuUrl, storeName }: DashboardQRCardP
             {/* Modal para ver y descargar el QR */}
             {open && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
                     onClick={() => setOpen(false)}
                 >
                     <div
-                        className="bg-white rounded-3xl border border-zinc-200 shadow-2xl p-6 sm:p-8 max-w-md w-full relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+                        className="bg-white rounded-3xl border border-zinc-200 shadow-2xl p-5 sm:p-8 max-w-md w-full relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Botón cerrar */}

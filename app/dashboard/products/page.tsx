@@ -54,7 +54,7 @@ export default async function ProductsPage() {
     const createCategoryAction = createCategory.bind(null, store.id)
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 lg:p-10 relative">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 p-3.5 sm:p-6 lg:p-10 relative">
             {/* Botón Volver al dashboard */}
             <Link
                 href="/dashboard"
@@ -67,30 +67,30 @@ export default async function ProductsPage() {
             </Link>
 
             <div>
-                <h1 className="text-3xl font-extrabold text-zinc-900 tracking-tight">Gestión del Menú</h1>
-                <p className="text-zinc-500 font-medium mt-1">Añade y organiza los items de tu tienda</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">Gestión del Menú</h1>
+                <p className="text-sm sm:text-base text-zinc-500 font-medium mt-1">Añade y organiza los items de tu tienda</p>
             </div>
 
             {/* Inicia la Cuadrícula Responsiva */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 items-start mt-6 sm:mt-8">
 
                 {/* Panel Izquierdo: Formularios de Creación (Sticky en Desktop) */}
-                <div className="lg:col-span-5 flex flex-col gap-10 lg:sticky lg:top-8">
+                <div className="lg:col-span-5 flex flex-col gap-6 sm:gap-10 lg:sticky lg:top-8">
                     {/* Formulario de Categorías - Inline Simple */}
-                    <div className="bg-white rounded-3xl h-fit">
+                    <div className="bg-white rounded-2xl sm:rounded-3xl h-fit">
                         <CategoryForm createAction={createCategoryAction} />
                     </div>
 
                     {/* Formulario de Productos - Highlighted */}
-                    <div className="bg-white px-6 py-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
-                        <h2 className="text-2xl font-black text-zinc-900 mb-8 tracking-tight">Agregar Producto Nuevo</h2>
+                    <div className="bg-white p-5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-zinc-100">
+                        <h2 className="text-xl sm:text-2xl font-black text-zinc-900 mb-6 sm:mb-8 tracking-tight">Agregar Producto Nuevo</h2>
                         <ProductForm categories={store.categories} action={createProduct} />
                     </div>
                 </div>
 
                 {/* Panel Derecho: Lista del Menú Actual */}
                 <div className="lg:col-span-7">
-                    <h2 className="text-2xl font-black text-zinc-900 mb-8 pb-4 border-b border-zinc-100">Menú Actual</h2>
+                    <h2 className="text-xl sm:text-2xl font-black text-zinc-900 mb-6 sm:mb-8 pb-3 sm:pb-4 border-b border-zinc-100">Menú Actual</h2>
 
                     {store.categories.length === 0 ? (
                         <p className="text-zinc-500 bg-zinc-50 p-6 rounded-2xl text-center border border-zinc-100">Tu menú está limpio. Comienza agregando categorías en el panel.</p>
