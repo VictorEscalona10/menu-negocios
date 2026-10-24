@@ -7,7 +7,11 @@ export async function GET(request: Request) {
     const code = searchParams.get('code')
     const token_hash = searchParams.get('token_hash')
     const type = searchParams.get('type')
-    const next = searchParams.get('next') ?? '/dashboard'
+    const rawNext = searchParams.get('next') ?? '/dashboard'
+    // Evitar Open Redirect: asegurar que sea una ruta relativa válida que empiece con un solo '/'
+    const safeNext = (rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.includes('\\'))
+        ? rawNext
+        : '/dashboard'
 
     const supabase = await createClient()
 
@@ -15,7 +19,7 @@ export async function GET(request: Request) {
     if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
-            return NextResponse.redirect(`${origin}${next}`)
+            return NextResponse.redirect(new URL(safeNext, origin))
         }
     }
 
@@ -26,7 +30,7 @@ export async function GET(request: Request) {
             token_hash,
         })
         if (!error) {
-            return NextResponse.redirect(`${origin}${next}`)
+            return NextResponse.redirect(new URL(safeNext, origin))
         }
     }
 

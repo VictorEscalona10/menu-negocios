@@ -315,9 +315,20 @@ export async function updateProductsOrder(orderedIds: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
-    // Autorización implícita: actualizamos solo si el producto pertenece 
-    // a una categoría del usuario actual, por seguridad adicional lo validamos o 
-    // lo hacemos simple confiando transaccionalmente.
+    if (!orderedIds || orderedIds.length === 0) return
+
+    // Validar propiedad: asegurar que TODOS los productos pertenezcan a la tienda del usuario
+    const userProducts = await prisma.product.findMany({
+        where: {
+            id: { in: orderedIds },
+            category: { store: { userId: user.id } }
+        },
+        select: { id: true, category: { select: { store: { select: { slug: true } } } } }
+    })
+
+    if (userProducts.length !== orderedIds.length) {
+        throw new Error("No autorizado: uno o más productos no pertenecen a tu local.")
+    }
 
     // Al ser Array de promesas, map es más rápido
     await prisma.$transaction(
@@ -329,14 +340,8 @@ export async function updateProductsOrder(orderedIds: string[]) {
         )
     )
 
-    if (orderedIds.length > 0) {
-        const firstProduct = await prisma.product.findFirst({
-            where: { id: orderedIds[0] },
-            select: { category: { select: { store: { select: { slug: true } } } } }
-        })
-        if (firstProduct) {
-            revalidateMenu(firstProduct.category.store.slug)
-        }
+    if (userProducts.length > 0 && userProducts[0]?.category?.store?.slug) {
+        revalidateMenu(userProducts[0].category.store.slug)
     }
 
     revalidatePath('/dashboard/products')
@@ -347,6 +352,21 @@ export async function updateCategoriesOrder(orderedIds: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error("No autenticado")
 
+    if (!orderedIds || orderedIds.length === 0) return
+
+    // Validar propiedad: asegurar que TODAS las categorías pertenezcan a la tienda del usuario
+    const userCategories = await prisma.category.findMany({
+        where: {
+            id: { in: orderedIds },
+            store: { userId: user.id }
+        },
+        select: { id: true, store: { select: { slug: true } } }
+    })
+
+    if (userCategories.length !== orderedIds.length) {
+        throw new Error("No autorizado: una o más categorías no pertenecen a tu local.")
+    }
+
     await prisma.$transaction(
         orderedIds.map((id, index) =>
             prisma.category.update({
@@ -356,14 +376,8 @@ export async function updateCategoriesOrder(orderedIds: string[]) {
         )
     )
 
-    if (orderedIds.length > 0) {
-        const firstCategory = await prisma.category.findFirst({
-            where: { id: orderedIds[0] },
-            select: { store: { select: { slug: true } } }
-        })
-        if (firstCategory) {
-            revalidateMenu(firstCategory.store.slug)
-        }
+    if (userCategories.length > 0 && userCategories[0]?.store?.slug) {
+        revalidateMenu(userCategories[0].store.slug)
     }
 
     revalidatePath('/dashboard/products')

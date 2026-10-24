@@ -63,13 +63,10 @@ USING (auth.uid() = restaurant_id)
 WITH CHECK (auth.uid() = restaurant_id);
 
 -- Política de Inserción (INSERT):
--- Permite que los clientes o el menú público puedan crear nuevos pedidos.
+-- Toda creación legítima de pedidos se realiza a través del Server Action createPublicOrder()
+-- (que conecta vía Prisma directo con Postgres superuser, aplicando validaciones completas).
+-- Se restringe el INSERT directo en PostgREST para evitar inyecciones anónimas o spam.
 DROP POLICY IF EXISTS "Permitir insercion de pedidos para clientes" ON public.orders;
-CREATE POLICY "Permitir insercion de pedidos para clientes"
-ON public.orders
-FOR INSERT
-TO anon, authenticated
-WITH CHECK (true);
 
 -- 3. ACTIVACIÓN DE REPLICACIÓN LÓGICA (SUPABASE REALTIME)
 -- Habilita que Supabase envíe eventos INSERT y UPDATE a través de websockets
@@ -92,7 +89,7 @@ ALTER TABLE public.orders REPLICA IDENTITY FULL;
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON TABLE public.orders TO postgres, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.orders TO authenticated;
-GRANT SELECT, INSERT ON TABLE public.orders TO anon;
+REVOKE INSERT, UPDATE, DELETE ON TABLE public.orders FROM anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- ==============================================================================

@@ -5,6 +5,7 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { randomBytes, createHash } from 'crypto'
 import {
     clearWaiterSessionCookie,
@@ -15,6 +16,31 @@ import {
     setWaiterSessionCookie,
     WAITER_SESSION_TTL_SECONDS,
 } from '@/lib/waiterAuth'
+
+// Rate limiting para mitigar ataques de fuerza bruta y DoS sobre scrypt
+const loginAttempts = new Map<string, { count: number; resetAt: number }>()
+
+function checkWaiterRateLimit(key: string, maxAttempts = 5, windowMs = 60_000): { allowed: boolean; remainingSec: number } {
+    const now = Date.now()
+    const record = loginAttempts.get(key)
+
+    if (!record || now > record.resetAt) {
+        loginAttempts.set(key, { count: 1, resetAt: now + windowMs })
+        return { allowed: true, remainingSec: 0 }
+    }
+
+    if (record.count >= maxAttempts) {
+        const remainingSec = Math.ceil((record.resetAt - now) / 1000)
+        return { allowed: false, remainingSec }
+    }
+
+    record.count++
+    return { allowed: true, remainingSec: 0 }
+}
+
+function clearWaiterRateLimit(key: string) {
+    loginAttempts.delete(key)
+}
 
 export type ActionResult<T = object> =
     | { success: false; error?: string }
@@ -288,6 +314,15 @@ export async function signInWaiter(
     accessCode: string
 ): Promise<ActionResult<{ waiter?: { id: string; name: string } }>> {
     try {
+        const headersList = await headers()
+        const clientIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() || headersList.get('x-real-ip') || 'anonymous'
+        const rateLimitKey = `waiter_login:${slug}:${clientIp}`
+
+        const { allowed, remainingSec } = checkWaiterRateLimit(rateLimitKey, 5, 60_000)
+        if (!allowed) {
+            return { success: false, error: `Demasiados intentos fallidos. Intenta de nuevo en ${remainingSec} segundos.` }
+        }
+
         const store = await prisma.store.findUnique({ where: { slug } })
         if (!store) return { success: false, error: 'Clave incorrecta.' }
 
@@ -300,6 +335,9 @@ export async function signInWaiter(
             select: { id: true, name: true },
         })
         if (!waiter) return { success: false, error: 'Clave incorrecta.' }
+
+        // Login exitoso: limpiar contador de intentos fallidos
+        clearWaiterRateLimit(rateLimitKey)
 
         const token = randomBytes(32).toString('hex')
         const tokenHash = createHash('sha256').update(token).digest('hex')

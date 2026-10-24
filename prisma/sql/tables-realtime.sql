@@ -33,5 +33,7 @@ BEGIN
     END IF;
 END $$;
 
--- 4. Permisos (la tabla la crea Prisma, por eso se conceden explícitamente)
-GRANT SELECT ON "Table" TO anon, authenticated;
+-- 4. Permisos defensivos: anon NO debe poder leer qrToken (solo columnas públicas)
+REVOKE SELECT ON "Table" FROM anon;
+GRANT SELECT ("id", "storeId", "number", "waiterId", "isActive", "createdAt") ON "Table" TO anon;
+GRANT SELECT ON "Table" TO authenticated;

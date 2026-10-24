@@ -92,8 +92,9 @@ export default function SharedMenuUI({
     const showBsPrice = store.showBsPrice ?? true;
     const textColor = store.textColor || '#e5e2e1';
     const subtextColor = store.subtextColor || '#e4beb5';
-    const fontHeading = store.fontHeading || 'Epilogue';
-    const fontBody = store.fontBody || 'Manrope';
+    const cleanFont = (f: string) => (f || '').replace(/[^a-zA-Z0-9\s\-]/g, '').trim() || 'sans-serif';
+    const fontHeading = cleanFont(store.fontHeading || 'Epilogue');
+    const fontBody = cleanFont(store.fontBody || 'Manrope');
     const cardBg = store.cardBackgroundColor || 'rgba(255,255,255,0.05)';
     const layout = (store.menuLayout || 'LIST').toUpperCase();
 

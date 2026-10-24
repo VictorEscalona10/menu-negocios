@@ -217,8 +217,18 @@ function WhatsAppPreview({ localStore }: { localStore: any }) {
 
     const formatWhatsAppText = (text: string) => {
         return text.split('\n').map((line, i) => {
-            const formatted = line.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
-            return <div key={i}>{formatted ? <span dangerouslySetInnerHTML={{ __html: formatted }} /> : <br />}</div>;
+            if (!line) return <div key={i}><br /></div>;
+            const parts = line.split(/(\*[^*]+\*)/g);
+            return (
+                <div key={i}>
+                    {parts.map((part, pIdx) => {
+                        if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+                            return <strong key={pIdx}>{part.slice(1, -1)}</strong>;
+                        }
+                        return part;
+                    })}
+                </div>
+            );
         });
     };
 

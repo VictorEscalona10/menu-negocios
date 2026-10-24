@@ -204,15 +204,19 @@ function AdvancedLayout({
         menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
-    const uniqueFonts = [...new Set([g.fontHeading, g.fontBody])]
+    const cleanFont = (f: string) => (f || '').replace(/[^a-zA-Z0-9\s\-]/g, '').trim() || 'sans-serif'
+    const safeHeading = cleanFont(g.fontHeading)
+    const safeBody = cleanFont(g.fontBody)
+
+    const uniqueFonts = [...new Set([safeHeading, safeBody])]
     const googleFontsUrl = `https://fonts.googleapis.com/css2?${uniqueFonts
         .map((f) => `family=${f.replace(/ /g, '+')}:wght@400;500;600;700;900`)
         .join('&')}&display=swap`
 
     const fontsCss = `
         @import url('${googleFontsUrl}');
-        .adv-heading { font-family: '${g.fontHeading}', sans-serif; }
-        .adv-body { font-family: '${g.fontBody}', sans-serif; }
+        .adv-heading { font-family: '${safeHeading}', sans-serif; }
+        .adv-body { font-family: '${safeBody}', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     `

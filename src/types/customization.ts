@@ -278,6 +278,13 @@ export const designStyleSchema = z
 
 export const alignmentSchema = z.enum(['left', 'center', 'full']);
 
+const safeFontName = z
+  .string()
+  .trim()
+  .min(1, 'Tipografía obligatoria')
+  .max(50, 'Máximo 50 caracteres')
+  .regex(/^[a-zA-Z0-9\s\-]+$/, 'Nombre de tipografía inválido (solo caracteres alfanuméricos)');
+
 export const globalStyleSchema = z.object({
   backgroundColor: cssColor,
   textColor: cssColor,
@@ -286,8 +293,8 @@ export const globalStyleSchema = z.object({
   buttonTextColor: cssColor,
   cardBackgroundColor: cssColor,
   designStyle: designStyleSchema,
-  fontHeading: z.string().min(1, 'Tipografía de títulos obligatoria'),
-  fontBody: z.string().min(1, 'Tipografía de cuerpo obligatoria'),
+  fontHeading: safeFontName,
+  fontBody: safeFontName,
 });
 
 export const headerSectionSchema = z.object({
