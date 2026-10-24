@@ -1,19 +1,24 @@
 // app/mesero/[slug]/MyOrders.tsx
-// Bloque "Mis pedidos" del panel del mesero (docs/DESIGN.md §18-19 / T55)
+// Bloque "Mis pedidos" del panel del mesero (docs/DESIGN.md §18-19 / T55, T62)
 // - Lista SOLO los pedidos de HOY de esta sesión (el action filtra por
 //   `waiter_id` propio: un pedido sin mesero nunca aparece aquí).
-// - SIN Realtime: el RLS de orders no da SELECT a anon ⇒ polling cada 5 s con
-//   getWaiterOrders() (no se abren permisos anon sobre orders).
+// - Tiempo real (T62): Supabase Realtime **Broadcast** en el canal público
+//   `waiter-<waiterId>`. El trigger `trg_broadcast_waiter_order`
+//   (prisma/sql/orders-realtime.sql) emite un ping desde la DB en cada
+//   INSERT/UPDATE de sus pedidos. El panel NO lee `orders` por websocket (el
+//   RLS solo da SELECT a `authenticated`): el ping solo dispara
+//   getWaiterOrders() con la cookie httpOnly — sin abrir permisos anon.
+// - Sin polling: red de seguridad = refetch al recuperar foco/pestaña y al
+//   (re)conectar el canal.
 // - Botón "Entregar" SOLO cuando status='completed' (listo) y sin sello;
 //   markOrderDelivered escribe delivered_at/delivered_by (idempotente).
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { createClient } from '@/utils/supabase/client'
 import { getWaiterOrders, markOrderDelivered, type WaiterOrder } from '@/src/actions/waiters'
 import { Lineicons } from '@lineiconshq/react-lineicons'
 import { Ban2Outlined } from '@lineiconshq/free-icons'
-
-const POLL_MS = 5000
 
 const STATUS_META: Record<WaiterOrder['status'], { label: string; className: string }> = {
     pending: { label: 'Pendiente', className: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -33,20 +38,39 @@ const formatTime = (d: Date | string) => {
     }
 }
 
-export default function MyOrders({ themeColor = '#FF5630' }: { themeColor?: string }) {
+interface MyOrdersProps {
+    /** Waiter.id de la sesión (cookie) — da nombre al canal de Realtime. */
+    waiterId: string
+    themeColor?: string
+}
+
+export default function MyOrders({ waiterId, themeColor = '#FF5630' }: MyOrdersProps) {
+    const supabase = useRef(createClient()).current
     const [orders, setOrders] = useState<WaiterOrder[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [busyId, setBusyId] = useState<string | null>(null)
+    const [realtimeConnected, setRealtimeConnected] = useState(false)
+    const lastFetchRef = useRef(0)
 
     const refresh = useCallback(async () => {
+        lastFetchRef.current = Date.now()
         const res = await getWaiterOrders()
         if (res.success) setOrders(res.orders)
     }, [])
 
-    // Carga inicial + polling cada 5 s (sin realtime por RLS, DESIGN §18)
+    // Refetch al volver a la pestaña / foco (red de seguridad sin polling).
+    // El guard evita duplicar la llamada cuando `focus` y `visibilitychange`
+    // llegan casi juntos.
+    const refreshOnReturn = useCallback(() => {
+        if (Date.now() - lastFetchRef.current < 1000) return
+        void refresh()
+    }, [refresh])
+
+    // Carga inicial + tiempo real por Broadcast (T62, ver cabecera)
     useEffect(() => {
         let cancelled = false
+        let subscribedOnce = false
         setError('')
 
         getWaiterOrders().then((res) => {
@@ -54,17 +78,40 @@ export default function MyOrders({ themeColor = '#FF5630' }: { themeColor?: stri
             if (res.success) setOrders(res.orders)
             else setError(res.error || 'No se pudieron cargar tus pedidos')
             setLoading(false)
+            lastFetchRef.current = Date.now()
         })
 
-        const interval = setInterval(() => {
-            if (!cancelled) refresh()
-        }, POLL_MS)
+        // Canal público (sin `config.private`), el mismo que usa el trigger
+        // con realtime.send(..., private => false).
+        const channel = supabase
+            .channel(`waiter-${waiterId}`)
+            .on('broadcast', { event: 'order-change' }, () => {
+                if (!cancelled) void refresh()
+            })
+            .subscribe((status) => {
+                if (cancelled) return
+                setRealtimeConnected(status === 'SUBSCRIBED')
+                // Al (re)conectar re-sincroniza: cubre pings perdidos mientras
+                // el websocket estuvo caído (sin necesidad de polling).
+                if (status === 'SUBSCRIBED') {
+                    if (subscribedOnce) void refresh()
+                    subscribedOnce = true
+                }
+            })
+
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible') refreshOnReturn()
+        }
+        window.addEventListener('focus', refreshOnReturn)
+        document.addEventListener('visibilitychange', onVisibility)
 
         return () => {
             cancelled = true
-            clearInterval(interval)
+            window.removeEventListener('focus', refreshOnReturn)
+            document.removeEventListener('visibilitychange', onVisibility)
+            supabase.removeChannel(channel)
         }
-    }, [refresh])
+    }, [waiterId, supabase, refresh, refreshOnReturn])
 
     const handleDeliver = async (order: WaiterOrder) => {
         if (busyId) return
@@ -86,7 +133,15 @@ export default function MyOrders({ themeColor = '#FF5630' }: { themeColor?: stri
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Mis pedidos</p>
-                    <p className="text-[11px] text-zinc-600">Se actualiza cada 5 s</p>
+                    <p className="text-[11px] text-zinc-600 flex items-center gap-1.5">
+                        <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                                realtimeConnected ? 'bg-emerald-600 animate-pulse' : 'bg-amber-500'
+                            }`}
+                            aria-hidden
+                        />
+                        {realtimeConnected ? 'En vivo' : 'Conectando…'}
+                    </p>
                 </div>
                 {orders.length > 0 && (
                     <span className="text-[11px] font-black text-zinc-600 bg-zinc-100 px-2.5 py-1 rounded-full">

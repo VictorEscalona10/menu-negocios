@@ -95,3 +95,59 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.orders TO authenticated;
 GRANT SELECT, INSERT ON TABLE public.orders TO anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 
+-- ==============================================================================
+-- 5. REALTIME BROADCAST PARA "MIS PEDIDOS" DEL MESERO (v2.1 - T62)
+-- ==============================================================================
+-- El mesero NO es usuario de Supabase Auth (cookie httpOnly `komy_waiter`) y el
+-- RLS de `orders` solo da SELECT a `authenticated`: el panel no puede escuchar
+-- `postgres_changes` sin exponer pedidos a `anon`. Solución: el panel escucha
+-- el canal público `waiter-<waiter_id>` y este trigger emite un ping desde la
+-- DB en cada alta/cambio de estado de un pedido con mesero. El payload es
+-- MÍNIMO a propósito (ids opacos + estado, nada de cliente/items/total).
+--
+-- NO usar `realtime.broadcast_changes()` aquí: envía la fila completa
+-- (customer_name, items, total) a cualquiera suscrito al canal público.
+--
+-- `private => false` (canal público) porque el cliente del mesero es `anon`;
+-- el canal del cliente debe ser público también (sin `config.private: true`).
+-- Si algún día se desactiva "Allow public access" en Realtime Settings, habrá
+-- que pasar a `private => true` + política RLS sobre `realtime.messages`.
+--
+-- Nota operativa: `realtime.send()` inserta en `realtime.messages` y las
+-- particiones diarias las crea un cliente al conectarse. Si no hay nadie
+-- conectado, el INSERT falla con `WarnSendingBroadcastMessage`; es inocuo
+-- (nadie escucha y el panel hace carga inicial al abrirse).
+
+CREATE OR REPLACE FUNCTION public.broadcast_waiter_order()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    -- Pedidos de WhatsApp / mesa sin mesero: nadie en el panel los escucha.
+    IF NEW.waiter_id IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    PERFORM realtime.send(
+        payload => jsonb_build_object(
+            'op', TG_OP,             -- INSERT | UPDATE
+            'orderId', NEW.id,
+            'status', NEW.status
+        ),
+        event => 'order-change',
+        topic => 'waiter-' || NEW.waiter_id,
+        private => false
+    );
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_broadcast_waiter_order ON public.orders;
+CREATE TRIGGER trg_broadcast_waiter_order
+AFTER INSERT OR UPDATE OF status, delivered_at ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION public.broadcast_waiter_order();
+

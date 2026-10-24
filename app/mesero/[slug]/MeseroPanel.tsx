@@ -1,7 +1,7 @@
 // app/mesero/[slug]/MeseroPanel.tsx
 // Shell del panel del mesero con sesión activa (docs/DESIGN.md §18 / T54).
 // Es client component por el botón "Salir" (signOutWaiter → router.refresh).
-// Bloques: Mis mesas (T54) · Mis pedidos (T55, polling 5 s).
+// Bloques: Mis mesas (T54) · Mis pedidos (T55, Realtime Broadcast desde T62).
 'use client'
 
 import { useState } from 'react'
@@ -64,8 +64,8 @@ export default function MeseroPanel({ slug, storeId, storeName, themeColor, wait
 
                 <MyTables storeId={storeId} slug={slug} themeColor={themeColor} />
 
-                {/* T55: bloque "Mis pedidos" (getWaiterOrders cada 5 s + botón "Entregar") */}
-                <MyOrders themeColor={themeColor} />
+                {/* T55/T62: "Mis pedidos" (Realtime Broadcast + getWaiterOrders + "Entregar") */}
+                <MyOrders waiterId={waiter.id} themeColor={themeColor} />
             </main>
         </div>
     )

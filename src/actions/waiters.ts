@@ -442,10 +442,12 @@ export async function getMyTables(storeId: string): Promise<
 }
 
 // ==============================================================================
-// PEDIDOS DEL MESERO (v2.1 — docs/DESIGN.md §18-19, T53/T55)
+// PEDIDOS DEL MESERO (v2.1 — docs/DESIGN.md §18-19, T53/T55/T62)
 // public.orders NO es modelo Prisma (FK a auth.users) ⇒ SQL crudo, como en
 // orders.ts. El RLS de orders no da SELECT a anon, así que el panel del mesero
-// usa estas actions con polling (5 s) en vez de Realtime.
+// NO se suscribe a la tabla: recibe un ping por Realtime Broadcast
+// (`waiter-<waiterId>`, emitido por el trigger `trg_broadcast_waiter_order`) y
+// relee con estas actions, autenticadas por la cookie httpOnly (T62).
 // ==============================================================================
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

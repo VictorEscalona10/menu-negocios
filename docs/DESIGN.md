@@ -770,7 +770,7 @@ El mesero **no entra por el menú**: el admin le comparte (una sola vez, al crea
 - **Con sesión** (cookie `komy_waiter`), dos bloques:
   1. **Mis mesas**: sus mesas asignadas por admin + las que haya tomado; Realtime de `"Table"` (§10.3) + botón **"Liberar mesa"**. Al tocar una mesa → `/menu/[slug]?mesa=<qrToken>` (abre el menú en modo `waiter`, §9). El menú muestra **"← Panel"** en la barra (§13.3) para volver.
   2. **Mis pedidos** (§19): sus pedidos de hoy + estado; botón **"Entregar"** cuando están listos.
-- **Polling, no realtime, para pedidos**: el RLS de `orders` solo da SELECT a `authenticated` (el dueño); un mesero es `anon` → **no se abre un permiso anon sobre `orders`** (expondría nombres de clientes). El panel refresca con `getWaiterOrders()` cada **5 s**.
+- **Realtime Broadcast, sin abrir RLS**: el RLS de `orders` solo da SELECT a `authenticated` (el dueño); un mesero es `anon` → **no se abre un permiso anon sobre `orders`** (expondría nombres de clientes). El panel escucha el canal **público** `waiter-<waiterId>` y un trigger en la DB (`trg_broadcast_waiter_order`, en `prisma/sql/orders-realtime.sql`) emite un ping mínimo (`orderId`, `status`, `op`) en cada INSERT/UPDATE de sus pedidos (`realtime.send(..., private => false)`). Al recibir el ping, el panel relee con `getWaiterOrders()` (cookie httpOnly). Sin polling: se re-sincroniza al volver a la pestaña y al (re)conectar el websocket. *No usar `realtime.broadcast_changes()`: enviaría la fila completa al canal público.*
 
 ## 19. Estado "Entregado" — v2.1
 
@@ -798,7 +798,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_waiter_id ON public.orders(waiter_id);
 2. **T52** DB: columnas `waiter_id` / `delivered_at` / `delivered_by` + índice (migración a mano + `migrate deploy`; actualizar y ejecutar `orders-realtime.sql`).
 3. **T53** Actions: guardar `waiter_id` en el INSERT; `getWaiterOrders`, `markOrderDelivered`, `markOrderDeliveredAdmin`.
 4. **T54** Ruta `/mesero/[slug]` (login + "Mis mesas").
-5. **T55** "Mis pedidos" con polling 5 s + botón "Entregar".
+5. **T55** "Mis pedidos" + botón "Entregar" (T62: tiempo real por Realtime Broadcast).
 6. **T56** "← Panel" en la barra del menú del mesero.
 7. **T57** Bloque "Panel del mesero" (link copiable) en `/dashboard/mesas`.
 8. **T58** Botón + sello "Entregado" en `/dashboard/pedidos`.

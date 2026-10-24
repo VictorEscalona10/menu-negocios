@@ -510,7 +510,7 @@ Todas las actions son `'use server'` con auth + ownership check (mismo patrón q
 
 ### T55. "Mis pedidos" en el panel del mesero
 - [x] Lista de sus pedidos de hoy: items resumidos, total, hora, estado (Pendiente / En cocina / Listo / Entregado)
-- [x] Polling cada **5 s** con `getWaiterOrders()` (patrón del fallback de mesas; sin realtime por RLS)
+- [x] ~~Polling cada **5 s** con `getWaiterOrders()`~~ → reemplazado por **Realtime Broadcast** en **T62** (sin polling)
 - [x] Botón **"Entregar"** visible solo cuando `status='completed'` → `markOrderDelivered` → sello "Entregado ✓ hora"
 - [x] Pedido sin `waiter_id` nunca aparece aquí (el action filtra por su `waiter_id`)
 
@@ -546,3 +546,13 @@ Todas las actions son `'use server'` con auth + ownership check (mismo patrón q
 - [x] `/dashboard/mesas` → "Ver QR": modal con **dos QRs** (grid 2 cols desktop) — "1 · Pedido en mesa" (`?mesa=`) y "2 · Solo ver carta" (`?mesa=&ver=1`) — cada uno con su explicación debajo; ambos en un solo `.qr-print-area` (se imprimen juntos); retirado el botón "Copiar enlace de la mesa" redundante (cada `QRGenerator` trae su copiar/descargar)
 - [x] Verificación: `tsc --noEmit` = 0 errores; lint global = **baseline 73 intacto** (los 2 `any` de `SharedMenuUI.tsx` siguen siendo los preexistentes; se corrigieron de paso 2 errores de memoización del React Compiler)
 - [ ] Prueba en navegador (usuario): escanear el QR 2 → tocar producto → modal de vista sin carrito; QR 1 intacto; imprimir los dos QRs
+
+### T62. "Mis pedidos" en tiempo real (Realtime Broadcast, sin polling)
+- [x] SQL (`prisma/sql/orders-realtime.sql`, §5): función `public.broadcast_waiter_order()` (`security definer`, `search_path = ''`) + trigger `trg_broadcast_waiter_order` `AFTER INSERT OR UPDATE OF status, delivered_at ON public.orders` → `realtime.send(payload mínimo {op, orderId, status}, event 'order-change', topic 'waiter-<waiter_id>', private => false)`; solo si `waiter_id` no es null
+- [x] Sin `realtime.broadcast_changes()` a propósito: enviaría la fila entera (cliente/items/total) a un canal público
+- [x] `MyOrders.tsx`: fuera `POLL_MS`/`setInterval`; recibe `waiterId` y se suscribe al canal público `waiter-<waiterId>` (`broadcast`/`order-change`) → `getWaiterOrders()` (cookie httpOnly, sigue sin abrir RLS anon sobre `orders`)
+- [x] Red de seguridad sin polling: refetch en `focus`/`visibilitychange` (con guard de 1 s) y al recibir `SUBSCRIBED` tras una reconexión
+- [x] Indicador "En vivo / Conectando…" en la cabecera del bloque, como el Kanban
+- [x] `MeseroPanel.tsx` pasa `waiterId={waiter.id}`; comentarios y docs actualizados (DESIGN §18)
+- [x] **Despliegue:** sección §5 aplicada en el proyecto Supabase (función + trigger verificados; `realtime.send` existe). El canal es público: si se desactiva "Allow public access" en Realtime Settings, pasar a `private => true` + política RLS sobre `realtime.messages`
+- [ ] Verificación manual: pedido nuevo desde el menú del mesero aparece sin recargar; cambios del Kanban (cocina/listo) se reflejan; "Entregar" marca el sello; un segundo mesero no recibe los pings del primero
