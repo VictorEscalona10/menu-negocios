@@ -8,6 +8,8 @@ import Link from 'next/link'
 import WaitersManager from './WaitersManager'
 import TablesManager from './TablesManager'
 import WaiterPanelBlock from './WaiterPanelBlock'
+import { getSubscriptionInfo } from '@/lib/subscription'
+import PlanUpgradePrompt from '../components/PlanUpgradePrompt'
 
 export default async function MesasPage() {
     // 1. Sesión de admin (Supabase) + local propio (mismo patrón que settings)
@@ -26,6 +28,13 @@ export default async function MesasPage() {
             id: true,
             name: true,
             slug: true,
+            planId: true,
+            plan: true,
+            subscriptionStatus: true,
+            trialEndsAt: true,
+            currentPeriodEnd: true,
+            gracePeriodEndsAt: true,
+            isActive: true,
             waiters: {
                 select: { id: true, name: true, isActive: true },
                 orderBy: { createdAt: 'asc' },
@@ -39,6 +48,22 @@ export default async function MesasPage() {
 
     if (!store) {
         return redirect('/dashboard')
+    }
+
+    const subscription = getSubscriptionInfo(store)
+    if (subscription.isBlocked) {
+        return redirect('/dashboard')
+    }
+
+    if (!subscription.canAccessMesas) {
+        return (
+            <PlanUpgradePrompt
+                storeId={store.id}
+                featureName="Gestión de Salón, Mesas y Meseros"
+                featureDescription="Crea y administra tus mesas, genera códigos QR únicos por mesa para que los comensales hagan pedidos desde su asiento o vean la carta, y asigna meseros a las zonas de tu local."
+                featureType="mesas"
+            />
+        )
     }
 
     // Base absoluta para construir la URL de cada QR de mesa

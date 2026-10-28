@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getCustomizationLayout } from '@/src/actions/customization'
 import { CustomizationEditor } from './CustomizationEditor'
+import { getSubscriptionInfo } from '@/lib/subscription'
+import PlanUpgradePrompt from '../components/PlanUpgradePrompt'
 
 export default async function CustomizationPage() {
     // 1. Verificamos la sesión
@@ -18,10 +20,27 @@ export default async function CustomizationPage() {
     // 2. Buscamos el local asociado a este usuario
     const store = await prisma.store.findUnique({
         where: { userId: user.id },
+        include: { plan: true },
     })
 
     if (!store) {
         return redirect('/dashboard')
+    }
+
+    const subscription = getSubscriptionInfo(store)
+    if (subscription.isBlocked) {
+        return redirect('/dashboard')
+    }
+
+    if (!subscription.canAccessCustomization) {
+        return (
+            <PlanUpgradePrompt
+                storeId={store.id}
+                featureName="Personalización Avanzada del Menú"
+                featureDescription="Diseña la carta digital de tu local sección por sección. Agrega portadas, banners promocionales, carruseles dinámicos y estilos únicos adaptados a la identidad de tu marca."
+                featureType="customization"
+            />
+        )
     }
 
     // 3. Layout guardado (null si nunca ha usado el modo avanzado)

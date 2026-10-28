@@ -18,11 +18,20 @@ const prismaClientSingleton = () => {
   return new PrismaClient({ adapter })
 }
 
-// 2. Mantenemos la conexión global para evitar fugas de conexiones en desarrollo
+// 2. Mantenemos la conexión global con version tag para forzar recarga tras prisma generate
+const PRISMA_CLIENT_VERSION = 'v2.2-plans-relations'
 const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof prismaClientSingleton> | undefined
+  prismaVersion: string | undefined
 }
 
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma = (globalForPrisma.prisma && globalForPrisma.prismaVersion === PRISMA_CLIENT_VERSION)
+  ? globalForPrisma.prisma
+  : (() => {
+      const client = prismaClientSingleton()
+      if (process.env.NODE_ENV !== 'production') {
+        globalForPrisma.prisma = client
+        globalForPrisma.prismaVersion = PRISMA_CLIENT_VERSION
+      }
+      return client
+    })()

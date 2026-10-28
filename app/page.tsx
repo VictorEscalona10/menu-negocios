@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import LandingPricingSection from "@/app/components/LandingPricingSection";
 import {
   ArrowRight,
   Check,
@@ -181,6 +182,9 @@ export default function HomePage() {
               </a>
               <a href="#comparativa" className="hover:text-[#1D1D1F] transition-colors">
                 Comparativa
+              </a>
+              <a href="#planes" className="hover:text-[#1D1D1F] transition-colors font-semibold text-[#FF453A]">
+                Planes
               </a>
               <a href="#faq" className="hover:text-[#1D1D1F] transition-colors">
                 Preguntas
@@ -816,8 +820,8 @@ export default function HomePage() {
                   <span className="text-xs font-mono uppercase tracking-widest text-[#86868B]">
                     Facturación Mensual
                   </span>
-                  <span className="text-xs font-bold text-[#34C759] bg-[#34C759]/10 px-2.5 py-1 rounded-full">
-                    ${monthlyRevenue.toLocaleString()} USD
+                  <span className="text-xs font-bold text-[#34C759] bg-[#34C759]/10 px-2.5 py-1 rounded-full" suppressHydrationWarning>
+                    ${new Intl.NumberFormat('en-US').format(Math.round(monthlyRevenue))} USD
                   </span>
                 </div>
 
@@ -825,8 +829,8 @@ export default function HomePage() {
                   <span className="text-xs text-[#86868B] uppercase font-bold tracking-wider">
                     Ahorro estimado al año con Komy:
                   </span>
-                  <div className="text-4xl sm:text-5xl font-black text-[#34C759] tracking-tight">
-                    +${annualSavings.toLocaleString()} USD
+                  <div className="text-4xl sm:text-5xl font-black text-[#34C759] tracking-tight" suppressHydrationWarning>
+                    +${new Intl.NumberFormat('en-US').format(Math.round(annualSavings))} USD
                   </div>
                   <p className="text-xs text-white/60 pt-1">
                     Dinero que antes pagabas en comisiones del 30% a intermediarios.
@@ -836,7 +840,9 @@ export default function HomePage() {
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-white/70">Comisión Apps de Delivery (30%):</span>
-                    <span className="font-mono text-[#FF453A] font-bold">-${traditionalCommission.toLocaleString()}/mes</span>
+                    <span className="font-mono text-[#FF453A] font-bold" suppressHydrationWarning>
+                      -${new Intl.NumberFormat('en-US').format(Math.round(traditionalCommission))}/mes
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/70">Comisión con Komy:</span>
@@ -932,6 +938,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─── Planes y Precios (Suscripciones con 15 días gratis) ─── */}
+      <LandingPricingSection />
 
       {/* ─── Apple Accordion FAQ ─── */}
       <section id="faq" className="py-20 max-w-4xl mx-auto px-4 sm:px-6 z-10 relative">

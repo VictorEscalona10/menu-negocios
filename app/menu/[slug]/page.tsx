@@ -10,6 +10,7 @@ import { Home2Outlined, Gear1Outlined, Ban2Outlined } from '@lineiconshq/free-ic
 import { prisma } from '@/lib/prisma'
 import { getSessionWaiter } from '@/lib/waiterAuth'
 import type { OrderContext } from '@/src/types/order'
+import { getSubscriptionInfo } from '@/lib/subscription'
 
 export async function generateMetadata({
     params,
@@ -56,16 +57,19 @@ export default async function MenuPage({
 
     const { store, layout } = menuData
 
-    if (!store.isActive) {
+    const subscription = getSubscriptionInfo(store)
+
+    // T73: Si la suscripción está vencida/bloqueada o en pausa manual
+    if (subscription.isBlocked || !store.isActive) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#131313] text-white p-6 font-sans">
                 <div className="max-w-md w-full text-center space-y-4">
                     <div className="w-20 h-20 bg-zinc-800 rounded-full mx-auto flex items-center justify-center mb-6">
                         <Lineicons icon={Home2Outlined} size={36} className="text-zinc-400" />
                     </div>
-                    <h1 className="text-2xl font-black tracking-tight">Local en mantenimiento</h1>
+                    <h1 className="text-2xl font-black tracking-tight">Menú temporalmente no disponible</h1>
                     <p className="text-zinc-400 text-sm">
-                        Este menú digital se encuentra temporalmente inactivo. Por favor, vuelve más tarde.
+                        Este local se encuentra en mantenimiento. Por favor, vuelve más tarde.
                     </p>
                 </div>
             </div>
@@ -74,15 +78,12 @@ export default async function MenuPage({
 
     // ==========================================================================
     // SISTEMA DE TRES MENÚS — resolución de modo (docs/DESIGN.md §9.1)
-    // 1. Sin query 'mesa'  → modo WhatsApp (menú actual, intacto)
-    // 2. 'mesa=<qrToken>'  → mesa válida + sesión de mesero → 'waiter', si no → 'table'
-    // 3. 'mesa=<qrToken>&ver=1' (sin sesión) → 'view': carta de SOLO LECTURA
-    //    (QR "solo ver carta": los pedidos los hace el mesero desde su panel).
-    //    La sesión de mesero siempre gana: un mesero con 'ver=1' queda en 'waiter'.
-    // La sesión de mesero vive solo en cookie httpOnly; jamás se lee de la URL.
+    // T72: Si el local está en Plan Básico, se deshabilitan los modos de mesa
+    // y el menú funciona exclusivamente en modo WhatsApp regular.
     // ==========================================================================
-    const mesaToken = typeof mesa === 'string' && mesa.trim() ? mesa.trim() : null
-    const viewOnly = ver === '1' || ver === 'true'
+    const canUseTables = subscription.canAccessTableOrders
+    const mesaToken = canUseTables && typeof mesa === 'string' && mesa.trim() ? mesa.trim() : null
+    const viewOnly = canUseTables && (ver === '1' || ver === 'true')
 
     const table = mesaToken
         ? await prisma.table.findFirst({
@@ -116,7 +117,7 @@ export default async function MenuPage({
     // Sesión de mesero (cookie httpOnly). Si existe pero no hay mesa en la URL,
     // la barra de OrderModeBar bloquea el pedido hasta que elija una mesa.
     const session = await getSessionWaiter()
-    const waiterSession = session && session.storeId === store.id ? session : null
+    const waiterSession = canUseTables && session && session.storeId === store.id ? session : null
 
     const orderContext: OrderContext = {
         mode: table ? (waiterSession ? 'waiter' : viewOnly ? 'view' : 'table') : 'whatsapp',
@@ -124,11 +125,12 @@ export default async function MenuPage({
         waiter: waiterSession ? { id: waiterSession.id, name: waiterSession.name } : null,
     }
 
-    if (store.customizationMode === 'AVANCED' && layout) {
+    // T72: Personalización avanzada exclusiva del Plan Pro
+    if (subscription.canAccessCustomization && store.customizationMode === 'AVANCED' && layout) {
         return <AdvancedMenuUI store={store} layoutJson={layout} orderContext={orderContext} orderSlug={slug} />
     }
 
-    if (store.customizationMode === 'AVANCED' && !layout) {
+    if (subscription.canAccessCustomization && store.customizationMode === 'AVANCED' && !layout) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white text-black p-6 font-sans">
                 <div className="max-w-md w-full text-center space-y-4">
@@ -139,18 +141,12 @@ export default async function MenuPage({
                     <p className="text-zinc-600 text-sm">
                         Empieza configurando tu menú en el panel de administración para que aparezca aquí.
                     </p>
-                    <div className="flex space-x-2">
-                        <a
+                    <div className="flex justify-center space-x-2 pt-2">
+                        <Link
                             href="/dashboard/customization"
-                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-500 font-medium"
+                            className="bg-zinc-900 text-white px-4 py-2 rounded-xl hover:bg-zinc-800 text-xs font-bold"
                         >
                             Ir al editor
-                        </a>
-                        <Link
-                            href="/"
-                            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 font-medium"
-                        >
-                            Cancelar
                         </Link>
                     </div>
                 </div>

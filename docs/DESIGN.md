@@ -809,7 +809,144 @@ CREATE INDEX IF NOT EXISTS idx_orders_waiter_id ON public.orders(waiter_id);
 
 ---
 
+## 21. Sistema de Suscripciones, Planes y Control de Acceso (v2.2)
+
+### 21.1 Overview y Principios Rectores
+
+Este módulo gestiona la monetización y el control de acceso a las funcionalidades del SaaS mediante dos planes recurrentes mensuales ($15 y $25 USD), un período de prueba gratuito inicial de 15 días, un período de gracia de 5 días ante vencimiento y el bloqueo del sistema sin pérdida de información:
+
+1. **Selección de plan obligatoria al inicio:** El usuario elige su plan deseado ($15 o $25) en la Landing Page (`/`) o en el Paso 1 del Onboarding (`/onboarding`).
+2. **Prueba gratuita de 15 días:** Todo nuevo negocio comienza con 15 días de prueba (`trialEndsAt = now + 15 días`) en el plan seleccionado, disfrutando de las funciones de dicho plan sin comisiones ni tarjeta de crédito.
+3. **Bloqueo garantizado sin pérdida de datos:** Al vencer los 15 días sin pagar, el sistema se bloquea exigiendo el pago de suscripción. **Nada se elimina:** platos, categorías, fotos, configuraciones, mesas y meseros se mantienen 100% seguros en la base de datos.
+4. **Ciclo mensual de 30 días:** Al procesar un pago, el negocio pasa a estado `ACTIVE` con `currentPeriodEnd = now + 30 días`.
+5. **Vencimiento y Período de Gracia de 5 días:** Al terminar los 30 días de suscripción paga, el sistema entra en `GRACE_PERIOD` por 5 días (`gracePeriodEndsAt = currentPeriodEnd + 5 días`). El sistema sigue funcional pero muestra un banner de alerta urgente en el Dashboard con la cuenta regresiva.
+6. **Bloqueo tras período de gracia:** Si transcurren los 5 días sin renovar, el sistema se bloquea hasta que el usuario efectúe el pago correspondiente.
+7. **Menú público bloqueado:** Si una cuenta está bloqueada (`EXPIRED`), cualquier cliente que visite `/menu/[slug]` verá una pantalla limpia: *"Menú temporalmente no disponible / Local en pausa"*, impidiendo hacer pedidos sin exponer errores ni detalles de facturación.
+8. **Regla de cambio de plan (Upgrade / Downgrade):**
+   - Durante la prueba de 15 días, el usuario no puede alternar planes gratis; se mantiene en el plan elegido. Para acceder al otro plan, debe pagar su suscripción.
+   - Un usuario con Plan Básico activo que desee pasar a Plan Pro puede realizar un **Upgrade**, abonando el plan Pro para habilitar de inmediato las funciones avanzadas y reiniciar/extender su ciclo.
+9. **Pasarela de pagos en Bolívares (VexPay):** La integración directa con la pasarela VexPay se reserva para una etapa posterior. En esta fase se implementa un sistema de simulación determinista para validar el flujo completo.
+
+---
+
+### 21.2 Matriz de Planes y Restricciones
+
+| Funcionalidad / Módulo | Plan Básico ($15 / mes) | Plan Pro ($25 / mes) | Comportamiento en Plan Básico |
+| :--- | :---: | :---: | :--- |
+| **Menú de pedidos por WhatsApp** (`mode: 'whatsapp'`) | ✅ Incluido | ✅ Incluido | Habilitado siempre |
+| **Plantillas básicas de diseño** (`/dashboard/settings`) | ✅ Incluido | ✅ Incluido | Habilitado siempre |
+| **Catálogo ilimitado de platos y fotos** | ✅ Incluido | ✅ Incluido | Habilitado siempre |
+| **Configuración de delivery y tarifas** | ✅ Incluido | ✅ Incluido | Habilitado siempre |
+| **Personalización avanzada** (`/dashboard/customization`) | 🔒 Bloqueado | ✅ Incluido | Muestra tarjeta de Upgrade a Plan Pro |
+| **Gestión de mesas y meseros** (`/dashboard/mesas`) | 🔒 Bloqueado | ✅ Incluido | Muestra tarjeta de Upgrade a Plan Pro |
+| **Gestión de pedidos en vivo en cocina** (`/dashboard/pedidos`) | 🔒 Bloqueado | ✅ Incluido | Muestra tarjeta de Upgrade a Plan Pro |
+| **Panel del mesero** (`/mesero/[slug]`) | 🔒 Bloqueado | ✅ Incluido | Acceso restringido con aviso de plan |
+| **Menú interactivo en mesa QR** (`?mesa=<token>`) | 🔒 Bloqueado | ✅ Incluido | Redirige al menú base o muestra aviso |
+| **Menú solo ver carta** (`?mesa=<token>&ver=1`) | 🔒 Bloqueado | ✅ Incluido | Redirige al menú base o muestra aviso |
+
+---
+
+### 21.3 Cambios en Base de Datos (Prisma Schema)
+
+#### A. Nueva tabla `Plan` (Planes del Sistema)
+
+Permite centralizar los planes disponibles, sus precios, duración y períodos de prueba sin valores hardcodeados en el código.
+
+```prisma
+model Plan {
+  id           String   @id @default(uuid())
+  code         String   @unique // "BASIC" | "PRO"
+  name         String   // "Plan Básico" | "Plan Pro"
+  description  String?
+  price        Float    // 15.00 | 25.00
+  currency     String   @default("USD")
+  durationDays Int      @default(30) // 30 días de ciclo mensual
+  trialDays    Int      @default(15) // 15 días de prueba
+  features     Json?    // Array de strings con ventajas descriptivas
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stores       Store[]
+  payments     SubscriptionPayment[]
+}
+```
+
+#### B. Actualización en tabla `Store`
+
+```prisma
+model Store {
+  // ... campos existentes ...
+
+  // --- SISTEMA DE SUSCRIPCIÓN Y CONTROL DE ACCESO ---
+  planId                String?
+  plan                  Plan?     @relation(fields: [planId], references: [id])
+  
+  subscriptionStatus    String    @default("TRIAL") // "TRIAL" | "ACTIVE" | "GRACE_PERIOD" | "EXPIRED"
+  trialEndsAt           DateTime?
+  currentPeriodEnd      DateTime?
+  gracePeriodEndsAt     DateTime?
+  hasUsedTrial          Boolean   @default(false)
+  subscriptionUpdatedAt DateTime  @default(now())
+
+  payments              SubscriptionPayment[]
+}
+```
+
+#### C. Nueva tabla `SubscriptionPayment` (Historial y Transacciones)
+
+```prisma
+model SubscriptionPayment {
+  id              String   @id @default(uuid())
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  planId          String
+  plan            Plan     @relation(fields: [planId], references: [id])
+  
+  amountUsd       Float    // 15.00 | 25.00
+  amountBs        Float?   // Monto pagado en Bolívares (para futura pasarela VexPay)
+  bcvRate         Float?   // Tasa oficial BCV aplicada
+  
+  gateway         String   @default("SIMULATED") // "SIMULATED" | "VEXPAY" | "MANUAL"
+  gatewayRef      String?  // ID de transacción externa
+  status          String   @default("APPROVED")  // "PENDING" | "APPROVED" | "REJECTED"
+  
+  periodStartsAt  DateTime
+  periodEndsAt    DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([storeId])
+}
+```
+
+---
+
+### 21.4 Lógica de Verificación en Tiempo Real (`lib/subscription.ts`)
+
+La evaluación del estado de suscripción se realiza de forma **determinista y en tiempo real** en cada consulta al servidor, comparando `Date.now()` contra los timestamps de `Store`. No depende de cron jobs externos para ejecutar el bloqueo o la gracia:
+
+- **`isTrial`**: `rawStatus === 'TRIAL' && now <= trialEndsAt`
+- **`isTrialExpired`**: `rawStatus === 'TRIAL' && now > trialEndsAt` ➔ `isBlocked = true` (motivo: `trial_expired`).
+- **`isActivePaid`**: `rawStatus === 'ACTIVE' && now <= currentPeriodEnd`
+- **`isGracePeriod`**: `rawStatus === 'ACTIVE' && now > currentPeriodEnd && now <= gracePeriodEndsAt` ➔ el sistema opera con alerta de 5 días.
+- **`isGraceExpired`**: `now > gracePeriodEndsAt` ➔ `isBlocked = true` (motivo: `grace_expired`).
+- **`canAccessProFeatures`**: `plan.code === 'PRO' && !isBlocked`
+
+---
+
+### 21.5 Pantallas y Componentes del Sistema
+
+1. **`LandingPricingSection.tsx` (`/`)**: Presenta la comparativa de los dos planes con precios ($15 y $25), insignia de 15 días gratis, y CTAs vinculados a `/register?plan=BASIC` y `/register?plan=PRO`.
+2. **Paso 1 de Onboarding (`/onboarding`)**: Selector interactivo de plan con radio cards estilizadas estilo Apple. El usuario debe confirmar o cambiar su plan antes de ingresar el nombre del local.
+3. **`SubscriptionLockedScreen.tsx` (`/dashboard`)**: Si el negocio está bloqueado (`isBlocked: true`), reemplaza la vista del Dashboard. Destaca con ícono de seguridad que **ningún dato se ha borrado**, explica el motivo del bloqueo y ofrece el botón de pago/reactivación.
+4. **`SubscriptionAlertBanner.tsx`**: Inyectado en el Dashboard durante el período de gracia (alerta degradada naranja/roja con cuenta regresiva de 5 días y botón para renovar) o en prueba activa (indicador discreto de días restantes).
+5. **`PlanUpgradeGuard`**: Componente de bloqueo suave para `/dashboard/customization`, `/dashboard/mesas` y `/dashboard/pedidos` cuando la cuenta es de Plan Básico, permitiendo al usuario ver el valor de la función y activar el Upgrade a Pro.
+6. **`SubscriptionDevTester.tsx`**: Barra de herramientas flotante de desarrollo para simular con un clic: prueba vencida, mes pagado, período de gracia, gracia vencida, upgrade y reset.
+
+---
+
 *Document generated for Spec-Driven Development (SDD)*
 *Project: Menu Negocios Platform*
-*Version: 2.0 - Advanced Customization System + Sistema de Tres Menús (WhatsApp / Mesero / Mesa QR)*
-*Last updated: October 22, 2026*
+*Version: 2.2 - Advanced Customization System + Tres Menús + Sistema de Suscripciones y Planes*
+*Last updated: October 28, 2026*

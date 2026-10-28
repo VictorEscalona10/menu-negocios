@@ -80,6 +80,31 @@ export async function createStoreFromOnboarding(formData: FormData) {
         }
     }
 
+    // Plan y período de prueba gratuita de 15 días
+    const rawPlan = ((formData.get('plan') as string) || 'BASIC').toUpperCase()
+    const targetCode = rawPlan === 'PRO' ? 'PRO' : 'BASIC'
+
+    let planRecord = await prisma.plan.findUnique({
+        where: { code: targetCode },
+    })
+
+    if (!planRecord) {
+        planRecord = await prisma.plan.create({
+            data: {
+                code: targetCode,
+                name: targetCode === 'PRO' ? 'Plan Pro' : 'Plan Básico',
+                price: targetCode === 'PRO' ? 25.0 : 15.0,
+                durationDays: 30,
+                trialDays: 15,
+                currency: 'USD',
+                isActive: true,
+            },
+        })
+    }
+
+    const trialDays = planRecord.trialDays || 15
+    const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000) // 15 días gratis
+
     // Crear Tienda
     const newStore = await prisma.store.create({
         data: {
@@ -100,6 +125,12 @@ export async function createStoreFromOnboarding(formData: FormData) {
             instagramUrl,
             tiktokUrl,
             googleMapsUrl,
+            // Suscripción
+            planId: planRecord.id,
+            subscriptionStatus: 'TRIAL',
+            trialEndsAt,
+            hasUsedTrial: true,
+            subscriptionUpdatedAt: new Date(),
         }
     })
 

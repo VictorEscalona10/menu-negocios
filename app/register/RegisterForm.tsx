@@ -15,9 +15,22 @@ import {
 } from "lucide-react"
 import { signUpAction, verifyOtpAction, resendOtpAction } from "@/src/actions/auth"
 
-export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
+export function RegisterForm({
+    initialEmail = "",
+    initialPlan = "BASIC",
+}: {
+    initialEmail?: string
+    initialPlan?: string
+}) {
     // Estado de los pasos: 'register' = formulario inicial, 'verify' = introducción de código OTP
     const [step, setStep] = useState<"register" | "verify">("register")
+    const [plan] = useState<string>(initialPlan.toUpperCase() === 'PRO' ? 'PRO' : 'BASIC')
+
+    // Guardar plan seleccionado en cookie para el onboarding
+    useEffect(() => {
+        const cleanPlan = initialPlan.toUpperCase() === 'PRO' ? 'PRO' : 'BASIC'
+        document.cookie = `komy_selected_plan=${cleanPlan}; path=/; max-age=86400`
+    }, [initialPlan])
     
     // Campos del formulario
     const [email, setEmail] = useState(initialEmail)
@@ -189,6 +202,10 @@ export function RegisterForm({ initialEmail = "" }: { initialEmail?: string }) {
 
                 {step === "register" ? (
                     <>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200 mb-2">
+                            <span>✨ {plan === 'PRO' ? 'Plan Pro ($25/mes)' : 'Plan Básico ($15/mes)'}</span>
+                            <span className="font-semibold text-emerald-600">· 15 días gratis</span>
+                        </div>
                         <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Crea tu Cuenta</h1>
                         <p className="text-zinc-500 font-medium mt-1.5 text-sm sm:text-base leading-relaxed">
                             Crea tu menú digital hoy y comienza a vender directamente por WhatsApp.

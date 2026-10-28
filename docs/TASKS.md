@@ -7,7 +7,8 @@
 
 > **Parte I (FASE 1-7):** Advanced Customization System.
 > **Parte II (FASE 8-13, T34-T50):** Sistema de Tres Menús (WhatsApp / Mesero / Mesa QR) — diseño en `docs/DESIGN.md` §9-17. **[x] Ejecutada.**
-> **Parte III (FASE 14, T51-T60):** Panel del mesero `/mesero/[slug]` + estado "Entregado" + fin del acceso "¿Eres mesero?" en el menú público — diseño en `docs/DESIGN.md` §13.3, §18-20. **[ ] Pendiente.**
+> **Parte III (FASE 14, T51-T62):** Panel del mesero `/mesero/[slug]` + estado "Entregado" + fin del acceso "¿Eres mesero?" en el menú público — diseño en `docs/DESIGN.md` §13.3, §18-20. **[x] Ejecutada.**
+> **Parte IV (FASE 15, T63-T76):** Sistema de Suscripciones, Planes y Control de Acceso (Básico $15 / Pro $25, 15d prueba, 5d gracia, bloqueo sin pérdida de datos, simulación) — diseño en `docs/DESIGN.md` §21. **[ ] Pendiente.**
 
 ---
 
@@ -556,3 +557,109 @@ Todas las actions son `'use server'` con auth + ownership check (mismo patrón q
 - [x] `MeseroPanel.tsx` pasa `waiterId={waiter.id}`; comentarios y docs actualizados (DESIGN §18)
 - [x] **Despliegue:** sección §5 aplicada en el proyecto Supabase (función + trigger verificados; `realtime.send` existe). El canal es público: si se desactiva "Allow public access" en Realtime Settings, pasar a `private => true` + política RLS sobre `realtime.messages`
 - [ ] Verificación manual: pedido nuevo desde el menú del mesero aparece sin recargar; cambios del Kanban (cocina/listo) se reflejan; "Entregar" marca el sello; un segundo mesero no recibe los pings del primero
+
+---
+
+## FASE 15: Sistema de Suscripciones, Planes y Control de Acceso (T63-T76)
+> Diseño arquitectónico completo en `docs/DESIGN.md` §21.
+> Reglas: 15 días de prueba inicial por plan elegido al registrarse, bloqueo sin pérdida de datos, mes de 30 días, 5 días de gracia con banner urgente, menú público bloqueado en pausa, cambio de plan solo al pagar/upgrade, y simulación de flujo sin pasarela VexPay aún.
+
+### T63. Base de Datos: Modelos `Plan`, `SubscriptionPayment` y actualización de `Store`
+- [x] Agregar modelo `Plan` a `prisma/schema.prisma` (id, code unique, name, description, price, currency, durationDays default 30, trialDays default 15, features Json, isActive default true, timestamps)
+- [x] Agregar modelo `SubscriptionPayment` a `prisma/schema.prisma` (id, storeId FK, planId FK, amountUsd, amountBs, bcvRate, gateway default "SIMULATED", gatewayRef, status, periodStartsAt, periodEndsAt, createdAt)
+- [x] Actualizar modelo `Store`: agregar relación `planId String?` / `plan Plan?` y mantener `subscriptionStatus`, `trialEndsAt`, `currentPeriodEnd`, `gracePeriodEndsAt`, `hasUsedTrial`, `subscriptionUpdatedAt`
+- [x] Agregar relación `payments SubscriptionPayment[]` en `Store` y `Plan`
+
+### T64. Seed de Planes Iniciales en Base de Datos
+- [x] Crear script `prisma/seed-plans.ts` (idempotente con `upsert`)
+- [x] Registrar Plan Básico: `code: "BASIC"`, `name: "Plan Básico"`, `price: 15.0`, `durationDays: 30`, `trialDays: 15`, features detalladas
+- [x] Registrar Plan Pro: `code: "PRO"`, `name: "Plan Pro"`, `price: 25.0`, `durationDays: 30`, `trialDays: 15`, features detalladas
+- [x] Actualizar `prisma/seed.ts` para invocar el seed de planes
+
+### T65. Migración de Base de Datos
+- [x] Ejecutar migración de esquema (`prisma/migrations/20261028161500_add_subscription_plans_and_payments` con `prisma migrate deploy`)
+- [x] Ejecutar seed (`node prisma/seed.ts`) para asegurar la existencia de los dos planes en la DB
+- [x] Verificar en DB que las tiendas existentes se vinculen al Plan Básico o Pro sin romper datos previos (6 tiendas vinculadas con éxito)
+
+### T66. Módulo Central de Suscripción (`lib/subscription.ts`)
+- [x] Actualizar tipos TypeScript (`PlanType`, `SubscriptionStatus`, `SubscriptionInfo`, `PlanDetails`)
+- [x] Adaptar `getSubscriptionInfo(store)` para leer fechas y calcular con exactitud:
+  - `isTrial`: activo en los primeros 15 días
+  - `isTrialExpired`: > 15 días sin pagar -> `isBlocked: true` (motivo: `trial_expired`)
+  - `isActivePaid`: mes pago vigente (30 días)
+  - `isGracePeriod`: venció el mes pero está dentro de los 5 días de gracia (alerta)
+  - `isGraceExpired`: pasaron los 5 días de gracia sin pagar -> `isBlocked: true` (motivo: `grace_expired`)
+  - `canAccessPro`: `plan.code === 'PRO' && !isBlocked`
+- [x] Asegurar que el cálculo sea 100% determinista sin requerir cron jobs
+
+### T67. Server Actions de Suscripción (`src/actions/subscription.ts`)
+- [x] `verifyStoreOwnership(storeId)`: garantizar autenticación Supabase y propiedad de la tienda
+- [x] `activateFreeTrial(storeId, planCode)`: inicializa la prueba de 15 días con el plan seleccionado
+- [x] `processSubscriptionPayment(storeId, planCode?, days?)`: simula el pago de 30 días, crea registro en `SubscriptionPayment` y actualiza `currentPeriodEnd`
+- [x] `upgradeToProPlan(storeId)`: procesa el upgrade inmediato a Plan Pro
+- [x] Funciones de prueba de flujo para QA:
+  - `testSimulateTrialExpired(storeId)`: simula prueba vencida hoy
+  - `testSimulateGracePeriod(storeId, daysLeft)`: simula vencimiento de mes con X días de gracia restantes
+  - `testSimulateGraceExpired(storeId)`: simula período de gracia vencido
+  - `testResetTrial(storeId)`: restaura la prueba limpia a 15 días
+
+### T68. Landing Page (`app/page.tsx` y `LandingPricingSection.tsx`)
+- [x] Verificar que la sección de precios en `/` muestre fielmente los dos planes:
+  - Plan Básico ($15/mes)
+  - Plan Pro ($25/mes)
+- [x] Botones de llamada a la acción vinculados a `/register?plan=BASIC` y `/register?plan=PRO`
+- [x] Mensaje visible de garantía de datos: *"Si se vence tu prueba o suscripción, nada se elimina; tus datos se conservan 100% seguros"*.
+
+### T69. Registro y Onboarding con Selección de Plan Obligatoria
+- [x] `/register/page.tsx` y `RegisterForm.tsx`: recibir `plan` por query string y preservarlo en cookie/estado
+- [x] `/onboarding/page.tsx` y `OnboardingWizard.tsx`:
+  - **Paso 1 Obligatorio:** Selector visual de plan (Cards interactivas Básico $15 vs Pro $25, destacando los 15 días de prueba gratis)
+  - Enviar `plan` en el `FormData` hacia `createStoreFromOnboarding`
+- [x] `src/actions/onboarding.ts`: vincular el `planId` correspondiente en la creación del Store y fijar `trialEndsAt = now + 15 días`
+
+### T70. Pantalla de Bloqueo del Dashboard (`SubscriptionLockedScreen.tsx`)
+- [x] Integrar en `app/dashboard/page.tsx` (y subpáginas) la verificación de `subscription.isBlocked`
+- [x] Si `isBlocked: true`: renderizar `SubscriptionLockedScreen`:
+  - Mensaje claro según motivo: *"Tu prueba gratuita de 15 días ha finalizado"* o *"Período de gracia finalizado"*
+  - Badge explícito: *"Tus datos están protegidos y nada ha sido eliminado"*
+  - Selector de pago/renovación con botón de reactivación instantánea
+  - Opción de cerrar sesión
+
+### T71. Banner de Alerta Urgente en Dashboard (`SubscriptionAlertBanner.tsx`)
+- [x] Inyectar `SubscriptionAlertBanner` en la cabecera de `app/dashboard/page.tsx`:
+  - **En Período de Gracia (Días 31 al 35):** Banner urgente degradado avisando los días restantes de gracia y botón "Renovar Plan"
+  - **En Prueba Activa:** Indicador sutil de días restantes de prueba gratuita
+- [x] Modal de renovación rápida con selección de plan y confirmación de pago
+
+### T72. Restricciones de Funcionalidades por Plan (Gatekeeping)
+- [x] Proteger `/dashboard/customization`: si la tienda tiene Plan Básico, mostrar tarjeta/modal de Upgrade a Plan Pro
+- [x] Proteger `/dashboard/mesas`: si la tienda tiene Plan Básico, mostrar tarjeta/modal de Upgrade a Plan Pro
+- [x] Proteger `/dashboard/pedidos`: si la tienda tiene Plan Básico, mostrar tarjeta/modal de Upgrade a Plan Pro
+- [x] Proteger `/mesero/[slug]`: si el local tiene Plan Básico, bloquear acceso con aviso informativo
+- [x] Menú con QR de mesa (`?mesa=<token>` y `?mesa=<token>&ver=1`): si el store es Plan Básico, deshabilitar modos salón y redirigir al menú regular de WhatsApp
+
+### T73. Menú Público Bloqueado en Pausa (`/menu/[slug]`)
+- [x] En `app/menu/[slug]/page.tsx`: evaluar si `store` tiene la suscripción expirada (`isBlocked`)
+- [x] Mostrar pantalla limpia y amigable: *"Menú temporalmente no disponible / Local en mantenimiento"*, sin permitir órdenes ni exponer datos administrativos
+
+### T74. Flujo de Upgrade (Básico $15 ➔ Pro $25)
+- [x] Botón "Mejorar a Plan Pro" en `/dashboard/settings` y en el banner para usuarios en Plan Básico
+- [x] Modal de confirmación que detalla las nuevas herramientas que se activarán de inmediato
+- [x] Ejecución del upgrade mediante server action con revalidación instantánea de rutas
+
+### T75. Herramienta de Pruebas de Desarrollo (`SubscriptionDevTester.tsx`)
+- [x] Inyectar barra flotante de pruebas en el Dashboard (visible en desarrollo):
+  - Botón: "Simular Prueba Vencida (Bloqueo)"
+  - Botón: "Simular Mes Pagado (30 Días)"
+  - Botón: "Simular Período de Gracia (5 Días)"
+  - Botón: "Simular Gracia Vencida (Bloqueo)"
+  - Botón: "Restaurar 15 Días de Prueba"
+  - Botón: "Alternar Plan (Básico ↔ Pro)"
+- [x] Probar interactivamente cada transición de estado en el navegador
+
+### T76. Verificación, QA y Smoke E2E
+- [x] `tsc --noEmit` y `npm run lint` sin nuevos errores
+- [x] Validar flujo 1: Registro con Plan Pro -> 15 días gratis -> Simular prueba vencida -> Sistema bloqueado -> Pagar -> Sistema activo
+- [x] Validar flujo 2: Tienda activa -> Simular vencimiento de mes -> Banner de 5 días de gracia -> Simular gracia vencida -> Sistema bloqueado
+- [x] Validar flujo 3: Tienda con Plan Básico -> Comprobar que no puede entrar a customization, mesas ni pedidos -> Realizar Upgrade -> Acceso concedido
+- [x] Validar flujo 4: Menú público `/menu/[slug]` de tienda bloqueada muestra pantalla de mantenimiento sin borrar nada de la base de datos

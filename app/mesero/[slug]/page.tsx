@@ -12,6 +12,8 @@ import WaiterLoginModal from '@/app/components/WaiterLoginModal'
 import MeseroPanel from './MeseroPanel'
 import { Lineicons } from '@lineiconshq/react-lineicons'
 import { User4Outlined } from '@lineiconshq/free-icons'
+import { Lock } from 'lucide-react'
+import { getSubscriptionInfo } from '@/lib/subscription'
 
 interface MeseroPageProps {
     params: Promise<{ slug: string }>
@@ -28,9 +30,48 @@ export default async function MeseroPage({ params }: MeseroPageProps) {
 
     const store = await prisma.store.findUnique({
         where: { slug },
-        select: { id: true, name: true, slug: true, themeColor: true },
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+            themeColor: true,
+            planId: true,
+            plan: true,
+            subscriptionStatus: true,
+            trialEndsAt: true,
+            currentPeriodEnd: true,
+            gracePeriodEndsAt: true,
+            isActive: true,
+        },
     })
     if (!store) notFound()
+
+    const subscription = getSubscriptionInfo(store)
+    if (subscription.isBlocked || !subscription.canAccessWaiters) {
+        return (
+            <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-5">
+                <div className="w-full max-w-sm bg-white rounded-3xl p-6 border border-zinc-200 text-center space-y-3 shadow-sm">
+                    <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl mx-auto flex items-center justify-center">
+                        <Lock className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-base font-bold text-zinc-900">Panel no disponible</h2>
+                    <p className="text-xs text-zinc-500 leading-relaxed">
+                        {subscription.isBlocked
+                            ? 'El servicio de este restaurante se encuentra temporalmente en pausa.'
+                            : 'El panel de meseros está disponible exclusivamente para restaurantes con el Plan Pro de Komy.'}
+                    </p>
+                    <div className="pt-2">
+                        <Link
+                            href={`/menu/${store.slug}`}
+                            className="inline-block text-xs font-bold text-zinc-900 bg-zinc-100 hover:bg-zinc-200 px-4 py-2 rounded-xl transition-all"
+                        >
+                            Ir al menú público
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     // Sesión de mesero (cookie). Si es de OTRO local, aquí no cuenta: hay que
     // identificarse con la clave de este store (validación de pertenencia, T54).

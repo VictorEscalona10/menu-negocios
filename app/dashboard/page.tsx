@@ -18,6 +18,10 @@ import {
     UserMultiple4Outlined,
 } from '@lineiconshq/free-icons'
 import { ChefHat } from 'lucide-react'
+import { getSubscriptionInfo } from '@/lib/subscription'
+import SubscriptionLockedScreen from './components/SubscriptionLockedScreen'
+import SubscriptionAlertBanner from '@/app/components/SubscriptionAlertBanner'
+import SubscriptionDevTester from './components/SubscriptionDevTester'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -30,6 +34,7 @@ export default async function DashboardPage() {
     const store = await prisma.store.findUnique({
         where: { userId: user.id },
         include: {
+            plan: true,
             categories: {
                 include: {
                     products: true
@@ -38,45 +43,22 @@ export default async function DashboardPage() {
         }
     })
 
-    // BLOQUEO DEL DASHBOARD SI EL SERVICIO ESTÁ PAUSADO
-    if (store && !store.isActive) {
-        return (
-            <div className="min-h-screen bg-zinc-50 flex flex-col items-center justify-center p-4 sm:p-6 text-zinc-900">
-                <div className="max-w-md w-full bg-white border border-zinc-200 p-6 sm:p-10 rounded-2xl shadow-sm relative">
-                    <div className="absolute top-6 right-6">
-                        <form action={signOut}>
-                            <button type="submit" className="text-zinc-400 hover:text-zinc-900 transition-colors p-2 rounded-full hover:bg-zinc-50 cursor-pointer" title="Cerrar Sesión">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 flex items-center justify-center mb-6 mt-2">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    </div>
-                    <div className="space-y-2 border-b border-zinc-100 pb-6 mb-6">
-                        <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Servicio en Pausa</h1>
-                        <p className="text-sm text-zinc-500 leading-relaxed">
-                            El acceso a tu menú público y a tu panel de administración ha sido pausado.
-                        </p>
-                    </div>
-
-                    <div className="bg-zinc-50 rounded-xl p-4 font-mono text-xs text-zinc-600 mb-6 flex justify-between items-center border border-zinc-200">
-                        <span className="uppercase tracking-widest text-[10px]">Estado</span>
-                        <span className="text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">PAUSADO</span>
-                    </div>
-
-                    <a href="https://wa.me/584243016454" target="_blank" className="flex items-center justify-center w-full bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium py-3 rounded-xl transition-all shadow-sm">
-                        Contactar Soporte
-                    </a>
-                </div>
-            </div>
-        )
-    }
-
     // Si NO tiene local, lo redirigimos al asistente paso a paso
     if (!store) {
         return redirect('/onboarding')
+    }
+
+    // Comprobar suscripción y estado de bloqueo
+    const subscription = getSubscriptionInfo(store)
+
+    if (subscription.isBlocked) {
+        return (
+            <SubscriptionLockedScreen
+                storeId={store.id}
+                storeName={store.name}
+                subscription={subscription}
+            />
+        )
     }
 
     const headersList = await headers()
@@ -90,6 +72,9 @@ export default async function DashboardPage() {
     return (
         <div className="min-h-screen bg-zinc-50 text-zinc-900 p-3 sm:p-4.5 lg:py-5 lg:px-6">
             <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4">
+
+                {/* Banner de Suscripción (Alerta urgente en gracia o indicador de prueba activa) */}
+                <SubscriptionAlertBanner storeId={store.id} subscription={subscription} />
                 
                 {/* ══════════════════════════════════════════
                     1. CABECERA (HEADER) CON LOGO DE LANDING
@@ -329,6 +314,9 @@ export default async function DashboardPage() {
                     <DashboardQRCard menuUrl={menuUrl} storeName={store.name} />
 
                 </div>
+
+                {/* Simulador para pruebas rápidas de suscripción (desarrollo/QA) */}
+                <SubscriptionDevTester storeId={store.id} subscription={subscription} />
 
             </div>
         </div>

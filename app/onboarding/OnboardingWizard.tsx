@@ -21,13 +21,19 @@ import {
     SparkOutlined,
 } from '@lineiconshq/free-icons'
 
+import { Check, Sparkles, ShieldCheck } from 'lucide-react'
+
 interface OnboardingWizardProps {
     userEmail?: string;
+    initialPlan?: string;
 }
 
-export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
+export default function OnboardingWizard({ userEmail: _userEmail, initialPlan = 'BASIC' }: OnboardingWizardProps) {
     const router = useRouter()
     const [step, setStep] = useState(1)
+    const [selectedPlan, setSelectedPlan] = useState<'BASIC' | 'PRO'>(
+        initialPlan?.toUpperCase() === 'PRO' ? 'PRO' : 'BASIC'
+    )
     const [isPending, startTransition] = useTransition()
     const [errorMessage, setErrorMessage] = useState('')
 
@@ -78,7 +84,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
     // Validación por pasos
     const handleNext = () => {
         setErrorMessage('')
-        if (step === 1) {
+        if (step === 2) {
             if (!name.trim()) {
                 setErrorMessage('Ingresa el nombre de tu negocio.')
                 return
@@ -88,7 +94,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                 return
             }
         }
-        setStep(prev => Math.min(prev + 1, 4))
+        setStep(prev => Math.min(prev + 1, 5))
     }
 
     const handleBack = () => {
@@ -102,6 +108,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
         startTransition(async () => {
             try {
                 const fd = new FormData()
+                fd.set('plan', selectedPlan)
                 fd.set('name', name.trim())
                 fd.set('slug', slug.trim() || name.trim().toLowerCase().replace(/\s+/g, '-'))
                 fd.set('whatsapp', whatsapp.trim())
@@ -127,8 +134,9 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                 if (result.success) {
                     router.push('/dashboard')
                 }
-            } catch (err: any) {
-                setErrorMessage(err.message || 'Ocurrió un error al crear tu menú.')
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : 'Ocurrió un error al crear tu menú.'
+                setErrorMessage(msg)
             }
         })
     }
@@ -191,11 +199,11 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                 </Link>
 
                 <div className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-500 font-mono">Paso {step} de 4</span>
+                    <span className="text-xs text-zinc-500 font-mono">Paso {step} de 5</span>
                     <div className="w-24 h-1.5 bg-zinc-200 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-zinc-900 transition-all duration-300 rounded-full"
-                            style={{ width: `${(step / 4) * 100}%` }}
+                            style={{ width: `${(step / 5) * 100}%` }}
                         />
                     </div>
                 </div>
@@ -210,10 +218,11 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                         {/* Step indicator chips */}
                         <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-1">
                             {[
-                                { num: 1, label: 'Negocio' },
-                                { num: 2, label: 'Diseño & Estilo' },
-                                { num: 3, label: 'Logo & Redes' },
-                                { num: 4, label: 'Primer Plato' },
+                                { num: 1, label: 'Plan' },
+                                { num: 2, label: 'Negocio' },
+                                { num: 3, label: 'Diseño & Estilo' },
+                                { num: 4, label: 'Logo & Redes' },
+                                { num: 5, label: 'Primer Plato' },
                             ].map((s) => (
                                 <button
                                     key={s.num}
@@ -244,11 +253,168 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* ── PASO 1: Identidad del Negocio ── */}
+                        {/* ── PASO 1: Selección de Plan ── */}
                         {step === 1 && (
                             <div className="space-y-6">
                                 <div className="border-b border-zinc-100 pb-4">
-                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 1</div>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">Paso 1 de 5</span>
+                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                            15 días gratis
+                                        </span>
+                                    </div>
+                                    <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mb-1">
+                                        Elige tu Plan de Inicio
+                                    </h1>
+                                    <p className="text-zinc-500 text-sm">
+                                        Selecciona el plan que mejor se adapte a tu local. Comienza con 15 días gratis y sin tarjeta de crédito.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Card Plan Básico */}
+                                    <div
+                                        onClick={() => setSelectedPlan('BASIC')}
+                                        className={`relative rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                                            selectedPlan === 'BASIC'
+                                                ? 'border-zinc-950 bg-zinc-50/70 shadow-sm ring-1 ring-zinc-950/10'
+                                                : 'border-zinc-200 bg-white hover:border-zinc-300'
+                                        }`}
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-600 bg-zinc-100 px-2.5 py-0.5 rounded-md">
+                                                    Plan Básico
+                                                </span>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                                    selectedPlan === 'BASIC'
+                                                        ? 'bg-zinc-950 border-zinc-950 text-white'
+                                                        : 'border-zinc-300 bg-white'
+                                                }`}>
+                                                    {selectedPlan === 'BASIC' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-3">
+                                                <span className="text-3xl font-black text-zinc-950 tracking-tight font-mono">$15</span>
+                                                <span className="text-xs text-zinc-500 font-semibold ml-1">USD / mes</span>
+                                            </div>
+
+                                            <p className="text-xs text-zinc-600 mb-4 leading-relaxed">
+                                                Para dark kitchens y puestos que gestionan sus pedidos por WhatsApp.
+                                            </p>
+
+                                            <div className="space-y-2 text-xs text-zinc-700">
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                    <span>Menú de pedidos por WhatsApp</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                    <span>Plantillas en /dashboard/settings</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                    <span>Catálogo y fotos ilimitadas</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                                    <span>Tarifas y zonas de delivery</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-5 pt-3 border-t border-zinc-100 text-[11px] font-medium text-emerald-600 flex items-center gap-1.5">
+                                            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                                            <span>15 días de prueba incluidos</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Plan Pro */}
+                                    <div
+                                        onClick={() => setSelectedPlan('PRO')}
+                                        className={`relative rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                                            selectedPlan === 'PRO'
+                                                ? 'border-zinc-950 bg-zinc-900 text-white shadow-lg ring-1 ring-zinc-950/20'
+                                                : 'border-zinc-200 bg-white hover:border-zinc-300 text-zinc-900'
+                                        }`}
+                                    >
+                                        <div className="absolute -top-2.5 right-4 bg-[#FF453A] text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                                            Restaurante Completo
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className={`text-[11px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md ${
+                                                    selectedPlan === 'PRO' ? 'text-white bg-white/20' : 'text-zinc-600 bg-zinc-100'
+                                                }`}>
+                                                    Plan Pro
+                                                </span>
+                                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                                    selectedPlan === 'PRO'
+                                                        ? 'bg-[#FF453A] border-[#FF453A] text-white'
+                                                        : 'border-zinc-300 bg-white'
+                                                }`}>
+                                                    {selectedPlan === 'PRO' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-3">
+                                                <span className={`text-3xl font-black tracking-tight font-mono ${selectedPlan === 'PRO' ? 'text-white' : 'text-zinc-950'}`}>$25</span>
+                                                <span className={`text-xs font-semibold ml-1 ${selectedPlan === 'PRO' ? 'text-white/60' : 'text-zinc-500'}`}>USD / mes</span>
+                                            </div>
+
+                                            <p className={`text-xs mb-4 leading-relaxed ${selectedPlan === 'PRO' ? 'text-white/80' : 'text-zinc-600'}`}>
+                                                Salón, mesas, meseros, comandas en tiempo real y personalización avanzada.
+                                            </p>
+
+                                            <div className={`space-y-2 text-xs ${selectedPlan === 'PRO' ? 'text-white/90' : 'text-zinc-700'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <span>Todo lo del Plan Básico</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <span>Personalización (/dashboard/customization)</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <span>Clientes piden en mesa QR y solo ver</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <span>Gestión de mesas, meseros y /mesero</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                                    <span>Gestión de pedidos en cocina (/dashboard/pedidos)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className={`mt-5 pt-3 border-t text-[11px] font-medium flex items-center gap-1.5 ${
+                                            selectedPlan === 'PRO' ? 'border-white/10 text-emerald-400' : 'border-zinc-100 text-emerald-600'
+                                        }`}>
+                                            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                                            <span>15 días de prueba incluidos</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 flex items-center gap-2.5">
+                                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span>
+                                        <strong>Garantía de tus datos:</strong> si se vence tu prueba, <strong>nada se elimina</strong>. Todo queda guardado de forma segura hasta que decidas pagar.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── PASO 2: Identidad del Negocio ── */}
+                        {step === 2 && (
+                            <div className="space-y-6">
+                                <div className="border-b border-zinc-100 pb-4">
+                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 2</div>
                                     <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mb-1">
                                         Apertura de Menú Digital
                                     </h1>
@@ -306,11 +472,11 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* ── PASO 2: Plantillas y Layout ── */}
-                        {step === 2 && (
+                        {/* ── PASO 3: Plantillas y Layout ── */}
+                        {step === 3 && (
                             <div className="space-y-6">
                                 <div className="border-b border-zinc-100 pb-4">
-                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 2</div>
+                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 3</div>
                                     <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mb-1">
                                         Personalización Visual
                                     </h1>
@@ -421,11 +587,11 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* ── PASO 3: Logo & Redes Sociales ── */}
-                        {step === 3 && (
+                        {/* ── PASO 4: Logo & Redes Sociales ── */}
+                        {step === 4 && (
                             <div className="space-y-6">
                                 <div className="border-b border-zinc-100 pb-4">
-                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 3</div>
+                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 4</div>
                                     <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mb-1">
                                         Logo y Canales Sociales
                                     </h1>
@@ -509,11 +675,11 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                             </div>
                         )}
 
-                        {/* ── PASO 4: Tu Primera Categoría ── */}
-                        {step === 4 && (
+                        {/* ── PASO 5: Tu Primera Categoría ── */}
+                        {step === 5 && (
                             <div className="space-y-6">
                                 <div className="border-b border-zinc-100 pb-4">
-                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 4</div>
+                                    <div className="font-mono text-xs text-zinc-400 uppercase tracking-widest mb-1">Paso 5</div>
                                     <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mb-1">
                                         Crear Primera Categoría
                                     </h1>
@@ -585,7 +751,7 @@ export default function OnboardingWizard({ userEmail }: OnboardingWizardProps) {
                             <div />
                         )}
 
-                        {step < 4 ? (
+                        {step < 5 ? (
                             <button
                                 type="button"
                                 onClick={handleNext}

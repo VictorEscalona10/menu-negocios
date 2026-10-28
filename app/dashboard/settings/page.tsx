@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { SettingsForm } from './SettingsForm'
 import DeliveryZonesManager from './DeliveryZonesManager'
 import type { AdvancedCustomization } from '@/src/types/customization'
+import { getSubscriptionInfo } from '@/lib/subscription'
+import SubscriptionSettingsCard from './SubscriptionSettingsCard'
 
 export default async function SettingsPage() {
     // 1. Validamos al usuario actual
@@ -21,6 +23,7 @@ export default async function SettingsPage() {
     const store = await prisma.store.findUnique({
         where: { userId: user.id },
         include: {
+            plan: true,
             categories: {
                 select: { id: true, name: true },
                 orderBy: { name: 'asc' }
@@ -33,6 +36,11 @@ export default async function SettingsPage() {
 
     if (!store) {
         return redirect('/dashboard') // Si de casualidad entró aquí sin local, lo regresamos al form inicial
+    }
+
+    const subscription = getSubscriptionInfo(store)
+    if (subscription.isBlocked) {
+        return redirect('/dashboard')
     }
 
     const layoutRow = await prisma.customizationLayout.findUnique({
@@ -62,6 +70,11 @@ export default async function SettingsPage() {
                 <div className="text-center mb-6 sm:mb-8 pt-2 md:pt-4">
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 mb-2 tracking-tight">Personalización del Menú</h1>
                     <p className="text-xs sm:text-sm text-zinc-500 font-medium">Ajusta los detalles de tu tienda</p>
+                </div>
+
+                {/* Tarjeta de Suscripción y Opción de Upgrade a Plan Pro */}
+                <div className="mb-8">
+                    <SubscriptionSettingsCard storeId={store.id} subscription={subscription} />
                 </div>
 
                 <SettingsForm

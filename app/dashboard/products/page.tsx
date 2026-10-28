@@ -9,6 +9,8 @@ import { DeleteButton } from './DeleteButton'
 import { SortableProductList } from './SortableProductList'
 import { SortableCategoryList } from './SortableCategoryList'
 
+import { getSubscriptionInfo } from '@/lib/subscription'
+
 export default async function ProductsPage() {
     // 1. Verificamos la sesión
     const supabase = await createClient()
@@ -22,6 +24,7 @@ export default async function ProductsPage() {
     const store = await prisma.store.findUnique({
         where: { userId: user.id },
         include: {
+            plan: true,
             categories: {
                 orderBy: { order: 'asc' },
                 include: {
@@ -47,6 +50,11 @@ export default async function ProductsPage() {
     })
 
     if (!store) {
+        return redirect('/dashboard')
+    }
+
+    const subscription = getSubscriptionInfo(store)
+    if (subscription.isBlocked) {
         return redirect('/dashboard')
     }
 

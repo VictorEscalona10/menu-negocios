@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 import { createClient } from '@/utils/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import OnboardingWizard from './OnboardingWizard'
 
 export default async function OnboardingPage() {
@@ -23,5 +24,8 @@ export default async function OnboardingPage() {
         return redirect('/dashboard')
     }
 
-    return <OnboardingWizard userEmail={user.email || ''} />
+    const cookieStore = await cookies()
+    const initialPlan = cookieStore.get('komy_selected_plan')?.value || 'BASIC'
+
+    return <OnboardingWizard userEmail={user.email || ''} initialPlan={initialPlan} />
 }

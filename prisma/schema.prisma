@@ -60,6 +60,16 @@ model Store {
 
   upsellCategoryId String? // Categoría estrella para el carrito
 
+  // --- SISTEMA DE SUSCRIPCIÓN Y PLANES ---
+  planId                String?
+  plan                  Plan?     @relation(fields: [planId], references: [id])
+  subscriptionStatus    String    @default("TRIAL") // "TRIAL" | "ACTIVE" | "GRACE_PERIOD" | "EXPIRED"
+  trialEndsAt           DateTime?
+  currentPeriodEnd      DateTime?
+  gracePeriodEndsAt     DateTime?
+  hasUsedTrial          Boolean   @default(false)
+  subscriptionUpdatedAt DateTime  @default(now())
+
   // --- RELACIONES ---
   // Relación: Un local tiene muchas categorías
   categories    Category[]
@@ -67,6 +77,7 @@ model Store {
   customizationLayout CustomizationLayout? // 1:1 con Store
   customizationTemplates CustomizationTemplate[]
   customizationImages CustomizationImage[]
+  payments      SubscriptionPayment[]
 
   // --- TRES MENÚS: meseros y mesas (docs/DESIGN.md §10.1) ---
   waiters Waiter[]
@@ -246,3 +257,50 @@ model WaiterSession {
   createdAt DateTime @default(now())
   expiresAt DateTime
 }
+
+// ==============================================================================
+// SISTEMA DE SUSCRIPCIÓN Y PLANES (docs/DESIGN.md §21)
+// ==============================================================================
+
+model Plan {
+  id           String   @id @default(uuid())
+  code         String   @unique // "BASIC" | "PRO"
+  name         String   // "Plan Básico" | "Plan Pro"
+  description  String?  // Descripción del plan
+  price        Float    // 15.00 | 25.00
+  currency     String   @default("USD")
+  durationDays Int      @default(30) // 30 días de ciclo mensual
+  trialDays    Int      @default(15) // 15 días de prueba inicial
+  features     Json?    // Lista de funcionalidades o insignias
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stores       Store[]
+  payments     SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id             String   @id @default(uuid())
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  planId         String
+  plan           Plan     @relation(fields: [planId], references: [id])
+
+  amountUsd      Float    // 15.00 | 25.00
+  amountBs       Float?   // Monto cobrado en Bs (para pasarela VexPay)
+  bcvRate        Float?   // Tasa oficial BCV aplicada
+
+  gateway        String   @default("SIMULATED") // "SIMULATED" | "VEXPAY" | "MANUAL"
+  gatewayRef     String?  // Referencia de la pasarela
+  status         String   @default("APPROVED")  // "PENDING" | "APPROVED" | "REJECTED"
+
+  periodStartsAt DateTime
+  periodEndsAt   DateTime
+  createdAt      DateTime @default(now())
+
+  @@index([storeId])
+  @@index([planId])
+}
+
