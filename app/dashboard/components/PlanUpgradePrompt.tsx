@@ -3,9 +3,8 @@
 
 import React, { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Sparkles, Check, Lock, ChefHat, Palette, Users, ArrowRight } from 'lucide-react'
-import { upgradeToProPlan } from '@/src/actions/subscription'
+import { ArrowLeft, Sparkles, Check, Lock, ChefHat, Palette, Users, ArrowRight, CreditCard } from 'lucide-react'
+import { createVexpayCheckout } from '@/src/actions/subscription'
 
 interface Props {
     storeId: string
@@ -20,25 +19,21 @@ export default function PlanUpgradePrompt({
     featureDescription,
     featureType = 'customization',
 }: Props) {
-    const router = useRouter()
     const [isPending, startTransition] = useTransition()
-    const [successMessage, setSuccessMessage] = useState('')
     const [errorMessage, setErrorMessage] = useState('')
 
-    const handleUpgrade = () => {
+    const handleVexpayUpgrade = () => {
         setErrorMessage('')
-        setSuccessMessage('')
         startTransition(async () => {
             try {
-                const res = await upgradeToProPlan(storeId)
-                if (res.success) {
-                    setSuccessMessage('¡Excelente! Has mejorado al Plan Pro. Desbloqueando...')
-                    router.refresh()
+                const res = await createVexpayCheckout(storeId, 'PRO')
+                if (res.success && res.checkoutUrl) {
+                    window.location.href = res.checkoutUrl
                 } else {
-                    setErrorMessage('No se pudo procesar la actualización.')
+                    setErrorMessage('No se pudo generar la sesión de pago con VEXPay.')
                 }
             } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : 'Error al actualizar el plan.'
+                const msg = err instanceof Error ? err.message : 'Error al conectar con la pasarela.'
                 setErrorMessage(msg)
             }
         })
@@ -87,16 +82,10 @@ export default function PlanUpgradePrompt({
                     </div>
 
                     <div className="text-left sm:text-right shrink-0">
-                        <div className="text-2xl font-black text-zinc-950 font-mono">$25 <span className="text-xs font-normal text-zinc-500">USD/mes</span></div>
+                        <div className="text-2xl font-black text-zinc-950 font-mono">$25 <span className="text-xs font-normal text-zinc-500">USD/mes (en Bs)</span></div>
                         <span className="text-[11px] text-zinc-500">Solo $10 más que tu plan actual</span>
                     </div>
                 </div>
-
-                {successMessage && (
-                    <div className="p-3.5 bg-emerald-500 text-white rounded-xl text-xs font-bold text-center animate-fadeIn">
-                        {successMessage}
-                    </div>
-                )}
 
                 {errorMessage && (
                     <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold text-center">
@@ -140,10 +129,11 @@ export default function PlanUpgradePrompt({
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-zinc-100">
                     <button
                         disabled={isPending}
-                        onClick={handleUpgrade}
-                        className="w-full sm:w-auto flex-1 bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white py-3.5 px-6 rounded-2xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                        onClick={handleVexpayUpgrade}
+                        className="w-full sm:w-auto flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3.5 px-6 rounded-2xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
-                        <span>{isPending ? 'Mejorando tu cuenta...' : 'Mejorar a Plan Pro ($25/mes)'}</span>
+                        <CreditCard className={`w-4 h-4 ${isPending ? 'animate-pulse' : ''}`} />
+                        <span>{isPending ? 'Conectando con VEXPay...' : 'Pagar con VEXPay en Bs ($25/mes)'}</span>
                         <ArrowRight className="w-4 h-4" />
                     </button>
 

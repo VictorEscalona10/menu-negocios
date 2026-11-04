@@ -3,10 +3,9 @@
 
 import React, { useState, useTransition } from 'react'
 import { signOut } from '@/src/actions/auth'
-import { Lock, ShieldCheck, Check, Sparkles, MessageCircle, RefreshCw, AlertCircle } from 'lucide-react'
-import { SubscriptionInfo, PLANS } from '@/lib/subscription'
-import { processSubscriptionPayment, testResetTrial } from '@/src/actions/subscription'
-import { useRouter } from 'next/navigation'
+import { Lock, ShieldCheck, Check, CreditCard, ArrowRight } from 'lucide-react'
+import { SubscriptionInfo } from '@/lib/subscription'
+import { createVexpayCheckout } from '@/src/actions/subscription'
 import Link from 'next/link'
 
 interface Props {
@@ -16,29 +15,23 @@ interface Props {
 }
 
 export default function SubscriptionLockedScreen({ storeId, storeName, subscription }: Props) {
-    const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [selectedPlan, setSelectedPlan] = useState<'BASIC' | 'PRO'>(subscription.plan)
-    const [feedbackMessage, setFeedbackMessage] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
 
-    const handleReactivate = (plan: 'BASIC' | 'PRO') => {
-        setFeedbackMessage('')
+    const handleReactivateWithVexpay = (plan: 'BASIC' | 'PRO') => {
+        setErrorMessage('')
         startTransition(async () => {
-            const res = await processSubscriptionPayment(storeId, plan, 30)
-            if (res.success) {
-                setFeedbackMessage('¡Suscripción reactivada con éxito!')
-                router.refresh()
-            }
-        })
-    }
-
-    const handleResetTest = () => {
-        setFeedbackMessage('')
-        startTransition(async () => {
-            const res = await testResetTrial(storeId)
-            if (res.success) {
-                setFeedbackMessage('Prueba restaurada con éxito')
-                router.refresh()
+            try {
+                const res = await createVexpayCheckout(storeId, plan)
+                if (res.success && res.checkoutUrl) {
+                    window.location.href = res.checkoutUrl
+                } else {
+                    setErrorMessage('No se pudo generar la sesión de pago. Intenta nuevamente.')
+                }
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : 'Error al conectar con la pasarela VEXPay'
+                setErrorMessage(msg)
             }
         })
     }
@@ -92,25 +85,26 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
                     </h1>
 
                     <p className="text-sm text-zinc-600 max-w-xl mx-auto leading-relaxed">
-                        Para continuar recibiendo pedidos y administrando tu menú digital en <strong>{storeName}</strong>, selecciona y reactiva tu suscripción.
+                        Para continuar recibiendo pedidos y administrando tu menú digital en <strong>{storeName}</strong>, selecciona y reactiva tu suscripción mediante la pasarela segura.
                     </p>
 
                     {/* Aviso de Seguridad de Datos */}
                     <div className="inline-flex items-center gap-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-4 py-2 rounded-2xl text-xs font-medium max-w-md mx-auto text-left shadow-xs">
                         <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                        <span>
-                            <strong>Tus datos están protegidos y nada ha sido eliminado:</strong> Todos tus productos, categorías, fotos y configuraciones se conservan 100% seguros.
-                        </span>
+                        <div>
+                            <span className="font-bold">Toda tu información está protegida:</span>
+                            <span className="text-emerald-700/90 ml-1">Tus productos, fotos, categorías y configuración están intactos y se reactivan al instante con tu pago.</span>
+                        </div>
                     </div>
                 </div>
 
-                {feedbackMessage && (
-                    <div className="p-3 bg-emerald-500 text-white rounded-xl text-xs font-bold text-center animate-fadeIn">
-                        {feedbackMessage}
+                {errorMessage && (
+                    <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold text-center">
+                        {errorMessage}
                     </div>
                 )}
 
-                {/* Selector de Planes para Reactivar */}
+                {/* Selector de Planes para reactivación */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* PLAN BÁSICO $15 */}
@@ -124,7 +118,7 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
                     >
                         <div>
                             <div className="flex justify-between items-center mb-3">
-                                <span className="text-xs font-mono font-bold text-zinc-500 uppercase tracking-wider">
+                                <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
                                     Emprendedores
                                 </span>
                                 {selectedPlan === 'BASIC' && (
@@ -136,7 +130,7 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
 
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight font-mono">$15</span>
-                                <span className="text-xs font-medium text-zinc-500">/ mes</span>
+                                <span className="text-xs font-medium text-zinc-500">/ mes (en Bs)</span>
                             </div>
 
                             <h3 className="font-extrabold text-base text-zinc-950 mb-2">Plan Básico</h3>
@@ -169,15 +163,17 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
                                 disabled={isPending}
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    handleReactivate('BASIC')
+                                    handleReactivateWithVexpay('BASIC')
                                 }}
-                                className={`w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                                className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
                                     selectedPlan === 'BASIC'
-                                        ? 'bg-zinc-950 hover:bg-zinc-800 text-white shadow-md'
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md'
                                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                                 }`}
                             >
-                                <span>{isPending ? 'Activando...' : 'Reactivar Plan Básico ($15)'}</span>
+                                <CreditCard className="w-4 h-4" />
+                                <span>{isPending ? 'Conectando con VEXPay...' : 'Pagar con VEXPay en Bs ($15)'}</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>
@@ -209,7 +205,7 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
 
                             <div className="flex items-baseline gap-1 mb-2">
                                 <span className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight font-mono">$25</span>
-                                <span className="text-xs font-medium text-zinc-500">/ mes</span>
+                                <span className="text-xs font-medium text-zinc-500">/ mes (en Bs)</span>
                             </div>
 
                             <h3 className="font-extrabold text-base text-zinc-950 mb-2">Plan Pro</h3>
@@ -254,74 +250,21 @@ export default function SubscriptionLockedScreen({ storeId, storeName, subscript
                                 disabled={isPending}
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    handleReactivate('PRO')
+                                    handleReactivateWithVexpay('PRO')
                                 }}
-                                className={`w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                                className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
                                     selectedPlan === 'PRO'
-                                        ? 'bg-zinc-950 hover:bg-zinc-800 text-white shadow-md'
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md'
                                         : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900'
                                 }`}
                             >
-                                <span>{isPending ? 'Activando...' : 'Reactivar Plan Pro ($25)'}</span>
+                                <CreditCard className="w-4 h-4" />
+                                <span>{isPending ? 'Conectando con VEXPay...' : 'Pagar con VEXPay en Bs ($25)'}</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>
 
-                </div>
-
-                {/* Acciones de Contacto y Reporte */}
-                <div className="bg-white rounded-3xl p-6 border border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <MessageCircle className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-sm text-zinc-900">¿Prefieres pagar por transferencia, Pago Móvil o Binance?</h4>
-                            <p className="text-xs text-zinc-500">
-                                Contáctanos por WhatsApp para verificar tu pago y reactivar tu cuenta en minutos.
-                            </p>
-                        </div>
-                    </div>
-
-                    <a
-                        href={`https://wa.me/584243016454?text=${encodeURIComponent(
-                            `Hola, mi local "${storeName}" se encuentra bloqueado por vencimiento y deseo pagar mi suscripción (${
-                                selectedPlan === 'BASIC' ? 'Plan Básico $15' : 'Plan Pro $25'
-                            }).`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 shrink-0 cursor-pointer whitespace-nowrap"
-                    >
-                        <span>Pagar por WhatsApp</span>
-                        <span>↗</span>
-                    </a>
-                </div>
-
-                {/* HERRAMIENTAS DE PRUEBA (DESARROLLO) */}
-                <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                            <Sparkles className="w-4 h-4 text-amber-600" />
-                            <span>Controles de Prueba (Para evaluar el flujo sin pasarela):</span>
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                        <button
-                            disabled={isPending}
-                            onClick={handleResetTest}
-                            className="text-xs bg-white hover:bg-amber-100 text-amber-900 font-medium px-3 py-1.5 rounded-lg border border-amber-200 transition-all cursor-pointer shadow-2xs"
-                        >
-                            ⚡ Restaurar 15 días de prueba gratis
-                        </button>
-                        <button
-                            disabled={isPending}
-                            onClick={() => handleReactivate(selectedPlan)}
-                            className="text-xs bg-zinc-900 hover:bg-zinc-800 text-white font-medium px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-2xs"
-                        >
-                            ⚡ Simular Pago 30 días ({selectedPlan === 'BASIC' ? '$15' : '$25'})
-                        </button>
-                    </div>
                 </div>
 
             </main>

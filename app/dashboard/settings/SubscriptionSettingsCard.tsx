@@ -2,10 +2,9 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { Sparkles, Check, ArrowRight, ShieldCheck, Zap, RefreshCw } from 'lucide-react'
+import { Sparkles, Check, ArrowRight, CreditCard } from 'lucide-react'
 import { SubscriptionInfo } from '@/lib/subscription'
-import { upgradeToProPlan, processSubscriptionPayment } from '@/src/actions/subscription'
+import { createVexpayCheckout } from '@/src/actions/subscription'
 
 interface Props {
     storeId: string
@@ -13,38 +12,23 @@ interface Props {
 }
 
 export default function SubscriptionSettingsCard({ storeId, subscription }: Props) {
-    const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [note, setNote] = useState('')
     const isPro = subscription.plan === 'PRO'
 
-    const handleUpgrade = () => {
+    // Pago real con VEXPay (Pago Móvil / Bs)
+    const handleVexpayPayment = (planCode: 'BASIC' | 'PRO') => {
         setNote('')
         startTransition(async () => {
             try {
-                const res = await upgradeToProPlan(storeId)
-                if (res.success) {
-                    setNote('¡Plan Pro activado con éxito!')
-                    router.refresh()
+                const res = await createVexpayCheckout(storeId, planCode)
+                if (res.success && res.checkoutUrl) {
+                    window.location.href = res.checkoutUrl
+                } else {
+                    setNote('No se pudo generar la sesión de pago con VEXPay.')
                 }
             } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : 'Error al procesar la actualización'
-                setNote(msg)
-            }
-        })
-    }
-
-    const handleRenew = () => {
-        setNote('')
-        startTransition(async () => {
-            try {
-                const res = await processSubscriptionPayment(storeId, subscription.plan, 30)
-                if (res.success) {
-                    setNote('¡Suscripción renovada por 30 días!')
-                    router.refresh()
-                }
-            } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : 'Error al procesar el pago'
+                const msg = err instanceof Error ? err.message : 'Error al iniciar el pago con VEXPay'
                 setNote(msg)
             }
         })
@@ -65,7 +49,7 @@ export default function SubscriptionSettingsCard({ storeId, subscription }: Prop
                                 {subscription.planDetails.name}
                             </h3>
                             <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700">
-                                ${subscription.planDetails.price} USD / mes
+                                ${subscription.planDetails.price} USD / mes (en Bs)
                             </span>
                         </div>
                         <p className="text-xs text-zinc-500 mt-0.5">
@@ -88,17 +72,18 @@ export default function SubscriptionSettingsCard({ storeId, subscription }: Prop
                 ) : (
                     <button
                         disabled={isPending}
-                        onClick={handleUpgrade}
-                        className="bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0 self-start sm:self-auto active:scale-95"
+                        onClick={() => handleVexpayPayment('PRO')}
+                        className="bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
                     >
-                        <span>{isPending ? 'Mejorando...' : 'Mejorar a Plan Pro ($25/mes)'}</span>
+                        <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{isPending ? 'Conectando...' : 'Mejorar a Plan Pro ($25/mes en Bs)'}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                 )}
             </div>
 
             {note && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl text-center">
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl text-center">
                     {note}
                 </div>
             )}
@@ -126,26 +111,6 @@ export default function SubscriptionSettingsCard({ storeId, subscription }: Prop
                         <p className="text-zinc-600 mt-1 leading-relaxed">
                             Tus categorías, platos, fotos y pedidos se conservan siempre seguros e intactos, sin importar los cambios de estado.
                         </p>
-                    </div>
-
-                    <div className="pt-3 mt-3 border-t border-zinc-200/60 flex items-center justify-between">
-                        <button
-                            disabled={isPending}
-                            onClick={handleRenew}
-                            className="text-xs font-bold text-zinc-700 hover:text-zinc-950 transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
-                            <span>Renovar período actual</span>
-                        </button>
-
-                        <a
-                            href="https://wa.me/584243016454"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                        >
-                            Soporte WhatsApp ↗
-                        </a>
                     </div>
                 </div>
             </div>

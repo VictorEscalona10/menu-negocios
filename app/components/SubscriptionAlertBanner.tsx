@@ -2,10 +2,9 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { AlertTriangle, Clock, Sparkles, Check, ArrowRight, X } from 'lucide-react'
+import { AlertTriangle, Check, ArrowRight, X, CreditCard } from 'lucide-react'
 import { SubscriptionInfo } from '@/lib/subscription'
-import { processSubscriptionPayment, changePlanAction, upgradeToProPlan } from '@/src/actions/subscription'
-import { useRouter } from 'next/navigation'
+import { createVexpayCheckout } from '@/src/actions/subscription'
 
 interface Props {
     storeId: string
@@ -13,20 +12,24 @@ interface Props {
 }
 
 export default function SubscriptionAlertBanner({ storeId, subscription }: Props) {
-    const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [showModal, setShowModal] = useState(false)
-    const [selectedPlan, setSelectedPlan] = useState<'BASIC' | 'PRO'>(subscription.plan)
+    const [errorMessage, setErrorMessage] = useState('')
 
     const handleQuickRenew = (plan: 'BASIC' | 'PRO') => {
+        setErrorMessage('')
         startTransition(async () => {
-            if (plan === 'PRO' && subscription.plan === 'BASIC') {
-                await upgradeToProPlan(storeId)
-            } else {
-                await processSubscriptionPayment(storeId, plan, 30)
+            try {
+                const res = await createVexpayCheckout(storeId, plan)
+                if (res.success && res.checkoutUrl) {
+                    window.location.href = res.checkoutUrl
+                } else {
+                    setErrorMessage('No se pudo generar la sesión de pago con VEXPay.')
+                }
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : 'Error al conectar con VEXPay'
+                setErrorMessage(msg)
             }
-            setShowModal(false)
-            router.refresh()
         })
     }
 
@@ -56,16 +59,16 @@ export default function SubscriptionAlertBanner({ storeId, subscription }: Props
                         onClick={() => setShowModal(true)}
                         className="w-full sm:w-auto bg-white hover:bg-zinc-100 text-zinc-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shrink-0 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
-                        <span>Renovar Plan ({subscription.planDetails.price}$/mes)</span>
+                        <span>Renovar Plan ({subscription.planDetails.price}$/mes en Bs)</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                 </div>
 
                 {showModal && (
                     <RenewalModal
-                        storeId={storeId}
                         currentPlan={subscription.plan}
                         isPending={isPending}
+                        errorMessage={errorMessage}
                         onClose={() => setShowModal(false)}
                         onRenew={handleQuickRenew}
                     />
@@ -92,7 +95,7 @@ export default function SubscriptionAlertBanner({ storeId, subscription }: Props
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button
                         onClick={() => setShowModal(true)}
-                        className="text-[11px] font-bold text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-all"
+                        className="text-[11px] font-bold text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-lg transition-all cursor-pointer"
                     >
                         Administrar Plan
                     </button>
@@ -100,9 +103,9 @@ export default function SubscriptionAlertBanner({ storeId, subscription }: Props
 
                 {showModal && (
                     <RenewalModal
-                        storeId={storeId}
                         currentPlan={subscription.plan}
                         isPending={isPending}
+                        errorMessage={errorMessage}
                         onClose={() => setShowModal(false)}
                         onRenew={handleQuickRenew}
                     />
@@ -115,15 +118,15 @@ export default function SubscriptionAlertBanner({ storeId, subscription }: Props
 }
 
 function RenewalModal({
-    storeId,
     currentPlan,
     isPending,
+    errorMessage,
     onClose,
     onRenew,
 }: {
-    storeId: string
     currentPlan: 'BASIC' | 'PRO'
     isPending: boolean
+    errorMessage?: string
     onClose: () => void
     onRenew: (plan: 'BASIC' | 'PRO') => void
 }) {
@@ -134,7 +137,7 @@ function RenewalModal({
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-zinc-200 relative animate-scaleUp">
                 <button
                     onClick={onClose}
-                    className="absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 p-1 rounded-full transition-colors"
+                    className="absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 p-1 rounded-full transition-colors cursor-pointer"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -147,9 +150,15 @@ function RenewalModal({
                         Elige tu plan para continuar
                     </h2>
                     <p className="text-xs text-zinc-500">
-                        Selecciona el plan que mejor se adapte al funcionamiento de tu local gastronómico.
+                        Selecciona el plan para pagar mediante la pasarela segura VEXPay (en Bolívares a tasa oficial).
                     </p>
                 </div>
+
+                {errorMessage && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold text-center">
+                        {errorMessage}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Plan Básico 15$ */}
@@ -205,21 +214,11 @@ function RenewalModal({
                     <button
                         disabled={isPending}
                         onClick={() => onRenew(plan)}
-                        className="w-full bg-zinc-950 hover:bg-zinc-800 disabled:opacity-50 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3.5 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                     >
-                        <span>{isPending ? 'Procesando...' : `Confirmar y Activar 30 Días (${plan === 'BASIC' ? '$15' : '$25'})`}</span>
+                        <CreditCard className="w-4 h-4" />
+                        <span>{isPending ? 'Conectando con VEXPay...' : `Pagar con VEXPay en Bs (${plan === 'BASIC' ? '$15' : '$25'})`}</span>
                     </button>
-
-                    <a
-                        href={`https://wa.me/584243016454?text=${encodeURIComponent(
-                            `Hola, quiero realizar el pago de mi suscripción (${plan === 'BASIC' ? 'Plan Básico $15' : 'Plan Pro $25'}) para mi restaurante en Komy.`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full text-center block text-xs font-semibold text-zinc-500 hover:text-zinc-900 py-2 transition-colors"
-                    >
-                        O pagar vía WhatsApp con soporte ↗
-                    </a>
                 </div>
             </div>
         </div>

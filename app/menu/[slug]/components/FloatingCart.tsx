@@ -132,11 +132,8 @@ export default function FloatingCart({
     };
 
     const handleCedulaChange = (value: string) => {
-        // Permitir V, E, J, P al inicio + números, puntos y guiones — máximo 15 chars
-        const sanitized = value
-            .toUpperCase()
-            .replace(/[^0-9.\-]/g, '')
-            .slice(0, 15);
+        // Solo permitir números (0-9) — máximo 10 dígitos
+        const sanitized = value.replace(/\D/g, '').slice(0, 10);
         setCustomerCedula(sanitized);
     };
 
@@ -158,7 +155,7 @@ export default function FloatingCart({
     // Sesión de mesero activa pero sin ?mesa= → pedido bloqueado hasta elegir mesa
     const isBlockedWaiter = orderMode === 'whatsapp' && !!orderContext?.waiter && !orderContext?.table;
     // En modos mesa solo aplica "En el Local" (sin cédula/zonas/GPS)
-    const effectiveRequireCedula = requireCedula && !isTableOrder;
+    const effectiveRequireCedula = requireCedula;
 
     // Modos mesa: siempre "En el Local"
     useEffect(() => {
@@ -285,14 +282,36 @@ export default function FloatingCart({
                 return;
             }
             // Verificar que la cédula tenga al menos algunos dígitos
-            const cedulaDigits = customerCedula.replace(/[^0-9]/g, '');
-            if (cedulaDigits.length < 6 || cedulaDigits.length > 9) {
-                setFormError('La cédula debe tener entre 6 y 9 dígitos numéricos.');
-                setErrorField('cedula');
-                setShakeError(true);
-                setTimeout(() => setShakeError(false), 500);
-                scrollToField(cedulaInputRef.current);
-                return;
+            if (isTableOrder) {
+                if (customerCedula.trim()) {
+                    const cedulaDigits = customerCedula.replace(/\D/g, '');
+                    if (cedulaDigits.length < 5 || cedulaDigits.length > 10) {
+                        setFormError('La cédula debe contener entre 5 y 10 números.');
+                        setErrorField('cedula');
+                        setShakeError(true);
+                        setTimeout(() => setShakeError(false), 500);
+                        scrollToField(cedulaInputRef.current);
+                        return;
+                    }
+                }
+            } else {
+                if (!customerCedula.trim()) {
+                    setFormError('La cédula de identidad es obligatoria.');
+                    setErrorField('cedula');
+                    setShakeError(true);
+                    setTimeout(() => setShakeError(false), 500);
+                    scrollToField(cedulaInputRef.current);
+                    return;
+                }
+                const cedulaDigits = customerCedula.replace(/\D/g, '');
+                if (cedulaDigits.length < 5 || cedulaDigits.length > 10) {
+                    setFormError('La cédula debe contener entre 5 y 10 números.');
+                    setErrorField('cedula');
+                    setShakeError(true);
+                    setTimeout(() => setShakeError(false), 500);
+                    scrollToField(cedulaInputRef.current);
+                    return;
+                }
             }
         }
 
@@ -520,7 +539,7 @@ export default function FloatingCart({
                             <div className="p-5 space-y-4 border-b border-white/10 bg-white/[0.02]">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 text-[10px] font-bold text-white">1</span>
-                                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">Tus Datos</p>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-zinc-400">{orderMode === 'waiter' ? 'DATOS DEL CLIENTE' : 'Tus Datos'}</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
@@ -558,7 +577,11 @@ export default function FloatingCart({
                                     {effectiveRequireCedula && (
                                         <div>
                                             <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase tracking-wider">
-                                                Cédula de identidad <span style={{ color: themeColor }}>*</span>
+                                                {isTableOrder ? (
+                                                    <>Cédula de identidad <span className="text-zinc-600">(opcional)</span></>
+                                                ) : (
+                                                    <>Cédula de identidad <span style={{ color: themeColor }}>*</span></>
+                                                )}
                                             </label>
                                             <input
                                                 ref={cedulaInputRef}
@@ -566,8 +589,9 @@ export default function FloatingCart({
                                                 value={customerCedula}
                                                 onChange={e => handleCedulaChange(e.target.value)}
                                                 placeholder="Ej: 12345678"
-                                                maxLength={15}
-                                                inputMode="text"
+                                                maxLength={10}
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
                                                 className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 text-white placeholder-zinc-700 text-sm focus:outline-none transition-all ${
                                                     errorField === 'cedula'
                                                         ? 'border-red-500/80 ring-2 ring-red-500/30 bg-red-500/[0.07]'

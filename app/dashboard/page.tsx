@@ -17,11 +17,11 @@ import {
     ColourPalette3Outlined,
     UserMultiple4Outlined,
 } from '@lineiconshq/free-icons'
-import { ChefHat } from 'lucide-react'
+import { ChefHat, TrendingUp } from 'lucide-react'
 import { getSubscriptionInfo } from '@/lib/subscription'
+import { getStoreAnalytics } from '@/src/actions/analytics'
 import SubscriptionLockedScreen from './components/SubscriptionLockedScreen'
 import SubscriptionAlertBanner from '@/app/components/SubscriptionAlertBanner'
-import SubscriptionDevTester from './components/SubscriptionDevTester'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -68,6 +68,12 @@ export default async function DashboardPage() {
 
     const totalCategories = store.categories.length
     const totalProducts = store.categories.reduce((acc, cat) => acc + cat.products.length, 0)
+
+    // Resumen analítico de los últimos 7 días para la tarjeta Bento de Estadísticas
+    const analyticsRes = await getStoreAnalytics(store.id, '7d')
+    const weeklyRevenue = analyticsRes.success && analyticsRes.data ? analyticsRes.data.totalRevenue : 0
+    const weeklyOrders = analyticsRes.success && analyticsRes.data ? analyticsRes.data.totalOrders : 0
+    const comboSharePercent = analyticsRes.success && analyticsRes.data ? analyticsRes.data.combos.comboSharePercent : 0
 
     return (
         <div className="min-h-screen bg-zinc-50 text-zinc-900 p-3 sm:p-4.5 lg:py-5 lg:px-6">
@@ -229,7 +235,34 @@ export default async function DashboardPage() {
                         </Link>
                     </div>
 
-                    {/* TARJETA 3: MESAS Y MESEROS (Sistema de Tres Menús) */}
+                    {/* TARJETA 3: ESTADÍSTICAS & VENTAS (T85) */}
+                    <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
+                        <div>
+                            <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                                <div className="w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+                                    <TrendingUp className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-emerald-600" />
+                                </div>
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    ${weeklyRevenue.toFixed(2)} (7d)
+                                </span>
+                            </div>
+
+                            <h2 className="text-sm sm:text-base font-bold text-zinc-900 mb-1">Estadísticas & Ventas</h2>
+                            <p className="text-xs text-zinc-500 leading-relaxed mb-3 sm:mb-3.5">
+                                Analiza ingresos, {weeklyOrders} {weeklyOrders === 1 ? 'pedido cerrado' : 'pedidos cerrados'}, platos estrella y rendimiento de combos ({comboSharePercent}% de ventas).
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/dashboard/estadisticas"
+                            className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium py-2.5 px-3.5 rounded-xl transition-all flex items-center justify-between shadow-sm"
+                        >
+                            <span>Ver Métricas</span>
+                            <span>→</span>
+                        </Link>
+                    </div>
+
+                    {/* TARJETA 4: MESAS Y MESEROS (Sistema de Tres Menús) */}
                     <div className="bg-white border border-zinc-200 rounded-2xl p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between shadow-sm hover:border-zinc-300 transition-colors">
                         <div>
                             <div className="flex items-center justify-between mb-2.5 sm:mb-3">
@@ -314,9 +347,6 @@ export default async function DashboardPage() {
                     <DashboardQRCard menuUrl={menuUrl} storeName={store.name} />
 
                 </div>
-
-                {/* Simulador para pruebas rápidas de suscripción (desarrollo/QA) */}
-                <SubscriptionDevTester storeId={store.id} subscription={subscription} />
 
             </div>
         </div>

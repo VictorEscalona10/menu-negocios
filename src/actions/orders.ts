@@ -131,12 +131,18 @@ export async function createPublicOrder(payload: CreateOrderPayload) {
 
         const itemsJson = JSON.stringify(formattedItems)
 
+        // C.I. normalizada: solo dígitos. Es el identificador único del cliente
+        // para el directorio de /dashboard/estadisticas (varias personas pueden
+        // llamarse igual, pero su cédula las distingue).
+        const cedulaDigits = (customerCedula || '').replace(/\D/g, '')
+        const safeCedula = /^\d{5,10}$/.test(cedulaDigits) ? cedulaDigits : null
+
         // Nombre a mostrar en el panel. En modos mesa/mesero sin nombre de
         // cliente se muestra la mesa (y el mesero si aplica).
         const cleanName = (customerName || '').trim()
         let customerDisplayName: string
         if (cleanName) {
-            customerDisplayName = customerCedula ? `${cleanName} (C.I: ${customerCedula.trim()})` : cleanName
+            customerDisplayName = safeCedula ? `${cleanName} (C.I: ${safeCedula})` : cleanName
         } else if (tableNumber) {
             customerDisplayName =
                 source === 'waiter' && waiterName ? `Mesa ${tableNumber} (${waiterName})` : `Mesa ${tableNumber}`
@@ -150,6 +156,7 @@ export async function createPublicOrder(payload: CreateOrderPayload) {
             INSERT INTO public.orders (
                 restaurant_id,
                 customer_name,
+                customer_cedula,
                 items,
                 total,
                 status,
@@ -160,6 +167,7 @@ export async function createPublicOrder(payload: CreateOrderPayload) {
             ) VALUES (
                 ${store.userId}::uuid,
                 ${customerDisplayName},
+                ${safeCedula},
                 ${itemsJson}::jsonb,
                 ${safeTotal},
                 'pending',

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     customer_name TEXT NOT NULL,
+    customer_cedula TEXT,                                -- C.I. normalizada (solo dígitos). Identificador único del cliente
     items JSONB NOT NULL DEFAULT '[]'::jsonb,
     total NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'cooking', 'completed', 'cancelled')),
@@ -33,12 +34,35 @@ ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS waiter_id TEXT;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS delivered_by TEXT;
 
+-- C.I. del cliente (T87) en instalaciones existentes (idempotente; también en la
+-- migración prisma/migrations/20261031120000_add_orders_customer_cedula).
+-- Se normaliza a solo dígitos. No lleva UNIQUE: es clave de agrupación.
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_cedula TEXT;
+COMMENT ON COLUMN public.orders.customer_cedula IS
+    'Número de cédula normalizado (solo dígitos). Identificador único del cliente dentro del restaurante.';
+
+-- Backfill de órdenes históricas creadas con el formato "Nombre (C.I: 12345678)"
+UPDATE public.orders
+SET customer_cedula = NULLIF(
+        regexp_replace(
+            substring(customer_name FROM '[(]C[.]I:[[:space:]]*([^)]+)[)]'),
+            '[^0-9]',
+            '',
+            'g'
+        ),
+        ''
+    )
+WHERE customer_cedula IS NULL
+  AND customer_name LIKE '%(C.I:%';
+
 -- Índices para optimizar las consultas y filtros en tiempo real
 CREATE INDEX IF NOT EXISTS idx_orders_restaurant_id ON public.orders(restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_source ON public.orders(source);
 CREATE INDEX IF NOT EXISTS idx_orders_waiter_id ON public.orders(waiter_id); -- "Mis pedidos" del mesero
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_cedula ON public.orders(restaurant_id, customer_cedula);
+CREATE INDEX IF NOT EXISTS idx_orders_restaurant_created ON public.orders(restaurant_id, created_at DESC);
 
 -- 2. ACTIVACIÓN DE ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;

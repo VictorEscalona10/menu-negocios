@@ -8,7 +8,8 @@
 > **Parte I (FASE 1-7):** Advanced Customization System.
 > **Parte II (FASE 8-13, T34-T50):** Sistema de Tres Menús (WhatsApp / Mesero / Mesa QR) — diseño en `docs/DESIGN.md` §9-17. **[x] Ejecutada.**
 > **Parte III (FASE 14, T51-T62):** Panel del mesero `/mesero/[slug]` + estado "Entregado" + fin del acceso "¿Eres mesero?" en el menú público — diseño en `docs/DESIGN.md` §13.3, §18-20. **[x] Ejecutada.**
-> **Parte IV (FASE 15, T63-T76):** Sistema de Suscripciones, Planes y Control de Acceso (Básico $15 / Pro $25, 15d prueba, 5d gracia, bloqueo sin pérdida de datos, simulación) — diseño en `docs/DESIGN.md` §21. **[ ] Pendiente.**
+> **Parte IV (FASE 15, T63-T76):** Sistema de Suscripciones, Planes y Control de Acceso (Básico $15 / Pro $25, 15d prueba, 5d gracia, bloqueo sin pérdida de datos, pasarela VexPay en Bs) — diseño en `docs/DESIGN.md` §21. **[x] Ejecutada.**
+> **Parte V (FASE 16, T77-T86):** Módulo de Estadísticas, Combos y Analítica de Ventas (Platos más pedidos, menos vendidos, rendimiento de combos, ingresos y tendencias) — diseño en `docs/DESIGN.md` §22. **[ ] Pendiente.**
 
 ---
 
@@ -663,3 +664,90 @@ Todas las actions son `'use server'` con auth + ownership check (mismo patrón q
 - [x] Validar flujo 2: Tienda activa -> Simular vencimiento de mes -> Banner de 5 días de gracia -> Simular gracia vencida -> Sistema bloqueado
 - [x] Validar flujo 3: Tienda con Plan Básico -> Comprobar que no puede entrar a customization, mesas ni pedidos -> Realizar Upgrade -> Acceso concedido
 - [x] Validar flujo 4: Menú público `/menu/[slug]` de tienda bloqueada muestra pantalla de mantenimiento sin borrar nada de la base de datos
+
+---
+
+## FASE 16: Módulo de Estadísticas, Combos y Analítica de Ventas (docs/DESIGN.md §22)
+
+### T77. Server Action de Agregación de Datos (`src/actions/analytics.ts`)
+- [x] Crear Server Action `getStoreAnalytics(storeId: string, range: 'today' | '7d' | '30d' | 'month' | 'custom', customFrom?: Date, customTo?: Date)`
+- [x] Validar autenticación de Supabase y propiedad de la tienda (`verifyStoreOwnership`)
+- [x] Ejecutar consulta optimizada sobre `public.orders` extrayendo `jsonb_array_elements(items)`
+- [x] Filtrar pedidos activos: excluir `status = 'cancelled'`
+- [x] Calcular métricas globales: Facturación Total ($), Total de Pedidos y Ticket Promedio
+
+### T78. Algoritmo y Métricas Exclusivas de Combos
+- [x] Cruzar nombres/IDs de ítems vendidos con la tabla `Product` del local (`isCombo: true`, `comboBadge`)
+- [x] Calcular ingresos totales provenientes de combos vs platos individuales
+- [x] Calcular porcentaje de penetración de combos (`comboRevenue / totalRevenue * 100`)
+- [x] Generar ranking de los Combos más pedidos con insignia promocional (`comboBadge`)
+
+### T79. Ingeniería de Menú: Platos Más y Menos Vendidos
+- [x] Generar Top de platos más vendidos ordenables por:
+  - Volumen (unidades pedidas)
+  - Facturación ($ aportado al negocio)
+- [x] Consultar el catálogo completo de productos del local para identificar platos con **0 ventas** o menor rotación en el período
+- [x] Formatear lista de "Alerta de Baja Rotación" con badges visuales para sugerir promociones o revisión de stock
+
+### T80. Reglas de Negocio por Plan (Gatekeeping Analítico)
+- [x] Validar plan de la tienda (`getSubscriptionInfo`):
+  - **Plan Básico:** Restringir rangos a 7 y 30 días, ranking Top 5, métricas globales consolidadas
+  - **Plan Pro:** Habilitar selector libre de fechas, ranking ilimitado, desglose por canal (`whatsapp`, `table`, `waiter`) y rendimiento por mesero
+- [x] Para tiendas bloqueadas (`isBlocked`): redirigir a `/dashboard` para mostrar pantalla de bloqueo
+
+### T81. Página Principal de Estadísticas (`app/dashboard/estadisticas/page.tsx`)
+- [x] Crear la página del servidor con `export const dynamic = 'force-dynamic'`
+- [x] Cargar datos analíticos iniciales según el período por defecto (últimos 7 días)
+- [x] Incluir cabecera coherente con botón de regreso al resumen del dashboard
+
+### T82. Componente de Tarjetas KPI (`AnalyticsSummaryCards.tsx`)
+- [x] Card 1: Facturación Total ($)
+- [x] Card 2: Total de Pedidos procesados
+- [x] Card 3: Ticket Promedio por orden
+- [x] Card 4: Rendimiento de Combos (% facturación y combo más exitoso)
+
+### T83. Tablas de Ranking de Platos y Combos (`TopProductsRanking.tsx` y `LowRotationAlertCard.tsx`)
+- [x] Tabla interactiva con selector de vista: *"Más Vendidos"* vs *"Mayor Facturación"*
+- [x] Insignia visual destacada para identificar Combos (`Combo` o `comboBadge`)
+- [x] Barra de progreso porcentual relativa al plato #1
+- [x] Tarjeta de alerta de productos con baja rotación (0 o pocas ventas)
+
+### T84. Gráfico Visual de Evolución de Ventas (`SalesTrendChart.tsx`)
+- [x] Gráfico de barras o líneas agrupado por día para el rango seleccionado
+- [x] Resaltar días de mayor facturación (fines de semana / promociones)
+- [x] Tooltip interactivo con fecha, monto total y cantidad de pedidos
+
+### T85. Integración con el Dashboard (`app/dashboard/page.tsx`)
+- [x] Agregar tarjeta Bento Grid en el dashboard principal: *"Estadísticas & Ventas"*
+- [x] Mostrar resumen rápido en la tarjeta (ej: ventas del día o total de pedidos de la semana)
+- [x] Botón *"Ver Métricas →"* hacia `/dashboard/estadisticas`
+
+### T86. Verificación, QA y Smoke Testing
+- [ ] Validar con órdenes de prueba de diferentes orígenes (WhatsApp, mesa, mesero)
+- [ ] Comprobar que los combos se clasifiquen correctamente tanto en órdenes individuales como mixtas
+- [ ] Comprobar que en Plan Básico se limiten los filtros adecuadamente sin romper la interfaz
+- [x] `npx tsc --noEmit` y `npm run build` sin errores
+
+### T87. C.I. como identificador único del cliente (`customer_cedula`)
+- [x] Migración manual `20261031120000_add_orders_customer_cedula`: columna `customer_cedula TEXT`, backfill desde `customer_name` e índices `(restaurant_id, customer_cedula)` y `(restaurant_id, created_at DESC)`
+- [x] Actualizar `prisma/sql/orders-realtime.sql` (columna, backfill e índices idempotentes)
+- [x] `createPublicOrder` normaliza la cédula a dígitos (5–10) y la guarda en `customer_cedula` (no se agrega `UNIQUE`: es clave de agrupación)
+- [x] `npx prisma migrate deploy` aplicado en la base de datos
+
+### T88. Server Actions de historial y clientes (`src/actions/order-history.ts`)
+- [x] `getStoreOrdersHistory`: período o `allTime`, filtro por estado, búsqueda por C.I./nombre, paginación, conteos y órdenes sin C.I.
+- [x] `getStoreCustomers`: agrupación por C.I. normalizada, ranking por pedidos/gasto/reciente, resumen de únicos/recurrentes/sin C.I. y nombres distintos por cliente
+- [x] Validar `verifyStoreOwnership`, filtrar por `restaurant_id` y aplicar gatekeeping de rangos por plan
+- [x] Resolvedor de fechas compartido (`lib/analytics-range.ts`) y corrección del día final exclusivo (`created_at < endExclusive`)
+
+### T89. UI de historial y clientes en `/dashboard/estadisticas`
+- [x] `OrdersHistoryCard.tsx`: tabla, detalle expandible, filtros por estado, búsqueda, paginación y botón "Ver todo el historial"
+- [x] `CustomersRankingCard.tsx`: ranking por C.I., resumen, búsqueda, orden y toggle "Todo el historial / Período actual" con aviso de identificador único
+- [x] Integrar ambas secciones en `app/dashboard/estadisticas/page.tsx` con navegación interna
+
+### T90. QA del historial y clientes
+- [x] `npx tsc --noEmit` sin errores
+- [x] `npm run build` sin errores
+- [x] Validar SQL de agrupación por C.I. contra la base de datos (backfill y múltiples nombres para una misma C.I.)
+- [ ] Probar en navegador: paginación, búsqueda, filtros por estado, toggle de período y planes Básico/Pro
+- [ ] Confirmar que un pedido de mesa/mesero sin C.I. no aparece en el ranking pero sí en el historial

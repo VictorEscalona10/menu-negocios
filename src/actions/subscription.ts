@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { PlanType } from '@/lib/subscription'
+import { vexpay } from '@/lib/vexpay'
+import { headers } from 'next/headers'
 
 /**
  * Valida que el usuario autenticado sea el dueño legítimo del Store
@@ -34,7 +36,7 @@ export async function verifyStoreOwnership(storeId: string) {
 /**
  * Resuelve el registro de la tabla Plan por su código ('BASIC' | 'PRO')
  */
-async function getPlanByCode(code: PlanType) {
+export async function getPlanByCode(code: PlanType) {
     const plan = await prisma.plan.findUnique({
         where: { code },
     })
@@ -60,7 +62,7 @@ async function getPlanByCode(code: PlanType) {
 /**
  * Revalida todas las rutas afectadas por cambios en suscripción
  */
-function revalidateAllSubscriptionRoutes(slug: string) {
+export async function revalidateAllSubscriptionRoutes(slug: string) {
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/settings')
     revalidatePath('/dashboard/customization')
@@ -93,95 +95,12 @@ export async function activateFreeTrial(storeId: string, planCode: PlanType) {
         },
     })
 
-    revalidateAllSubscriptionRoutes(store.slug)
+    await revalidateAllSubscriptionRoutes(store.slug)
     return { success: true }
 }
 
 /**
- * Simulación de pago o registro de suscripción por 30 días (para pruebas antes de VexPay)
- */
-export async function processSubscriptionPayment(storeId: string, planCode?: PlanType, days: number = 30) {
-    const { store } = await verifyStoreOwnership(storeId)
-
-    const targetCode: PlanType = planCode || (store.plan?.code as PlanType) || 'BASIC'
-    const planRecord = await getPlanByCode(targetCode)
-
-    const startsAt = new Date()
-    const periodEndsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
-
-    // 1. Crear registro de pago / transacción para auditoría
-    await prisma.subscriptionPayment.create({
-        data: {
-            storeId: store.id,
-            planId: planRecord.id,
-            amountUsd: planRecord.price,
-            gateway: 'SIMULATED',
-            status: 'APPROVED',
-            periodStartsAt: startsAt,
-            periodEndsAt: periodEndsAt,
-        },
-    })
-
-    // 2. Actualizar estado del Store a ACTIVE por 30 días
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            planId: planRecord.id,
-            subscriptionStatus: 'ACTIVE',
-            currentPeriodEnd: periodEndsAt,
-            gracePeriodEndsAt: null,
-            isActive: true,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: `Suscripción de ${days} días activada para el ${planRecord.name} ($${planRecord.price})` }
-}
-
-/**
- * Upgrade inmediato al Plan Pro ($25)
- */
-export async function upgradeToProPlan(storeId: string) {
-    const { store } = await verifyStoreOwnership(storeId)
-    const proPlan = await getPlanByCode('PRO')
-
-    const startsAt = new Date()
-    const periodEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-
-    // 1. Registrar recibo de pago de upgrade
-    await prisma.subscriptionPayment.create({
-        data: {
-            storeId: store.id,
-            planId: proPlan.id,
-            amountUsd: proPlan.price,
-            gateway: 'SIMULATED',
-            gatewayRef: 'UPGRADE-TO-PRO',
-            status: 'APPROVED',
-            periodStartsAt: startsAt,
-            periodEndsAt: periodEndsAt,
-        },
-    })
-
-    // 2. Actualizar negocio a PRO
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            planId: proPlan.id,
-            subscriptionStatus: 'ACTIVE',
-            currentPeriodEnd: periodEndsAt,
-            gracePeriodEndsAt: null,
-            isActive: true,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: '¡Has mejorado con éxito al Plan Pro! Todas las funciones avanzadas están desbloqueadas.' }
-}
-
-/**
- * Cambia el plan del negocio (ej. al renovar o en configuración)
+ * Cambia el plan configurado del negocio
  */
 export async function changePlanAction(storeId: string, newPlanCode: PlanType) {
     const { store } = await verifyStoreOwnership(storeId)
@@ -195,124 +114,80 @@ export async function changePlanAction(storeId: string, newPlanCode: PlanType) {
         },
     })
 
-    revalidateAllSubscriptionRoutes(store.slug)
+    await revalidateAllSubscriptionRoutes(store.slug)
     return { success: true, message: `Plan cambiado a ${planRecord.name}` }
 }
 
 // ==============================================================================
-// HERRAMIENTAS DE PRUEBA Y SIMULACIÓN PARA QA (Comprobar flujo antes de VexPay)
+// PASARELA DE PAGO VEXPAY — Pago en Bolívares (Pago Móvil / C2P)
 // ==============================================================================
 
 /**
- * 1. Simula que los 15 días de prueba se vencieron hoy -> Bloquea el sistema de inmediato
+ * Crea una sesión de checkout en VEXPay y retorna la URL de pago.
+ * El monto se envía en USD y VEXPay lo convierte automáticamente a Bs con tasa BCV.
  */
-export async function testSimulateTrialExpired(storeId: string) {
+export async function createVexpayCheckout(storeId: string, planCode: PlanType) {
     const { store } = await verifyStoreOwnership(storeId)
+    const planRecord = await getPlanByCode(planCode)
 
-    const expiredDate = new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 horas en el pasado
+    // Determinar la URL base
+    const headersList = await headers()
+    const host = headersList.get('host') || 'localhost:3000'
+    const protocol = headersList.get('x-forwarded-proto') || 'http'
+    const envUrl = process.env.NEXT_PUBLIC_URL?.trim()
+    const baseUrl = envUrl ? envUrl : `${protocol}://${host}`
 
-    await prisma.store.update({
-        where: { id: store.id },
+    // Referencia única para rastrear este pago
+    const reference = `sub_${store.id}_${planCode}_${Date.now()}`
+
+    // Obtener cotización oficial BCV en Bs para enriquecer el registro
+    let amountBs: number | null = null
+    let bcvRate: number | null = null
+    try {
+        const quote = await vexpay.quotes.retrieve({ usdAmount: planRecord.price })
+        if (quote) {
+            amountBs = quote.vesAmount
+            bcvRate = quote.bcvRate
+        }
+    } catch (err) {
+        console.warn('[VEXPay] No se pudo pre-calcular la tasa BCV:', err)
+    }
+
+    // Crear sesión en VEXPay (permite Pago Móvil / C2P en Bolívares al cambio oficial)
+    const session = await vexpay.checkout.sessions.create({
+        amountUsd: planRecord.price,
+        description: `Suscripción ${planRecord.name} — ${store.name}`,
+        reference,
+        successUrl: `${baseUrl}/dashboard/settings/pago?status=success&ref=${reference}`,
+        cancelUrl: `${baseUrl}/dashboard?payment=cancelled`,
+        allowedOrigins: [baseUrl],
+    })
+
+    // Calcular período: si ya tenía días activos futuros, sumamos los 30 días al período restante
+    const now = new Date()
+    const startsAt = store.currentPeriodEnd && new Date(store.currentPeriodEnd) > now
+        ? new Date(store.currentPeriodEnd)
+        : now
+    const periodEndsAt = new Date(startsAt.getTime() + planRecord.durationDays * 24 * 60 * 60 * 1000)
+
+    await prisma.subscriptionPayment.create({
         data: {
-            subscriptionStatus: 'TRIAL',
-            trialEndsAt: expiredDate,
-            currentPeriodEnd: null,
-            gracePeriodEndsAt: null,
-            subscriptionUpdatedAt: new Date(),
+            storeId: store.id,
+            planId: planRecord.id,
+            amountUsd: planRecord.price,
+            amountBs,
+            bcvRate,
+            gateway: 'VEXPAY',
+            gatewayRef: reference,
+            status: 'PENDING',
+            periodStartsAt: startsAt,
+            periodEndsAt: periodEndsAt,
         },
     })
 
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: 'Prueba de 15 días vencida simulada (Sistema Bloqueado)' }
-}
-
-/**
- * 2. Simula que la suscripción paga venció y entra en los 5 días de gracia -> Muestra banner de alerta
- */
-export async function testSimulateGracePeriod(storeId: string, daysLeft: number = 3) {
-    const { store } = await verifyStoreOwnership(storeId)
-
-    const pastPaidEnd = new Date(Date.now() - 24 * 60 * 60 * 1000) // Venció ayer
-    const graceEnd = new Date(Date.now() + daysLeft * 24 * 60 * 60 * 1000) // Le quedan X días de gracia
-
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            subscriptionStatus: 'ACTIVE',
-            currentPeriodEnd: pastPaidEnd,
-            gracePeriodEndsAt: graceEnd,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: `Período de gracia activado con ${daysLeft} días restantes (Banner visible)` }
-}
-
-/**
- * 3. Simula que se vencieron los 5 días de gracia y no pagó -> Bloquea el sistema
- */
-export async function testSimulateGraceExpired(storeId: string) {
-    const { store } = await verifyStoreOwnership(storeId)
-
-    const pastPaidEnd = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Venció hace 7 días
-    const pastGraceEnd = new Date(Date.now() - 2 * 60 * 60 * 1000) // Gracia venció hace 2 horas
-
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            subscriptionStatus: 'ACTIVE',
-            currentPeriodEnd: pastPaidEnd,
-            gracePeriodEndsAt: pastGraceEnd,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: 'Período de gracia de 5 días expirado (Sistema Bloqueado)' }
-}
-
-/**
- * 4. Reinicia la prueba a 15 días limpios
- */
-export async function testResetTrial(storeId: string) {
-    const { store } = await verifyStoreOwnership(storeId)
-
-    const freshTrialEnd = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            subscriptionStatus: 'TRIAL',
-            trialEndsAt: freshTrialEnd,
-            currentPeriodEnd: null,
-            gracePeriodEndsAt: null,
-            isActive: true,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: 'Prueba de 15 días restaurada correctamente' }
-}
-
-/**
- * 5. Alterna entre Plan Básico y Plan Pro para probar restricciones
- */
-export async function testTogglePlan(storeId: string) {
-    const { store } = await verifyStoreOwnership(storeId)
-    const currentCode = store.plan?.code || 'BASIC'
-    const newCode: PlanType = currentCode === 'PRO' ? 'BASIC' : 'PRO'
-    const newPlan = await getPlanByCode(newCode)
-
-    await prisma.store.update({
-        where: { id: store.id },
-        data: {
-            planId: newPlan.id,
-            subscriptionUpdatedAt: new Date(),
-        },
-    })
-
-    revalidateAllSubscriptionRoutes(store.slug)
-    return { success: true, message: `Plan cambiado a ${newPlan.name} para pruebas` }
+    return {
+        success: true,
+        checkoutUrl: session.url,
+        sessionId: session.id,
+    }
 }

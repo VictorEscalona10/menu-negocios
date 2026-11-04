@@ -946,7 +946,124 @@ La evaluación del estado de suscripción se realiza de forma **determinista y e
 
 ---
 
+## 22. Módulo de Estadísticas y Analítica del Restaurante (Ingeniería de Menú & Combos)
+
+### 22.1 Visión General y Propósito
+El módulo de estadísticas proporciona al restaurantero visibilidad financiera y operativa de su negocio en tiempo real. Permite identificar de inmediato:
+1. **Los platos y combos más pedidos** (volumen de ventas).
+2. **Los platos y combos que más facturan** (ingresos totales generados).
+3. **Los platos y combos de baja rotación** (menos vendidos o con 0 ventas en el período), para prevenir mermas de inventario.
+4. **El impacto y rendimiento exclusivo de los Combos** (`Product.isCombo === true` y `comboBadge`), midiendo qué porcentaje de la facturación proviene de promociones y combos vs platos individuales.
+5. **Evolución del ticket promedio** y volumen de pedidos a lo largo del tiempo.
+
+El módulo está disponible para **todos los planes (Básico y Pro)**, con una graduación de profundidad analítica adaptada a cada nivel.
+
+---
+
+### 22.2 Diferenciación de Analítica por Plan
+
+| Característica / Métrica | Plan Básico ($15/mes) | Plan Pro ($25/mes) |
+| :--- | :---: | :---: |
+| **Rango de Fechas** | Últimos 7 y 30 días | Personalizado (Hoy, 7d, 30d, Mes actual, Rango libre) |
+| **KPIs Globales** (Facturación, Pedidos, Ticket Promedio) | ✅ Incluido | ✅ Incluido (con comparativa % vs período anterior) |
+| **Top Platos Más Vendidos** | Top 5 | Ilimitado con ranking completo |
+| **Top Combos & Promociones** | Top 5 Combos | Ranking completo de combos + badge de combo |
+| **Platos Menos Vendidos (0 o bajas ventas)** | Top 5 en riesgo | Catálogo completo con alerta de merma |
+| **Métrica de Penetración de Combos** (% de facturación combo) | ✅ Incluido | ✅ Incluido con tendencia temporal |
+| **Desglose por Canal** (WhatsApp vs Mesa QR vs Mesero) | ❌ Consolidado | ✅ Desglosado por cada canal de venta |
+| **Rendimiento de Meseros** (Comandas y total facturado) | ❌ No aplica | ✅ Ranking por mesero |
+| **Horas Pico & Días con Mayor Demanda** | ❌ No | ✅ Mapa de calor de horas y días |
+| **Exportación de Datos** | ❌ No | ✅ Descarga en CSV / Excel |
+
+---
+
+### 22.3 Modelo de Datos y Fuente de Verdad
+
+El motor de analítica no requiere tablas redundantes. Se apoya en las tablas ya existentes con consultas SQL optimizadas:
+
+1. **`public.orders`**:
+   - `restaurant_id`: Relación con el usuario dueño del negocio.
+   - `items`: Columna `JSONB` estructurada como `[{ id?, name, quantity, price, notes?, modifiers? }]`.
+   - `total`: Monto total de la orden.
+   - `status`: Solo se contabilizan pedidos con estado `'pending'`, `'cooking'`, `'completed'` (se excluyen `'cancelled'`).
+   - `source`: `'whatsapp' | 'table' | 'waiter'` (usado en Plan Pro para desglose).
+   - `waiter_id` / `waiter_name`: Para analítica por mesero en Plan Pro.
+   - `created_at`: Filtro de fechas en zona horaria local.
+
+2. **`Product` (Prisma)**:
+   - Se consulta el catálogo activo del local (`isAvailable: true`, `isCombo`, `comboBadge`, `price`, `categoryId`).
+   - Se realiza un *Left Join* o correlación en memoria entre los platos ordenados y el catálogo completo para identificar **platos con 0 ventas**.
+   - Los productos con `isCombo: true` se etiquetan y segregan automáticamente para el análisis de combos.
+
+---
+
+### 22.4 Algoritmo de Cálculo y Agregaciones (Server Action: `getStoreAnalytics`)
+
+1. **Agregación de Items JSONB:**
+   ```sql
+   SELECT 
+     item->>'name' AS item_name,
+     SUM((item->>'quantity')::int) AS total_quantity,
+     SUM(((item->>'quantity')::int) * ((item->>'price')::numeric)) AS total_revenue
+   FROM public.orders,
+        jsonb_array_elements(items) AS item
+   WHERE restaurant_id = $1::uuid
+     AND status != 'cancelled'
+     AND created_at >= $2 AND created_at <= $3
+   GROUP BY item->>'name'
+   ORDER BY total_quantity DESC;
+   ```
+
+2. **Cálculo de Combos vs Platos Individuales:**
+   - Cruce de `item_name` con la tabla `Product` para obtener `isCombo` y `comboBadge`.
+   - `comboRevenue = SUM(total_revenue WHERE isCombo = true)`
+   - `individualRevenue = SUM(total_revenue WHERE isCombo = false)`
+   - `comboSharePercent = (comboRevenue / totalRevenue) * 100`
+
+3. **Detección de Platos Menos Vendidos (Alerta de Menú):**
+   - Se extraen todos los productos de `Product` pertenecientes al `storeId`.
+   - Para cada producto del catálogo que no figure en los ítems vendidos del período, se le asigna `quantity: 0`, `revenue: 0`.
+   - Se ordenan ascendentemente por cantidad vendida para alertar al restaurantero sobre platos estancados.
+
+---
+
+### 22.5 Interfaz de Usuario y Componentes (`/dashboard/estadisticas`)
+
+- **Ruta:** [`app/dashboard/estadisticas/page.tsx`](file:///d:/dev/menu-negocios/app/dashboard/estadisticas/page.tsx)
+- **Componentes Modulares:**
+  1. **`AnalyticsSummaryCards.tsx`**: 4 tarjetas de métricas destacadas (Ventas Totales, Número de Pedidos, Ticket Promedio, Ratio de Ventas por Combos).
+  2. **`ComboAnalyticsCard.tsx`**: Widget dedicado al análisis de combos (Combo más vendido, ticket promedio con combo vs sin combo, gráfica proporcional).
+  3. **`TopProductsRanking.tsx`**: Tabla interactiva con pestañas: *"Más Vendidos (Cantidad)"* y *"Mayor Facturación ($)"*, con insignia especial para platos combo.
+  4. **`LowRotationAlertCard.tsx`**: Sección de advertencia que lista platos con baja o nula rotación para optimización de compras e insumos.
+  5. **`SalesTrendChart.tsx`**: Gráfico visual de evolución de ventas diarias.
+  6. **`ChannelBreakdownCard.tsx`** *(Exclusivo Pro)*: Distribución de pedidos por WhatsApp vs Mesas vs Meseros.
+  7. **`AnalyticsDateSelector.tsx`**: Selector de período dinámico (*Hoy*, *7 Días*, *30 Días*, *Mes actual*).
+
+---
+
+### 22.6 Historial de Órdenes y Directorio de Clientes por C.I.
+
+**Objetivo.** Que el restaurante consulte el detalle de todas sus órdenes y a todos los clientes que han hecho pedidos, usando la **cédula de identidad (C.I.) como identificador único**: dos personas pueden llamarse igual, pero son clientes distintos si su C.I. difiere.
+
+**Modelo de datos.**
+- `public.orders.customer_cedula TEXT`: cédula normalizada a solo dígitos (`V-12.345.678` → `12345678`). **No es `UNIQUE`**: un cliente tiene muchas órdenes; es una clave de agrupación.
+- Backfill de órdenes históricas desde `customer_name` (`"Nombre (C.I: 12345678)"`) en la migración `20261031120000_add_orders_customer_cedula` y en el documento vivo `prisma/sql/orders-realtime.sql`.
+- `createPublicOrder` (`src/actions/orders.ts`) normaliza y valida la cédula (5–10 dígitos) antes de insertar.
+- Los pedidos sin C.I. (mesa/mesero o locales con `requireCedula = false`) se muestran en el historial, pero no se atribuyen a un cliente en el ranking.
+
+**Server Actions (`src/actions/order-history.ts`).**
+- `getStoreOrdersHistory`: historial paginado por período o `allTime`, filtros por estado y búsqueda por C.I./nombre; incluye canceladas. Devuelve conteos por estado y total de órdenes sin C.I.
+- `getStoreCustomers`: agrupa por `COALESCE(customer_cedula, C.I. extraída de customer_name)`, excluye canceladas y devuelve pedidos, gasto, ticket promedio, primer/último pedido y cantidad de nombres distintos por C.I. Por defecto cubre **todo el historial** (`allTime: true`).
+- Ambas validan `verifyStoreOwnership`, filtran por `restaurant_id` y aplican `normalizeAnalyticsRange` (Básico: 7/30 días; Pro: rangos libres).
+
+**UI (`/dashboard/estadisticas`).**
+- `OrdersHistoryCard.tsx`: tabla con fecha, cliente/C.I., origen, ítems, total y estado; fila expandible con el detalle; paginación; botón *"Ver todo el historial"*.
+- `CustomersRankingCard.tsx`: resumen (clientes únicos, recurrentes y pedidos sin C.I.), orden por *Más pedidos / Mayor gasto / Más reciente*, búsqueda y aviso explícito de que la C.I. es el identificador único; toggle *"Todo el historial / Período actual"*.
+- Las fechas se muestran en `America/Caracas` (constante `DISPLAY_TIME_ZONE` en la action). Pendiente: `Store.timeZone` para locales fuera de Venezuela.
+
+---
+
 *Document generated for Spec-Driven Development (SDD)*
 *Project: Menu Negocios Platform*
-*Version: 2.2 - Advanced Customization System + Tres Menús + Sistema de Suscripciones y Planes*
-*Last updated: October 28, 2026*
+*Version: 2.4 - ACS + Tres Menús + Suscripciones + Estadísticas, Historial y Clientes por C.I.*
+*Last updated: October 31, 2026*
