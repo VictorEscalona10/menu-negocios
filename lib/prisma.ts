@@ -10,7 +10,7 @@ const prismaClientSingleton = () => {
     // En entornos serverless mantenemos el límite en 1 conexión por función para no saturar el pooler
     max: process.env.NODE_ENV === 'production' ? 1 : 10,
     idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 15000,
   })
   const adapter = new PrismaPg(pool)
 
